@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Interview Fix Verification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        h1 { color: #4CAF50; }
+        h2 { color: #2196F3; margin-top: 30px; }
+        .status { 
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        .success { 
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+        }
+        .error { 
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+        }
+        .info { 
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 4px solid #2196F3;
+        }
+        .warning {
+            background: rgba(255, 152, 0, 0.2);
+            border-left: 4px solid #FF9800;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { opacity: 0.9; }
+        code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #4CAF50;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+        }
+        .checklist li::before {
+            content: "☐ ";
+            margin-right: 8px;
+        }
+        .checklist li.checked::before {
+            content: "✅ ";
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Mock Interview Fix Verification</h1>
+        <p>This page verifies that the "Start Interview" button now works correctly.</p>
+    </div>
+
+    <div class="test-container">
+        <h2>🐛 Root Cause Identified</h2>
+        <div class="error">
+            <strong>PRIMARY ISSUE:</strong> IIFE did not return a public API
+            <pre>const MockInterview = (function() {
+    // ... all functions here ...
+})(); // ❌ Returns undefined!
+
+// This failed silently:
+MockInterview.init(); // undefined.init() = TypeError (silent)</pre>
+        </div>
+
+        <div class="success">
+            <strong>FIX APPLIED:</strong> Added return statement
+            <pre>const MockInterview = (function() {
+    // ... all functions here ...
+    
+    // ==================== PUBLIC API ====================
+    return {
+        init: init  // ✅ Now exposes init function
+    };
+})();</pre>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🔍 Diagnostic Tests</h2>
+        <div id="test-results"></div>
+        <button onclick="runDiagnostics()">Run Diagnostics</button>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Manual Testing</h2>
+        <ol>
+            <li>
+                <strong>Setup Test Data:</strong>
+                <button onclick="setupTestData()">Set Track & Level</button>
+                <div id="setup-status" class="status info" style="display:none;"></div>
+            </li>
+            <li>
+                <strong>Check Console Logs:</strong>
+                <p>Open browser console (F12) - you should see:</p>
+                <pre>[Mock Interview] Initializing module...
+[Mock Interview] Setting up event listeners...
+[Mock Interview] Loading user info: {trackId: "1", trackName: "Full-Stack Developer", level: "Intermediate"}
+[Mock Interview] Initialization complete.</pre>
+            </li>
+            <li>
+                <strong>Test Button Click:</strong>
+                <button onclick="testButtonClick()">Simulate Start Click</button>
+                <div id="click-status" class="status info" style="display:none;"></div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-container">
+        <h2>✅ Fix Verification Checklist</h2>
+        <ul class="checklist">
+            <li id="check-1">MockInterview object is defined globally</li>
+            <li id="check-2">MockInterview.init is a function</li>
+            <li id="check-3">Start button element exists in DOM</li>
+            <li id="check-4">Click event listener is attached</li>
+            <li id="check-5">Track and Level display correctly (not "Loading...")</li>
+            <li id="check-6">Console shows initialization logs</li>
+            <li id="check-7">Clicking button triggers startNewInterview()</li>
+            <li id="check-8">State transitions from IDLE to active interview</li>
+        </ul>
+        <button onclick="verifyChecklist()">Verify All Items</button>
+    </div>
+
+    <div class="test-container">
+        <h2>📋 Changes Made</h2>
+        <div class="success">
+            <strong>1. Added Public API Return Statement</strong>
+            <ul>
+                <li>File: <code>mock-interview.js</code></li>
+                <li>Location: End of IIFE (before closing parentheses)</li>
+                <li>Impact: Exposes <code>init</code> function to global scope</li>
+            </ul>
+        </div>
+        <div class="success">
+            <strong>2. Added Console Logging</strong>
+            <ul>
+                <li>Init function: Start/end logs</li>
+                <li>setupEventListeners: Button attachment confirmation</li>
+                <li>startNewInterview: Entry log + validation logs</li>
+                <li>State transitions: Screen changes, question display, timer start</li>
+            </ul>
+        </div>
+        <div class="success">
+            <strong>3. Enhanced Error Handling</strong>
+            <ul>
+                <li>Logs warning if start button not found</li>
+                <li>Validates track/level before allowing interview start</li>
+                <li>Shows user-friendly error message if validation fails</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🚀 Next Steps</h2>
+        <ol>
+            <li>Open <code>index.html</code> in browser</li>
+            <li>Navigate to Mock Interview page</li>
+            <li>Open browser console (F12)</li>
+            <li>Verify initialization logs appear</li>
+            <li>Click "Start Interview" button</li>
+            <li>Verify interview starts and question 1 displays</li>
+        </ol>
+    </div>
+
+    <script>
+        function runDiagnostics() {
+            const results = document.getElementById('test-results');
+            let html = '';
+
+            // Test 1: MockInterview exists
+            if (typeof MockInterview !== 'undefined') {
+                html += '<div class="status success">✅ MockInterview object is defined</div>';
+            } else {
+                html += '<div class="status error">❌ MockInterview is undefined</div>';
+            }
+
+            // Test 2: init function exists
+            if (typeof MockInterview !== 'undefined' && typeof MockInterview.init === 'function') {
+                html += '<div class="status success">✅ MockInterview.init is a function</div>';
+            } else {
+                html += '<div class="status error">❌ MockInterview.init is not accessible</div>';
+            }
+
+            // Test 3: Check localStorage
+            const trackId = localStorage.getItem('selectedTrackId');
+            const level = localStorage.getItem('currentUserLevel');
+            if (trackId && level) {
+                html += `<div class="status success">✅ Track & Level in localStorage: ${trackId}, ${level}</div>`;
+            } else {
+                html += '<div class="status warning">⚠️ Track or Level not set in localStorage</div>';
+            }
+
+            results.innerHTML = html;
+        }
+
+        function setupTestData() {
+            localStorage.setItem('selectedTrackId', '1');
+            localStorage.setItem('selectedTrackName', 'Full-Stack Developer');
+            localStorage.setItem('currentUserLevel', 'Intermediate');
+            
+            const status = document.getElementById('setup-status');
+            status.style.display = 'block';
+            status.className = 'status success';
+            status.innerHTML = '✅ Test data configured:<br>Track: Full-Stack Developer<br>Level: Intermediate';
+        }
+
+        function testButtonClick() {
+            const status = document.getElementById('click-status');
+            
+            // Check if we're on a page with the mock interview
+            const btn = document.getElementById('start-interview-btn');
+            
+            if (!btn) {
+                status.style.display = 'block';
+                status.className = 'status warning';
+                status.innerHTML = '⚠️ This test only works on the actual Mock Interview page.<br>Open <code>index.html</code> and navigate to Mock Interview.';
+                return;
+            }
+
+            status.style.display = 'block';
+            status.className = 'status info';
+            status.innerHTML = '🔍 Check the browser console for logs from the click event...';
+            
+            // Trigger click
+            btn.click();
+        }
+
+        function verifyChecklist() {
+            // Check 1: MockInterview defined
+            if (typeof MockInterview !== 'undefined') {
+                document.getElementById('check-1').classList.add('checked');
+            }
+
+            // Check 2: init function
+            if (typeof MockInterview !== 'undefined' && typeof MockInterview.init === 'function') {
+                document.getElementById('check-2').classList.add('checked');
+            }
+
+            // Check 3: Button exists
+            const btn = document.getElementById('start-interview-btn');
+            if (btn) {
+                document.getElementById('check-3').classList.add('checked');
+            }
+
+            // Check 5: Track/Level
+            const trackElem = document.getElementById('interview-track-name');
+            const levelElem = document.getElementById('interview-level-name');
+            if (trackElem && levelElem && 
+                trackElem.textContent !== 'Loading...' && 
+                levelElem.textContent !== 'Loading...') {
+                document.getElementById('check-5').classList.add('checked');
+            }
+
+            alert('Checklist verification complete! Green checkmarks indicate passing tests.');
+        }
+
+        // Auto-run diagnostics on load
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostics, 500);
+        });
+    </script>
+</body>
+</html>

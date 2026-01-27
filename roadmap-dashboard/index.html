@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillForge</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="coding-arena-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="theme-dark"> 
+    <div class="app-layout">
+        <!-- GLOBAL NAVIGATION (Sidebar) -->
+        <aside class="sidebar" id="global-sidebar" style="display: none;"> <!-- Hidden on landing page -->
+            <div class="sidebar-header" id="sidebar-logo" style="cursor: pointer;">
+                <span class="logo-icon">SF</span>
+                <span class="logo-text">SkillForge</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-target="dashboard-page">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button class="nav-item" data-target="projects-page">
+                    <i class="fas fa-project-diagram"></i> Projects
+                </button>
+                <button class="nav-item" data-target="practice-page">
+                    <i class="fas fa-code"></i> Practice
+                </button>
+                <button class="nav-item" data-target="mock-interview-page">
+                    <i class="fas fa-user-friends"></i> Mock Interview
+                </button>
+                 <button class="nav-item" data-target="skill-gap-page">
+                    <i class="fas fa-chart-pie"></i> Skill Gap
+                </button>
+                <button class="nav-item" data-target="profile-page">
+                    <i class="fas fa-user"></i> Profile
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="nav-item" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content-area">
+            
+            <!-- 1. LANDING PAGE -->
+            <section id="landing-page" class="page-view active">
+                <header class="landing-header">
+                    <div class="logo-area" id="landing-logo" style="cursor: pointer;">
+                        <span class="logo-icon">SF</span>
+                        <span class="logo-text">SkillForge</span>
+                    </div>
+                    <nav>
+                        <button class="btn btn-text" data-action="nav-careers-list">View Careers</button>
+                        <button class="btn btn-primary" data-action="nav-course-selection">Get Started</button>
+                    </nav>
+                </header>
+                <div class="hero-section">
+                    <h1 class="hero-title">Become Job-Ready.<br>Not Course-Rich.</h1>
+                    <p class="hero-subtitle">Stop collecting certificates. Build a career-first roadmap, prove your skills with mandatory projects, and get hired.</p>
+                    <div class="cta-group">
+                        <button class="btn btn-xl btn-primary" data-action="start-roadmap">Start Your Roadmap</button>
+                        <button class="btn btn-xl btn-outline" data-action="nav-careers-list">View Careers</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. CAREERS LISTING PAGE -->
+            <section id="careers-list-page" class="page-view hidden">
+                <header class="page-header">
+                    <div class="logo-area" id="careers-logo" style="cursor: pointer; margin-bottom: 20px;">
+                        <span class="logo-icon">SF</span>
+                        <span class="logo-text">SkillForge</span>
+                    </div>
+                    <h2>Explore In-Demand Career Paths</h2>
+                    <p>Browse current, job-market-ready career tracks. Select one to start your personalized roadmap.</p>
+                </header>
+                <div class="career-grid" id="career-grid">
+                    <!-- Injected by JS -->
+                </div>
+            </section>
+
+            <!-- 3. COURSE SELECTION PAGE (For Undecided Users) -->
+            <section id="course-selection-page" class="page-view hidden">
+                <header class="page-header">
+                    <div class="logo-area" id="course-selection-logo" style="cursor: pointer; margin-bottom: 20px;">
+                        <span class="logo-icon">SF</span>
+                        <span class="logo-text">SkillForge</span>
+                    </div>
+                    <h2>Find Your Perfect Career Path</h2>
+                    <p>Not sure where to start? Answer a few questions to discover the career path that matches your interests and current job market demand.</p>
+                </header>
+                <div class="course-selection-container">
+                    <div class="selection-quiz">
+                        <div class="quiz-question">
+                            <h3>What interests you most?</h3>
+                            <div class="quiz-options">
+                                <label class="quiz-option">
+                                    <input type="radio" name="interest" value="backend">
+                                    <span>Building scalable backend systems and APIs</span>
+                                </label>
+                                <label class="quiz-option">
+                                    <input type="radio" name="interest" value="fullstack">
+                                    <span>Full-stack development with modern frameworks</span>
+                                </label>
+                                <label class="quiz-option">
+                                    <input type="radio" name="interest" value="systems">
+                                    <span>Low-level systems programming and performance</span>
+                                </label>
+                                <label class="quiz-option">
+                                    <input type="radio" name="interest" value="cloud">
+                                    <span>Cloud infrastructure and DevOps</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="quiz-question">
+                            <h3>What's your current experience level?</h3>
+                            <div class="quiz-options">
+                                <label class="quiz-option">
+                                    <input type="radio" name="experience" value="none">
+                                    <span>Complete beginner - just starting to code</span>
+                                </label>
+                                <label class="quiz-option">
+                                    <input type="radio" name="experience" value="some">
+                                    <span>Some basics - know one language fairly well</span>
+                                </label>
+                                <label class="quiz-option">
+                                    <input type="radio" name="experience" value="intermediate">
+                                    <span>Intermediate - built projects, know data structures</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn btn-xl btn-primary" onclick="submitCourseSelection()">Get Recommendations</button>
+                    </div>
+                    <div class="recommended-careers" id="recommended-careers" style="display: none;">
+                        <h3>Recommended Career Paths</h3>
+                        <div id="recommendations-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. ONBOARDING FLOW (Role → Level → Commitment) -->
+            <section id="onboarding-page" class="page-view hidden">
+                <div class="onboarding-container">
+                    <div class="logo-area" id="onboarding-logo" style="cursor: pointer; margin-bottom: 20px;">
+                        <span class="logo-icon">SF</span>
+                        <span class="logo-text">SkillForge</span>
+                    </div>
+                    <div class="progress-indicator">
+                        <div class="step active" id="prog-step-1">Role</div>
+                        <div class="step" id="prog-step-2">Level</div>
+                        <div class="step" id="prog-step-3">Commitment</div>
+                    </div>
+                    
+                    <form id="onboarding-form">
+                        <!-- Step 1: Role (Pre-selected) -->
+                        <div class="form-step active" id="step-1">
+                            <h3>Target Role</h3>
+                            <input type="text" id="target-role-input" readonly class="form-input readonly">
+                            <div class="btn-group single-right">
+                                <button type="button" class="btn btn-text" onclick="navigateTo('careers-list-page')">Change Role</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Level & College -->
+                        <div class="form-step hidden" id="step-2">
+                            <h3>Current Level</h3>
+                            <div class="select-group">
+                                <label class="radio-card">
+                                    <input type="radio" name="level" value="beginner" checked>
+                                    <span>Beginner</span>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="level" value="intermediate">
+                                    <span>Intermediate</span>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="level" value="advanced">
+                                    <span>Advanced</span>
+                                </label>
+                            </div>
+                            <div class="input-group">
+                                <label>College Year (Optional)</label>
+                                <input type="text" class="form-input" placeholder="e.g. 3rd Year">
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-text" onclick="prevStep(1)">Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Commitment -->
+                        <div class="form-step hidden" id="step-3">
+                            <h3>Daily Time Commitment</h3>
+                            <div class="slider-container">
+                                <input type="range" min="1" max="8" value="2" class="slider" id="time-slider">
+                                <p class="slider-value"><span id="hours-val">2</span> Hours / Day</p>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-text" onclick="prevStep(2)">Back</button>
+                                <button type="button" class="btn btn-primary" onclick="finishOnboarding()">Build Roadmap</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 5. DASHBOARD (HOME) -->
+            <section id="dashboard-page" class="page-view hidden">
+                <header class="dashboard-header top-bar-integration">
+                   <div class="header-left">
+                       <h1 id="dash-role-title">Java Backend Enterprise Arch.</h1>
+                       <div class="readiness-score">
+                           <span class="score-label">Placement Readiness</span>
+                           <div class="meter-track">
+                               <div class="meter-fill" id="dash-readiness-fill" style="width: 45%;"></div>
+                            </div>
+                           <span class="score-value" id="dash-readiness-score">45/100</span>
+                       </div>
+                   </div>
+                   <button class="btn btn-primary glow" id="continue-learning-btn">Continue Learning</button>
+                </header>
+
+                <!-- Level Switcher -->
+                <div class="level-switcher-container">
+                    <div class="level-tabs">
+                        <button class="level-tab active" data-level="beginner" id="level-tab-beginner">
+                            <i class="fas fa-seedling"></i> Beginner
+                        </button>
+                        <button class="level-tab" data-level="intermediate" id="level-tab-intermediate">
+                            <i class="fas fa-chart-line"></i> Intermediate
+                        </button>
+                        <button class="level-tab" data-level="advanced" id="level-tab-advanced">
+                            <i class="fas fa-trophy"></i> Advanced
+                        </button>
+                    </div>
+                    <div class="level-info">
+                        <span id="level-module-count">0 modules</span>
+                        <span class="divider">•</span>
+                        <span id="level-completion-count">0 completed</span>
+                    </div>
+                </div>
+
+                <div class="progress-wrapper-dash">
+                    <div class="progress-label">
+                        <span>Level Progress</span>
+                        <span id="dash-progress-text">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="dash-progress-bar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="modules-loading" class="loading-state" style="display: none;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading modules...</p>
+                </div>
+
+                <!-- Modules Container -->
+                <div class="roadmap-container" id="roadmap-container">
+                    <!-- Dynamic Nodes -->
+                </div>
+            </section>
+
+            <!-- 6. SKILL GAP ANALYZER -->
+            <section id="skill-gap-page" class="page-view hidden">
+                <header class="page-header">
+                    <h2>AI Career Coach</h2>
+                    <p class="header-subtitle">Upload your resume for intelligent skill analysis with personalized learning paths</p>
+                </header>
+
+                <!-- Upload Section -->
+                <div class="upload-section card" id="upload-section">
+                    <h3>Upload Your Resume</h3>
+                    <input type="file" id="resume-input" accept=".pdf,.doc,.docx" style="display: none;">
+                    <div class="drop-zone" id="drop-zone">
+                        <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                        <p class="drop-zone-text">Drag & Drop your resume here</p>
+                        <p class="drop-zone-subtext">or</p>
+                        <button class="btn btn-outline" id="browse-btn">Browse Files</button>
+                        <p class="file-types">Supported: PDF, DOC, DOCX (Max 5MB)</p>
+                    </div>
+                    <div class="uploaded-file" id="uploaded-file" style="display: none;">
+                        <div class="file-info">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                            <div class="file-details">
+                                <span class="file-name" id="file-name">resume.pdf</span>
+                                <span class="file-size" id="file-size">1.2 MB</span>
+                            </div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn btn-text" id="remove-file-btn">
+                                <i class="fas fa-times"></i> Remove
+                            </button>
+                            <button class="btn btn-primary" id="analyze-resume-btn">
+                                <i class="fas fa-chart-bar"></i> Analyze Resume
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Loading State -->
+                <div id="analysis-loading" class="loading-state card" style="display: none;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Analyzing your resume...</p>
+                    <p class="loading-subtext">This may take a few moments</p>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results-section" style="display: none;">
+                    <!-- Hidden elements for tracking (used by JS) -->
+                    <span id="strong-skills-count" style="display: none;">0</span>
+                    <span id="weak-skills-count" style="display: none;">0</span>
+                    <span id="missing-skills-count" style="display: none;">0</span>
+                    
+                    <!-- Skill Gap Summary (AI-driven, populated by JS) -->
+                    <div class="skill-gap-summary card">
+                        <!-- AI-generated coverage score and insights will be injected here -->
+                    </div>
+
+                    <!-- Skill Categories (AI-driven priority sections) -->
+                    <div class="skill-categories">
+                        <!-- AI-analyzed skills with expandable context will be injected here -->
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="action-section">
+                        <button class="btn btn-xl btn-primary" id="fix-roadmap-btn">
+                            <i class="fas fa-route"></i> Generate Learning Plan
+                        </button>
+                        <p class="action-note">AI will create a personalized, step-by-step roadmap based on skill priorities and market relevance</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. PROJECTS SECTION -->
+            <section id="projects-page" class="page-view hidden">
+                <header class="page-header">
+                    <h2>Mandatory Projects</h2>
+                </header>
+                <div class="projects-list" id="projects-list">
+                    <!-- Injected by JS -->
+                </div>
+            </section>
+
+            <!-- 8. PRACTICE & ASSESSMENT -->
+            <section id="practice-page" class="page-view hidden">
+                <header class="page-header">
+                    <h2>DSA Practice Arena</h2>
+                    <p class="header-subtitle">Master data structures and algorithms through progressive problem-solving</p>
+                </header>
+
+                <div class="practice-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="practice-total-solved">0</span>
+                        <span class="stat-label">Problems Solved</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="practice-total-unlocked">0</span>
+                        <span class="stat-label">Unlocked</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="practice-completion-rate">0%</span>
+                        <span class="stat-label">Completion Rate</span>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="practice-loading" class="loading-state" style="display: none;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading practice problems...</p>
+                </div>
+
+                <!-- DSA Topics Grid -->
+                <div class="dsa-topics-grid" id="dsa-topics-grid">
+                    <!-- Topics injected by JS -->
+                </div>
+
+                <!-- Problem Detail Modal -->
+                <div id="problem-modal" class="modal hidden">
+                    <div class="modal-content large">
+                        <span class="close-modal" id="close-problem-modal">&times;</span>
+                        <h2 id="problem-title">Problem Title</h2>
+                        <div class="problem-difficulty" id="problem-difficulty"></div>
+                        <div class="modal-body">
+                            <h4>Description</h4>
+                            <p id="problem-description"></p>
+                            <h4>Examples</h4>
+                            <div id="problem-examples"></div>
+                            <h4>Constraints</h4>
+                            <div id="problem-constraints"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-outline" id="mark-attempted-btn">Mark as Attempted</button>
+                            <button class="btn btn-primary" id="mark-solved-btn">Mark as Solved</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CODING ARENA - Full Screen Workspace -->
+            <section id="coding-arena" class="coding-arena hidden" style="display: none;">
+                <!-- Top Navigation Bar -->
+                <div class="arena-navbar">
+                    <button class="arena-back-btn" id="arena-back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to Problems</span>
+                    </button>
+                    <div class="arena-problem-title" id="arena-problem-title">Loading...</div>
+                    <div class="arena-actions">
+                        <button class="arena-btn arena-btn-secondary" id="arena-save-draft">
+                            <i class="fas fa-save"></i> Save Draft
+                        </button>
+                        <button class="arena-btn arena-btn-secondary" id="arena-reset-code">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Three-Panel Layout -->
+                <div class="arena-workspace">
+                    <!-- LEFT PANEL - Problem Context -->
+                    <div class="arena-panel arena-left-panel">
+                        <div class="panel-header">
+                            <h3 style="margin: 0 0 0.75rem 0;">Problem</h3>
+                            <div class="problem-meta">
+                                <span class="difficulty-badge" id="problem-difficulty-badge">Medium</span>
+                                <span class="status-badge" id="problem-status-badge">Not Started</span>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="problem-section">
+                                <h4>Description</h4>
+                                <div id="problem-description-text" class="problem-text"></div>
+                            </div>
+                            <div class="problem-section">
+                                <h4>Examples</h4>
+                                <div id="problem-examples-list"></div>
+                            </div>
+                            <div class="problem-section">
+                                <h4>Constraints</h4>
+                                <ul id="problem-constraints-list" class="constraints-list"></ul>
+                            </div>
+                            <div class="problem-section">
+                                <h4>Expected Complexity</h4>
+                                <div id="problem-complexity-info"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CENTER PANEL - Code Editor -->
+                    <div class="arena-panel arena-center-panel">
+                        <div class="editor-header">
+                            <div class="editor-tabs">
+                                <div class="editor-tab active">
+                                    <i class="fas fa-code"></i>
+                                    <span id="editor-filename">solution.py</span>
+                                </div>
+                            </div>
+                            <div class="editor-controls">
+                                <select class="language-selector" id="language-select">
+                                    <option value="python">Python</option>
+                                    <option value="java">Java</option>
+                                    <option value="cpp">C++</option>
+                                    <option value="javascript">JavaScript</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="code-editor-container">
+                            <div id="line-numbers" class="line-numbers"></div>
+                            <div id="code-editor-area" class="code-editor-area" contenteditable="true" spellcheck="false"></div>
+                        </div>
+                        <div class="editor-footer">
+                            <div class="editor-info">
+                                <span id="line-col-info">Ln 1, Col 1</span>
+                                <span>Python</span>
+                            </div>
+                            <div class="editor-actions">
+                                <button class="arena-btn arena-btn-outline" id="run-code-btn">
+                                    <i class="fas fa-play"></i> Run Code
+                                </button>
+                                <button class="arena-btn arena-btn-primary" id="submit-code-btn">
+                                    <i class="fas fa-check"></i> Submit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT PANEL - Execution & AI Assistant -->
+                    <div class="arena-panel arena-right-panel">
+                        <!-- Tabbed Interface -->
+                        <div class="right-panel-tabs">
+                            <button class="right-tab active" id="testcases-tab-btn" data-tab="testcases">
+                                <i class="fas fa-vial"></i> Test Cases
+                            </button>
+                            <button class="right-tab" id="output-tab-btn" data-tab="output">
+                                <i class="fas fa-terminal"></i> Output
+                            </button>
+                            <button class="right-tab" id="ai-tab-btn" data-tab="ai">
+                                <i class="fas fa-robot"></i> AI Mentor
+                            </button>
+                        </div>
+
+                        <!-- Test Cases Tab -->
+                        <div class="right-tab-content active" id="testcases-content">
+                            <div class="testcases-header">
+                                <h4>Test Cases</h4>
+                                <button class="btn-icon" id="add-test-case-btn">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="test-cases-list" class="testcases-list">
+                                <!-- Test cases injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Output Tab -->
+                        <div class="right-tab-content" id="output-content">
+                            <div class="output-header">
+                                <h4>Execution Result</h4>
+                            </div>
+                            <div id="exec-status" class="exec-status waiting">
+                                <span class="status-icon">⏱️</span>
+                                <span>Run your code to see results</span>
+                            </div>
+                            <div id="output-console" class="output-console"></div>
+                            <div class="execution-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Runtime:</span>
+                                    <span id="runtime-stat" class="stat-value">--</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Memory:</span>
+                                    <span id="memory-stat" class="stat-value">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Assistant Tab -->
+                        <div class="right-tab-content" id="ai-content">
+                            <div class="ai-assistant-container">
+                                <div class="ai-header">
+                                    <div class="ai-avatar">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <div class="ai-info">
+                                        <h4>AI Coding Mentor</h4>
+                                        <p class="ai-subtitle">I'll guide you, not solve for you</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="ai-mode-selector">
+                                    <button class="ai-mode-btn active" id="ai-mode-hint" data-mode="hint">
+                                        <i class="fas fa-lightbulb"></i> Hint
+                                    </button>
+                                    <button class="ai-mode-btn" id="ai-mode-debug" data-mode="debug">
+                                        <i class="fas fa-bug"></i> Debug
+                                    </button>
+                                    <button class="ai-mode-btn" id="ai-mode-optimize" data-mode="optimize">
+                                        <i class="fas fa-tachometer-alt"></i> Optimize
+                                    </button>
+                                    <button class="ai-mode-btn" id="ai-mode-explain" data-mode="explain">
+                                        <i class="fas fa-book-open"></i> Explain
+                                    </button>
+                                </div>
+
+                                <div id="ai-chat-messages" class="ai-chat-messages"></div>
+
+                                <div class="ai-quick-actions">
+                                    <button class="ai-quick-btn" id="ai-quick-hint">
+                                        <i class="fas fa-lightbulb"></i> Get a Hint
+                                    </button>
+                                    <button class="ai-quick-btn" id="ai-quick-debug">
+                                        <i class="fas fa-question-circle"></i> Debug Help
+                                    </button>
+                                    <button class="ai-quick-btn" id="ai-quick-optimize">
+                                        <i class="fas fa-search"></i> Optimize
+                                    </button>
+                                </div>
+
+                                <div class="ai-input-area">
+                                    <input type="text" id="ai-input-field" placeholder="Ask me anything about this problem..." />
+                                    <button class="ai-send-btn" id="ai-send-btn">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. MOCK INTERVIEW -->
+            <section id="mock-interview-page" class="page-view hidden">
+                <header class="page-header">
+                    <h2>Mock Interview</h2>
+                </header>
+
+                <!-- START SCREEN -->
+                <div id="interview-start-screen" class="card">
+                    <div class="interview-welcome">
+                        <h3>Welcome to Mock Interview</h3>
+                        <p class="text-muted">Test your skills with a realistic interview experience</p>
+                    </div>
+                    
+                    <div class="interview-rules">
+                        <h4>Interview Format</h4>
+                        <ul>
+                            <li><i class="fas fa-keyboard"></i> <strong>Phase 1: Text Round</strong> - 5 questions answered via text (questions read aloud)</li>
+                            <li><i class="fas fa-microphone"></i> <strong>Phase 2: Voice Round</strong> - 5 questions answered via voice (questions asked aloud)</li>
+                            <li><i class="fas fa-clock"></i> 5 minutes per question</li>
+                            <li><i class="fas fa-brain"></i> AI evaluation with detailed feedback</li>
+                            <li><i class="fas fa-volume-up"></i> Voice feedback playback available</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="interview-track-info">
+                        <p><strong>Track:</strong> <span id="interview-track-name">Loading...</span></p>
+                        <p><strong>Level:</strong> <span id="interview-level-name">Loading...</span></p>
+                    </div>
+                    
+                    <div class="interview-actions">
+                        <button id="start-interview-btn" class="btn btn-primary">Start Interview</button>
+                        <button id="resume-interview-btn" class="btn btn-outline" style="display: none;">Resume Previous Session</button>
+                    </div>
+                </div>
+
+                <!-- ACTIVE INTERVIEW SCREEN -->
+                <div id="interview-active-screen" class="card" style="display: none;">
+                    <!-- Header with Phase Indicator -->
+                    <div class="interview-header">
+                        <div class="phase-indicator">
+                            <span id="current-phase-badge" class="phase-badge text-phase">
+                                <i class="fas fa-keyboard"></i> Phase 1: Text Round
+                            </span>
+                            <span id="question-number">Question 1 of 10</span>
+                        </div>
+                        <div class="interview-controls">
+                            <div id="question-timer" class="timer">
+                                <i class="fas fa-clock"></i>
+                                <span id="timer-value">05:00</span>
+                            </div>
+                            <button id="end-interview-btn" class="btn btn-sm btn-danger">End Interview</button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="interview-progress-bar">
+                        <div id="interview-progress-fill" class="interview-progress-fill" style="width: 10%;"></div>
+                    </div>
+
+                    <!-- Question Panel -->
+                    <div class="question-panel">
+                        <div id="answer-mode-badge" class="answer-mode-badge text-mode">
+                            <i class="fas fa-keyboard"></i>
+                            <span>Text Answer Required</span>
+                        </div>
+                        <h3 id="current-question-text" class="question-text">Loading question...</h3>
+                        <div id="question-context" class="question-context" style="display: none;">
+                            <p class="text-muted"><em id="context-text"></em></p>
+                        </div>
+                        <button id="speak-question-btn" class="btn btn-sm btn-outline">
+                            <i class="fas fa-volume-up"></i> Hear Question
+                        </button>
+                    </div>
+
+                    <!-- TEXT ANSWER AREA -->
+                    <div id="text-answer-area" class="answer-area" style="display: block;">
+                        <label>Your Answer:</label>
+                        <textarea id="text-answer-input" placeholder="Type your answer here..." rows="8"></textarea>
+                        <div class="answer-controls">
+                            <span id="char-count" class="char-count">0 / 2000</span>
+                            <button id="submit-text-answer-btn" class="btn btn-primary">Submit Answer</button>
+                        </div>
+                    </div>
+
+                    <!-- VOICE ANSWER AREA -->
+                    <div id="voice-answer-area" class="answer-area" style="display: none;">
+                        <div id="mic-status" class="mic-status">
+                            <i class="fas fa-microphone-slash"></i>
+                            <span>Ready to record</span>
+                        </div>
+                        
+                        <div class="voice-controls">
+                            <button id="start-recording-btn" class="btn-circle btn-primary">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button id="stop-recording-btn" class="btn-circle btn-danger" style="display: none;">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                            <button id="re-record-btn" class="btn btn-outline" style="display: none;">
+                                <i class="fas fa-redo"></i> Re-record
+                            </button>
+                        </div>
+
+                        <div id="recording-timer" class="recording-timer" style="display: none;">
+                            <i class="fas fa-circle recording-dot"></i>
+                            <span id="recording-duration">00:00</span>
+                        </div>
+
+                        <div id="transcription-preview" class="transcription-preview">
+                            <p class="text-muted">Your speech will appear here as you speak...</p>
+                        </div>
+
+                        <div id="audio-playback-section" class="audio-playback" style="display: none;">
+                            <label>Review Your Recording:</label>
+                            <audio id="recorded-audio" controls></audio>
+                        </div>
+
+                        <div class="answer-controls">
+                            <button id="submit-voice-answer-btn" class="btn btn-primary" style="display: none;">
+                                Submit Voice Answer
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- FEEDBACK AREA -->
+                    <div id="feedback-area" class="feedback-area" style="display: none;">
+                        <div id="feedback-loading" class="feedback-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Evaluating your answer...</p>
+                        </div>
+                        
+                        <div id="feedback-content" class="feedback-content" style="display: none;">
+                            <h4>AI Evaluation</h4>
+                            
+                            <div class="score-bars">
+                                <div class="score-item">
+                                    <label>Clarity</label>
+                                    <div class="score-bar-container">
+                                        <div id="score-clarity" class="score-bar" style="width: 0%;"></div>
+                                    </div>
+                                    <span id="score-clarity-value" class="score-value">0/10</span>
+                                </div>
+                                <div class="score-item">
+                                    <label>Correctness</label>
+                                    <div class="score-bar-container">
+                                        <div id="score-correctness" class="score-bar" style="width: 0%;"></div>
+                                    </div>
+                                    <span id="score-correctness-value" class="score-value">0/10</span>
+                                </div>
+                                <div class="score-item">
+                                    <label>Depth</label>
+                                    <div class="score-bar-container">
+                                        <div id="score-depth" class="score-bar" style="width: 0%;"></div>
+                                    </div>
+                                    <span id="score-depth-value" class="score-value">0/10</span>
+                                </div>
+                                <div class="score-item">
+                                    <label>Confidence</label>
+                                    <div class="score-bar-container">
+                                        <div id="score-confidence" class="score-bar" style="width: 0%;"></div>
+                                    </div>
+                                    <span id="score-confidence-value" class="score-value">0/10</span>
+                                </div>
+                                <div class="score-item">
+                                    <label>Communication</label>
+                                    <div class="score-bar-container">
+                                        <div id="score-communication" class="score-bar" style="width: 0%;"></div>
+                                    </div>
+                                    <span id="score-communication-value" class="score-value">0/10</span>
+                                </div>
+                            </div>
+
+                            <div class="feedback-text">
+                                <h5>Feedback:</h5>
+                                <p id="feedback-text-content"></p>
+                            </div>
+
+                            <div class="feedback-audio-controls">
+                                <button id="play-feedback-audio-btn" class="btn btn-outline">
+                                    <i class="fas fa-volume-up"></i> Play Feedback
+                                </button>
+                                <button id="stop-feedback-audio-btn" class="btn btn-outline" style="display: none;">
+                                    <i class="fas fa-stop"></i> Stop
+                                </button>
+                            </div>
+
+                            <button id="next-question-btn" class="btn btn-primary mt-2">
+                                Next Question <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPLETE SCREEN -->
+                <div id="interview-complete-screen" class="card" style="display: none;">
+                    <div class="interview-complete-header">
+                        <i class="fas fa-check-circle complete-icon"></i>
+                        <h3>Interview Complete!</h3>
+                        <p class="text-muted">Great job! Here's your performance summary:</p>
+                    </div>
+
+                    <div class="final-scores">
+                        <div class="final-score-item">
+                            <div class="score-circle">
+                                <span id="final-average-score" class="score-big">0.0</span>
+                                <span class="score-label">Overall</span>
+                            </div>
+                        </div>
+                        <div class="final-score-item">
+                            <div class="score-circle">
+                                <span id="final-text-score" class="score-big">0.0</span>
+                                <span class="score-label">Text Round</span>
+                            </div>
+                        </div>
+                        <div class="final-score-item">
+                            <div class="score-circle">
+                                <span id="final-voice-score" class="score-big">0.0</span>
+                                <span class="score-label">Voice Round</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interview-actions">
+                        <button id="view-detailed-report-btn" class="btn btn-outline">
+                            <i class="fas fa-chart-bar"></i> View Detailed Report
+                        </button>
+                        <button id="start-new-interview-btn" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> Start New Interview
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10. PROFILE / MY DETAILS PAGE -->
+            <section id="profile-page" class="page-view hidden">
+                <div class="profile-header card">
+                    <div class="profile-info">
+                        <div class="avatar-circle" id="profile-avatar">U</div>
+                        <div>
+                            <h2 id="profile-name">User Name</h2>
+                            <p class="text-muted" id="profile-role">Aspiring Developer</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline" onclick="editProfile()">Edit Profile</button>
+                </div>
+                <div class="card mt-2">
+                    <h3>Personal Details</h3>
+                    <div class="profile-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Full Name:</span>
+                            <span class="detail-value" id="detail-name">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value" id="detail-email">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Institution / College:</span>
+                            <span class="detail-value" id="detail-institution">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Google Account:</span>
+                            <span class="detail-value" id="detail-google">Not linked</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Selected Track:</span>
+                            <span class="detail-value" id="detail-track">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Skill Level:</span>
+                            <span class="detail-value" id="detail-level">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Daily Commitment:</span>
+                            <span class="detail-value" id="detail-commitment">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-2">
+                    <h3>Learning Statistics</h3>
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span class="stat-val" id="stat-modules">0</span>
+                            <span class="stat-label">Modules Completed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-val" id="stat-projects">0</span>
+                            <span class="stat-label">Projects Completed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-val" id="stat-readiness">0</span>
+                            <span class="stat-label">Placement Readiness</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modals -->
+        <div id="project-detail-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal" id="close-project-modal">&times;</span>
+                <h2 id="modal-project-title">Project Title</h2>
+                <div class="modal-body">
+                    <h4>Problem Statement</h4>
+                    <p id="modal-project-desc">...</p>
+                    <h4>Expected Output</h4>
+                    <ul id="modal-project-output"></ul>
+                    <h4>GitHub Structure</h4>
+                    <div class="code-block" id="modal-project-structure"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================
+         CODING ARENA - Full Screen Workspace
+         ============================================ -->
+    <div class="coding-arena" id="coding-arena" style="display: none;">
+        <!-- Top Navigation Bar -->
+        <div class="arena-navbar">
+            <button class="arena-back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Problems
+            </button>
+            <h2 class="arena-problem-title">Loading Problem...</h2>
+            <div class="arena-actions">
+                <button class="arena-btn arena-btn-outline" id="reset-code-btn">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+                <button class="arena-btn arena-btn-secondary" id="save-draft-btn">
+                    <i class="fas fa-save"></i> Save Draft
+                </button>
+            </div>
+        </div>
+
+        <!-- Three-Panel Workspace -->
+        <div class="arena-workspace">
+            <!-- LEFT PANEL - Problem Context -->
+            <div class="arena-panel arena-left-panel">
+                <div class="panel-header">
+                    <h3>Problem Title</h3>
+                    <div class="problem-meta">
+                        <span class="difficulty-badge easy">Easy</span>
+                        <span class="status-badge">Not Started</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- Description -->
+                    <div class="problem-section">
+                        <h4>Description</h4>
+                        <p class="problem-text">Loading problem description...</p>
+                    </div>
+
+                    <!-- Examples -->
+                    <div class="problem-section">
+                        <h4>Examples</h4>
+                        <div class="examples-container">
+                            <!-- Examples will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Constraints -->
+                    <div class="problem-section">
+                        <h4>Constraints</h4>
+                        <ul class="constraints-list">
+                            <!-- Constraints will be inserted here -->
+                        </ul>
+                    </div>
+
+                    <!-- Expected Complexity -->
+                    <div class="problem-section">
+                        <h4>Expected Complexity</h4>
+                        <div class="complexity-info">
+                            <!-- Complexity will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER PANEL - Code Editor -->
+            <div class="arena-panel arena-center-panel">
+                <div class="editor-header">
+                    <div class="editor-tabs">
+                        <div class="editor-tab active">
+                            <i class="fas fa-file-code"></i>
+                            <span>solution.py</span>
+                        </div>
+                    </div>
+                    <select class="language-selector" id="language-selector">
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                    </select>
+                </div>
+
+                <div class="code-editor-wrapper">
+                    <div class="code-editor" id="code-editor" contenteditable="true" spellcheck="false">
+# Write your solution here...
+                    </div>
+                </div>
+
+                <div class="editor-footer">
+                    <div class="editor-info">
+                        <span>Line 1, Col 1</span>
+                        <span>UTF-8</span>
+                        <span>Python</span>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="arena-btn arena-btn-outline" id="run-code-btn">
+                            <i class="fas fa-play"></i> Run Code
+                        </button>
+                        <button class="arena-btn arena-btn-primary" id="submit-code-btn">
+                            <i class="fas fa-check"></i> Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL - Execution & AI -->
+            <div class="arena-panel arena-right-panel">
+                <!-- Tab Navigation -->
+                <div class="right-panel-tabs">
+                    <button class="right-tab active" data-tab="testcases">
+                        <i class="fas fa-vial"></i> Test Cases
+                    </button>
+                    <button class="right-tab" data-tab="output">
+                        <i class="fas fa-terminal"></i> Output
+                    </button>
+                    <button class="right-tab" data-tab="ai-assistant">
+                        <i class="fas fa-robot"></i> AI Mentor
+                    </button>
+                </div>
+
+                <!-- Test Cases Tab -->
+                <div class="right-tab-content active" id="testcases-tab">
+                    <div class="testcases-header">
+                        <h4>Test Cases</h4>
+                        <button class="btn-icon" title="Add Test Case">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="testcases-list">
+                        <!-- Test cases will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Output Tab -->
+                <div class="right-tab-content" id="output-tab">
+                    <div class="output-header">
+                        <h4>Execution Output</h4>
+                    </div>
+                    
+                    <div class="execution-status">
+                        <div class="status-indicator waiting">
+                            <i>⏱️</i>
+                            <span>Waiting to run...</span>
+                        </div>
+                    </div>
+
+                    <div class="output-console" id="output-console">
+                        <pre style="color: #666;">Run or submit your code to see results here...</pre>
+                    </div>
+
+                    <div class="execution-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Runtime</span>
+                            <span class="stat-value">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Memory</span>
+                            <span class="stat-value">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Assistant Tab -->
+                <div class="right-tab-content" id="ai-assistant-tab">
+                    <div class="ai-assistant-container">
+                        <div class="ai-header">
+                            <div class="ai-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="ai-info">
+                                <h4>AI Coding Mentor</h4>
+                                <p class="ai-subtitle">Here to guide, not solve</p>
+                            </div>
+                        </div>
+
+                        <!-- AI Mode Selector -->
+                        <div class="ai-mode-selector">
+                            <button class="ai-mode-btn active" data-mode="hint">
+                                <i class="fas fa-lightbulb"></i> Hint
+                            </button>
+                            <button class="ai-mode-btn" data-mode="debug">
+                                <i class="fas fa-bug"></i> Debug
+                            </button>
+                            <button class="ai-mode-btn" data-mode="optimize">
+                                <i class="fas fa-tachometer-alt"></i> Optimize
+                            </button>
+                            <button class="ai-mode-btn" data-mode="explain">
+                                <i class="fas fa-book"></i> Explain
+                            </button>
+                        </div>
+
+                        <!-- Chat Container -->
+                        <div class="ai-chat-container">
+                            <div class="ai-welcome-message">
+                                <i class="fas fa-robot"></i>
+                                <p>Hi! I'm your AI coding mentor. I'm here to help you learn, not just solve problems.</p>
+                                <p><strong>How I can help:</strong></p>
+                                <ul>
+                                    <li><strong>Hint Mode:</strong> Progressive hints to guide your thinking</li>
+                                    <li><strong>Debug Mode:</strong> Help identify what's going wrong</li>
+                                    <li><strong>Optimize Mode:</strong> Suggestions to improve efficiency</li>
+                                    <li><strong>Explain Mode:</strong> Break down concepts and patterns</li>
+                                </ul>
+                                <div class="ai-note">
+                                    💡 I focus on teaching patterns and problem-solving skills, not giving away answers!
+                                </div>
+                            </div>
+                            <div class="ai-messages" id="ai-chat-messages">
+                                <!-- Chat messages will appear here -->
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="ai-quick-actions">
+                            <button class="ai-quick-btn" data-action="hint">
+                                <i class="fas fa-lightbulb"></i> Get a Hint
+                            </button>
+                            <button class="ai-quick-btn" data-action="error">
+                                <i class="fas fa-bug"></i> Explain Error
+                            </button>
+                            <button class="ai-quick-btn" data-action="approach">
+                                <i class="fas fa-check-circle"></i> Check My Approach
+                            </button>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="ai-input-area">
+                            <input type="text" id="ai-input" placeholder="Ask me anything about this problem...">
+                            <button class="ai-send-btn" id="ai-send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resize Handles -->
+            <div class="resize-handle resize-left"></div>
+            <div class="resize-handle resize-right"></div>
+        </div>
+    </div>
+
+    <script src="enhanced-flows.js"></script>
+    <script src="mock-interview.js"></script>
+    <script src="coding-arena-functional.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
