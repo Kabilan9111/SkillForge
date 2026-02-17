@@ -216,19 +216,27 @@ async function fetchRoadmap(trackId, level) {
 }
 
 // --- ROUTING & NAVIGATION SYSTEM ---
-const views = document.querySelectorAll('.page-view');
 const sidebar = document.getElementById('global-sidebar');
 const navItems = document.querySelectorAll('.nav-item[data-target]');
 let activeTrack = selectedTrackSlug || 'java';
 
+// Expose for modules (projects-workspace.js needs access to TRACK_DATA)
+window.TRACK_DATA = TRACK_DATA;
+window.getActiveTrack = () => activeTrack;
+
 // Navigation function with state checking
 function navigateTo(pageId) {
-    console.log('Navigating to:', pageId);
+    console.log('[Router] Navigating to:', pageId);
+    
+    // CRITICAL: Always query fresh to avoid stale NodeList
+    const allPages = document.querySelectorAll('.page-view');
+    console.log('[Router] Found', allPages.length, 'pages');
     
     // Hide all pages
-    views.forEach(view => {
+    allPages.forEach(view => {
         view.classList.add('hidden');
         view.classList.remove('active');
+        view.style.display = 'none'; // Force hide via inline style
     });
 
     // Show target page
@@ -236,8 +244,20 @@ function navigateTo(pageId) {
     if (target) {
         target.classList.remove('hidden');
         target.classList.add('active');
+        target.style.display = ''; // Clear inline style to allow CSS
+        
+        // Debug: Check computed style
+        const computedStyle = window.getComputedStyle(target);
+        console.log('[Router] Target page:', pageId, {
+            hasHidden: target.classList.contains('hidden'),
+            hasActive: target.classList.contains('active'),
+            computedDisplay: computedStyle.display,
+            computedVisibility: computedStyle.visibility,
+            offsetHeight: target.offsetHeight,
+            offsetWidth: target.offsetWidth
+        });
     } else {
-        console.error('Page not found:', pageId);
+        console.error('[Router] Page not found:', pageId);
         return;
     }
 
@@ -252,32 +272,126 @@ function navigateTo(pageId) {
         updateActiveNav(pageId);
     }
 
-    // Render dynamic content based on page
-    if (pageId === 'careers-list-page') renderCareers();
+    // CRITICAL: Use requestAnimationFrame to ensure DOM is updated before rendering
+    // This prevents race conditions where render functions can't find elements
+    requestAnimationFrame(() => {
+        renderPageContent(pageId);
+    });
+    
+    // Update URL without reloading page
+    updateURL(pageId);
+}
+
+// Separate function to render page content - called AFTER DOM is ready
+function renderPageContent(pageId) {
+    console.log('[Router] Rendering content for:', pageId);
+    
+    // DIAGNOSTIC: Check if page is actually visible
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        const rect = targetPage.getBoundingClientRect();
+        const styles = window.getComputedStyle(targetPage);
+        console.log('[Router] Page state diagnostic:', {
+            id: pageId,
+            classList: Array.from(targetPage.classList),
+            display: styles.display,
+            visibility: styles.visibility,
+            opacity: styles.opacity,
+            height: styles.height,
+            width: styles.width,
+            boundingRect: { 
+                width: rect.width, 
+                height: rect.height,
+                top: rect.top,
+                left: rect.left
+            },
+            innerHTML_length: targetPage.innerHTML.length,
+            childElementCount: targetPage.childElementCount
+        });
+        
+        // Check parent container
+        const mainContent = document.querySelector('.main-content-area');
+        if (mainContent) {
+            const mainRect = mainContent.getBoundingClientRect();
+            const mainStyles = window.getComputedStyle(mainContent);
+            console.log('[Router] Main content area:', {
+                display: mainStyles.display,
+                visibility: mainStyles.visibility,
+                width: mainRect.width,
+                height: mainRect.height,
+                overflow: mainStyles.overflow,
+                overflowY: mainStyles.overflowY
+            });
+        }
+    }
+    
+    // Render dynamic content based on page - ALWAYS inject UI for each page
+    if (pageId === 'careers-list-page') {
+        renderCareers();
+    }
+    
     if (pageId === 'dashboard-page') {
+        console.log('[Navigation] Rendering dashboard...');
         if (typeof window.enhancedFlows !== 'undefined') {
             window.enhancedFlows.renderDashboard();
         } else {
             renderDashboard();
         }
     }
-    if (pageId === 'projects-page') renderProjects();
+    
+    if (pageId === 'projects-page') {
+        console.log('[Navigation] Rendering projects page...');
+        if (typeof window.ProjectsWorkspace !== 'undefined') {
+            window.ProjectsWorkspace.renderProjectsGrid();
+        } else {
+            renderProjects();
+        }
+    }
+    
     if (pageId === 'practice-page') {
+        console.log('[Navigation] Rendering practice page...');
         if (typeof window.enhancedFlows !== 'undefined') {
             window.enhancedFlows.renderPractice();
         } else {
             renderPractice();
         }
     }
-    if (pageId === 'profile-page') renderProfile();
+    
+    if (pageId === 'mock-interview-page') {
+        console.log('[Navigation] Initializing mock interview...');
+        // Mock Interview has its own init that sets up the UI
+        if (typeof MockInterview !== 'undefined' && typeof MockInterview.init === 'function') {
+            MockInterview.init();
+        } else {
+            console.error('[Navigation] MockInterview module not found!');
+        }
+    }
+    
+    if (pageId === 'video-library-page') {
+        console.log('[Navigation] Rendering video library...');
+        if (typeof window.VideoLibrary !== 'undefined') {
+            window.VideoLibrary.renderVideoGrid();
+        } else {
+            console.error('[Navigation] VideoLibrary module not found!');
+        }
+    }
+    
+    if (pageId === 'profile-page') {
+        renderProfile();
+    }
+    
     if (pageId === 'skill-gap-page') {
         if (typeof window.enhancedFlows !== 'undefined') {
             window.enhancedFlows.initializeSkillGapAnalyzer();
         }
     }
     
-    // Update URL without reloading page
-    updateURL(pageId);
+    if (pageId === 'video-library-page') {
+        console.log('[Navigation] Initializing video library...');
+        if (typeof VideoLibrary !== 'undefined') {
+            VideoLibrary.init();
+        }
+    }
 }
 
 // Smart navigation for "Start Your Roadmap" button

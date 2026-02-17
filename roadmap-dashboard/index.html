@@ -6,6 +6,8 @@
     <title>SkillForge</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="coding-arena-styles.css">
+    <link rel="stylesheet" href="projects-workspace.css">
+    <link rel="stylesheet" href="video-library.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="theme-dark"> 
@@ -28,6 +30,9 @@
                 </button>
                 <button class="nav-item" data-target="mock-interview-page">
                     <i class="fas fa-user-friends"></i> Mock Interview
+                </button>
+                <button class="nav-item" data-target="video-library-page">
+                    <i class="fas fa-video"></i> Video Library
                 </button>
                  <button class="nav-item" data-target="skill-gap-page">
                     <i class="fas fa-chart-pie"></i> Skill Gap
@@ -307,9 +312,94 @@
 
                 <!-- Analysis Loading State -->
                 <div id="analysis-loading" class="loading-state card" style="display: none;">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p>Analyzing your resume...</p>
-                    <p class="loading-subtext">This may take a few moments</p>
+                    <div class="ai-pipeline-status">
+                        <h3 style="text-align: center; margin-bottom: 20px; color: #ff6b6b;">
+                            <i class="fas fa-brain"></i> Enterprise AI Processing
+                        </h3>
+                        
+                        <!-- Layer 1: Document AI -->
+                        <div class="pipeline-layer" id="layer-1-status">
+                            <div class="layer-icon"><i class="fas fa-file-alt"></i></div>
+                            <div class="layer-info">
+                                <div class="layer-name">Layer 1: Document AI</div>
+                                <div class="layer-provider">Google Document AI / Azure Form Recognizer</div>
+                            </div>
+                            <div class="layer-status pending">
+                                <i class="fas fa-circle"></i> Pending
+                            </div>
+                        </div>
+
+                        <!-- Layer 2: NLP Extraction -->
+                        <div class="pipeline-layer" id="layer-2-status">
+                            <div class="layer-icon"><i class="fas fa-search"></i></div>
+                            <div class="layer-info">
+                                <div class="layer-name">Layer 2: NLP Extraction</div>
+                                <div class="layer-provider">AWS Comprehend / Azure Text Analytics</div>
+                            </div>
+                            <div class="layer-status pending">
+                                <i class="fas fa-circle"></i> Pending
+                            </div>
+                        </div>
+
+                        <!-- Layer 3: LLM Inference -->
+                        <div class="pipeline-layer" id="layer-3-status">
+                            <div class="layer-icon"><i class="fas fa-brain"></i></div>
+                            <div class="layer-info">
+                                <div class="layer-name">Layer 3: LLM Inference</div>
+                                <div class="layer-provider">OpenAI GPT-4 / Claude Opus</div>
+                            </div>
+                            <div class="layer-status pending">
+                                <i class="fas fa-circle"></i> Pending
+                            </div>
+                        </div>
+
+                        <!-- Layer 4: Market Intelligence -->
+                        <div class="pipeline-layer" id="layer-4-status">
+                            <div class="layer-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="layer-info">
+                                <div class="layer-name">Layer 4: Market Intelligence</div>
+                                <div class="layer-provider">LinkedIn Skills API / O*NET</div>
+                            </div>
+                            <div class="layer-status pending">
+                                <i class="fas fa-circle"></i> Pending
+                            </div>
+                        </div>
+
+                        <!-- Layer 5: Confidence Scoring -->
+                        <div class="pipeline-layer" id="layer-5-status">
+                            <div class="layer-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="layer-info">
+                                <div class="layer-name">Layer 5: Confidence Scoring</div>
+                                <div class="layer-provider">Rules-based Multi-factor Analysis</div>
+                            </div>
+                            <div class="layer-status pending">
+                                <i class="fas fa-circle"></i> Pending
+                            </div>
+                        </div>
+
+                        <!-- Layer 6: Arbitration -->
+                        <div class="pipeline-layer" id="layer-6-status">
+                            <div class="layer-icon"><i class="fas fa-balance-scale"></i></div>
+                            <div class="layer-info">
+                                <div class="layer-name">Layer 6: Arbitration</div>
+                                <div class="layer-provider">Independent LLM Validation</div>
+                            </div>
+                            <div class="layer-status pending">
+                                <i class="fas fa-circle"></i> Pending
+                            </div>
+                        </div>
+
+                        <!-- Processing Stats -->
+                        <div class="processing-stats" style="margin-top: 30px; text-align: center; opacity: 0.8;">
+                            <div style="font-size: 14px; margin-bottom: 10px;">
+                                <span id="processing-time">Elapsed: 0s</span> • 
+                                <span id="processing-cost">Est. Cost: $0.00</span>
+                            </div>
+                            <div style="font-size: 12px; color: #ff6b6b;">
+                                <i class="fas fa-info-circle"></i> Real AI services processing your resume...
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Results Section -->
@@ -339,17 +429,179 @@
                 </div>
             </section>
 
-            <!-- 7. PROJECTS SECTION -->
+            <!-- 7. PROJECTS WORKSPACE -->
             <section id="projects-page" class="page-view hidden">
-                <header class="page-header">
-                    <h2>Mandatory Projects</h2>
-                </header>
-                <div class="projects-list" id="projects-list">
-                    <!-- Injected by JS -->
+                <!-- Projects Grid View -->
+                <div id="projects-grid-view">
+                    <header class="page-header">
+                        <div class="header-title-group">
+                            <h2>Projects Workspace</h2>
+                            <p class="header-subtitle">Version-controlled proof-of-work with AI code review</p>
+                        </div>
+                        <a href="workspace.html" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New Project Workspace
+                        </a>
+                    </header>
+                    
+                    <div class="projects-grid">
+                        <!-- Project cards injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Project Detail View -->
+                <div id="project-detail-view" class="hidden">
+                    <div class="project-detail-header">
+                        <button id="back-to-projects-btn" class="btn btn-ghost">
+                            <i class="fas fa-arrow-left"></i> Back to Projects
+                        </button>
+                        
+                        <div class="project-detail-title-row">
+                            <div class="project-detail-title-group">
+                                <h2 id="detail-project-title">Project Name</h2>
+                                <div class="project-detail-meta">
+                                    <span id="detail-project-status" class="project-status-badge">Planning</span>
+                                    <span id="detail-project-created" class="text-muted">Created Jan 30, 2026</span>
+                                </div>
+                            </div>
+                            
+                            <div class="project-actions">
+                                <button id="upload-files-btn" class="btn btn-secondary">
+                                    <i class="fas fa-upload"></i> Upload Files
+                                </button>
+                                <button id="commit-push-btn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-code-branch"></i> Commit & Push
+                                </button>
+                                <button id="mark-complete-btn" class="btn btn-success">
+                                    <i class="fas fa-check-circle"></i> Mark Complete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="project-tabs">
+                        <button class="project-tab active" data-tab="files">
+                            <i class="fas fa-folder"></i> Files
+                        </button>
+                        <button class="project-tab" data-tab="commits">
+                            <i class="fas fa-code-branch"></i> Commits
+                        </button>
+                        <button class="project-tab highlighted" data-tab="ai-review">
+                            <i class="fas fa-robot"></i> AI Review
+                        </button>
+                        <button class="project-tab" data-tab="evolution">
+                            <i class="fas fa-chart-line"></i> Evolution
+                        </button>
+                    </div>
+                    
+                    <div class="project-tab-content">
+                        <!-- Files Tab -->
+                        <div id="tab-files" class="tab-pane">
+                            <div class="files-layout">
+                                <div class="file-tree" id="file-tree">
+                                    <!-- File tree injected -->
+                                </div>
+                                <div class="file-viewer" id="file-viewer">
+                                    <div class="file-viewer-empty">
+                                        <i class="fas fa-file-code fa-3x"></i>
+                                        <p>Select a file to view its contents</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Commits Tab -->
+                        <div id="tab-commits" class="tab-pane hidden">
+                            <div id="commits-timeline" class="commits-timeline">
+                                <!-- Commits injected -->
+                            </div>
+                        </div>
+                        
+                        <!-- AI Review Tab -->
+                        <div id="tab-ai-review" class="tab-pane hidden">
+                            <div id="ai-review-content" class="ai-review-content">
+                                <!-- AI review injected -->
+                            </div>
+                        </div>
+                        
+                        <!-- Evolution Tab -->
+                        <div id="tab-evolution" class="tab-pane hidden">
+                            <div id="evolution-timeline" class="evolution-timeline">
+                                <!-- Evolution timeline injected -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- 8. PRACTICE & ASSESSMENT -->
+            <!-- 8. VIDEO LIBRARY -->
+            <section id="video-library-page" class="page-view hidden">
+                <!-- Video Grid View -->
+                <div id="video-grid-view">
+                    <header class="page-header">
+                        <div class="header-title-group">
+                            <h2>Video Library</h2>
+                            <p class="header-subtitle">Learn through video tutorials with progress tracking and comprehensive notes</p>
+                        </div>
+                        <button id="show-upload-btn" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Upload Video
+                        </button>
+                    </header>
+                    
+                    <div id="video-grid" class="video-grid">
+                        <!-- Video cards injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Video Watch View -->
+                <div id="video-watch-view" class="hidden">
+                    <div class="video-watch-header">
+                        <button id="back-to-videos-btn" class="btn btn-ghost">
+                            <i class="fas fa-arrow-left"></i> Back to Library
+                        </button>
+                    </div>
+                    
+                    <div class="video-watch-content">
+                        <div class="video-player-section">
+                            <div id="video-player-container" class="video-player-container">
+                                <!-- Video player injected by JS -->
+                            </div>
+                            
+                            <div class="video-info">
+                                <h2 id="watch-video-title">Video Title</h2>
+                                <div class="video-meta">
+                                    <span id="watch-video-category" class="video-category-badge">Beginner</span>
+                                    <span id="watch-video-duration" class="text-muted"><i class="fas fa-clock"></i> 10:00</span>
+                                    <span id="watch-video-progress" class="video-progress-badge">Not Started</span>
+                                </div>
+                                <p id="watch-video-description" class="video-description"></p>
+                                <div id="watch-video-tags" class="video-tags"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="video-notes-section" class="video-notes-section locked">
+                            <div class="notes-locked-message">
+                                <i class="fas fa-lock fa-3x"></i>
+                                <h3>Notes Locked</h3>
+                                <p>Complete watching the video to unlock downloadable PDF notes</p>
+                            </div>
+                            
+                            <div class="notes-unlocked-content hidden">
+                                <div class="notes-header">
+                                    <h3><i class="fas fa-file-pdf"></i> Video Notes</h3>
+                                    <button id="download-notes-btn" class="btn btn-primary">
+                                        <i class="fas fa-download"></i> Download PDF
+                                    </button>
+                                </div>
+                                <div id="notes-preview" class="notes-preview">
+                                    <!-- Notes content -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. PRACTICE & ASSESSMENT -->
             <section id="practice-page" class="page-view hidden">
                 <header class="page-header">
                     <h2>DSA Practice Arena</h2>
@@ -1153,8 +1405,78 @@
         </div>
     </div>
 
+    <!-- Projects Modals -->
+    <div id="create-project-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Project</h3>
+                <button class="modal-close" onclick="window.ProjectsWorkspace.closeCreateModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Project Name *</label>
+                    <input type="text" id="new-project-name" class="form-input" placeholder="Smart Edge AI CCTV">
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="new-project-desc" class="form-input" rows="3" placeholder="Real-time object detection with edge computing..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tech Stack (comma-separated)</label>
+                    <input type="text" id="new-project-tech" class="form-input" placeholder="Python, TensorFlow, OpenCV, Flask">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="window.ProjectsWorkspace.closeCreateModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="window.ProjectsWorkspace.createProject()">
+                    <i class="fas fa-plus"></i> Create Project
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="commit-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Commit Changes</h3>
+                <button class="modal-close" onclick="window.ProjectsWorkspace.closeCommitModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Commit Message *</label>
+                    <input type="text" id="commit-message" class="form-input" placeholder="Add authentication module">
+                </div>
+                <div class="form-group">
+                    <label>Changed Files</label>
+                    <div id="changed-files-summary" class="changed-files-list"></div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="trigger-ai-review" checked>
+                        <span class="checkbox-text">
+                            <i class="fas fa-brain"></i> Trigger AI Review
+                            <span class="checkbox-hint">Run elite 6-layer analysis after commit</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="window.ProjectsWorkspace.closeCommitModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="window.ProjectsWorkspace.commitChanges()">
+                    <i class="fas fa-code-branch"></i> Commit & Push
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="enhanced-flows.js"></script>
     <script src="mock-interview.js"></script>
+    <script src="projects-workspace.js"></script>
+    <script src="video-library.js"></script>
     <script src="coding-arena-functional.js"></script>
     <script src="app.js"></script>
 </body>

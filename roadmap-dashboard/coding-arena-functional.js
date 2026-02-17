@@ -217,24 +217,140 @@
         console.log('[CodingArena] Problem loaded:', problem.title || problem.name);
     }
 
-    function closeArena() {
-        // Save progress
-        saveDraft();
-        trackProgress('exit');
+    /**
+     * Lifecycle: Unmounts the arena and cleans up all resources
+     */
+    function unmountArena() {
+        console.log('[CodingArena] Unmounting...');
         
-        // Hide arena, show practice page
+        // 1. Clear timers
+        try {
+            if (typeof autoSaveDraft !== 'undefined' && autoSaveDraft.timer) {
+                clearTimeout(autoSaveDraft.timer);
+                autoSaveDraft.timer = null;
+            }
+        } catch (e) {
+            console.error('[CodingArena] Error clearing timers:', e);
+        }
+
+        // 2. Remove dynamic nodes (toasts, etc)
+        try {
+            document.querySelectorAll('.toast').forEach(el => el.remove());
+        } catch (e) {
+            console.error('[CodingArena] Error removing toasts:', e);
+        }
+
+        // 3. Reset DOM elements to clear state
+        try {
+            if (dom.outputConsole) dom.outputConsole.innerHTML = '<span class="text-muted">Run code to see output...</span>';
+            if (dom.execStatus) dom.execStatus.innerHTML = '<span class="status-indicator status-idle"></span>Ready';
+            if (dom.aiChatMessages) dom.aiChatMessages.innerHTML = '';
+            if (dom.testCasesList) dom.testCasesList.innerHTML = '';
+            if (dom.codeEditorArea) dom.codeEditorArea.textContent = ''; // Clear editor content
+        } catch (e) {
+            console.error('[CodingArena] Error resetting DOM:', e);
+        }
+
+        // 4. Hide UI
         if (dom.arena) {
             dom.arena.style.display = 'none';
             dom.arena.classList.add('hidden');
+            dom.arena.classList.remove('active');
         }
-        if (dom.practiceSection) {
-            dom.practiceSection.style.display = 'flex';
-        }
-        
-        // Reset state
+
+        // 5. Reset internal state
         state.currentProblem = null;
+        state.currentCode = '';
+        state.testResults = [];
+        state.chatHistory = [];
+        state.isRunning = false;
         
-        console.log('[CodingArena] Closed');
+        console.log('[CodingArena] Unmounted and resources cleaned');
+    }
+
+    /**
+     * Lifecycle: Restores the practice page to its initial pristine state
+     */
+    function restorePracticeState() {
+        console.log('[CodingArena] Restoring practice state...');
+        if (!dom.practiceSection) {
+            console.warn('[CodingArena] Practice section not found in cache. Refreshing DOM cache...');
+            dom.practiceSection = document.getElementById('practice-page');
+            if (!dom.practiceSection) {
+                console.error('[CodingArena] Failed to find #practice-page');
+                return;
+            }
+        }
+
+        // 1. Reset visibility
+        dom.practiceSection.style.display = 'flex';
+        dom.practiceSection.classList.remove('hidden');
+        dom.practiceSection.classList.add('active');
+
+        // 2. Reset scroll position (Aggressively)
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        
+        if (dom.practiceSection) dom.practiceSection.scrollTop = 0;
+        
+        // Also check main content area if it exists
+        const mainContent = document.querySelector('.main-content-area');
+        if (mainContent) mainContent.scrollTop = 0;
+
+        // 3. Force Re-render to clear any cluttered state (expanded sections, etc.)
+        // This ensures the page looks exactly like the "first load" state
+        try {
+            if (window.enhancedFlows && typeof window.enhancedFlows.renderPractice === 'function') {
+                console.log('[CodingArena] Triggering enhancedFlows.renderPractice()');
+                window.enhancedFlows.renderPractice();
+            } else if (typeof renderPractice === 'function') {
+                console.log('[CodingArena] Triggering global renderPractice()');
+                renderPractice();
+            } else {
+                console.warn('[CodingArena] renderPractice function not found!');
+            }
+        } catch (e) {
+            console.error('[CodingArena] Error re-rendering practice page:', e);
+        }
+    }
+
+    function closeArena() {
+        console.log('[CodingArena] Closing...');
+        
+        // Save state before exit (Fail-safe)
+        try {
+            saveDraft();
+        } catch (e) {
+            console.error('[CodingArena] Error saving draft:', e);
+        }
+        
+        try {
+            trackProgress('exit');
+        } catch (e) {
+            console.error('[CodingArena] Error tracking progress:', e);
+        }
+        
+        // Execute Lifecycle Cleanup (Guaranteed execution)
+        try {
+            unmountArena();
+        } catch (e) {
+            console.error('[CodingArena] CRITICAL: Error unmounting arena:', e);
+            // Panic mode: Try to hide it anyway
+            const arena = document.getElementById('coding-arena');
+            if (arena) arena.style.display = 'none';
+        }
+        
+        try {
+            restorePracticeState();
+        } catch (e) {
+            console.error('[CodingArena] CRITICAL: Error restoring practice state:', e);
+            // Panic mode: Reload page? No, better to try to show the div
+            const practice = document.getElementById('practice-page');
+            if (practice) practice.style.display = 'flex';
+        }
+        
+        console.log('[CodingArena] Closed - Full lifecycle cleanup complete');
     }
 
     function findProblem(problemId) {

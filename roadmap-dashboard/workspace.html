@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Workspace - SkillForge</title>
+    <!-- Ultra-Premium 2075 Styles -->
+    <link rel="stylesheet" href="projects-workspace.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="workspace-root"></div>
+
+    <!-- Core Logic -->
+    <script src="projects-workspace.js"></script>
+
+    <!-- Initialize Workspace -->
+    <script>
+        // Get project ID from URL (e.g., workspace.html?project=123)
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('project');
+
+        // API base URL
+        const API_BASE = 'http://localhost:5000/api/workspace';
+
+        // Initialize workspace when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const workspace = new ProjectWorkspace('workspace-root', API_BASE);
+            
+            if (projectId) {
+                workspace.init(projectId);
+            } else {
+                // Show project selection if no ID provided
+                workspace.showProjectSelector();
+            }
+        });
+    </script>
+</body>
+</html>

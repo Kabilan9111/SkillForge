@@ -1,0 +1,158 @@
+/* Admin Upload Panel */
+.admin-upload-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-primary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+}
+
+#admin-upload-modal {
+    backdrop-filter: blur(4px);
+}
+
+.admin-upload-panel h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    color: var(--accent-primary);
+}
+
+#show-upload-btn {
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    background: var(--bg-input);
+    border: 1px solid var(--border-dim);
+    border-radius: 4px;
+    padding: 0.75rem;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Level Badges */
+.level-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.level-badge.level-beginner {
+    background: rgba(67, 160, 71, 0.9);
+    color: #fff;
+}
+
+.level-badge.level-intermediate {
+    background: rgba(251, 140, 0, 0.9);
+    color: #fff;
+}
+
+.level-badge.level-advanced {
+    background: rgba(229, 57, 53, 0.9);
+    color: #fff;
+}
+
+.module-link {
+    color: var(--accent-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.module-link:hover {
+    opacity: 0.8;
+}
+
+/* Enhanced Empty State for Video Library */
+#no-videos-message {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: var(--bg-card);
+    border-radius: 8px;
+    border: 2px dashed var(--border-dim);
+    margin: 1rem;
+}
+
+#no-videos-message i {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+#no-videos-message p:first-of-type {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Video Player Enhancements */
+.video-player-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.video-wrapper {
+    position: relative;
+}
+
+/* Prevent seeking beyond watched position (optional) */
+#video-player::-webkit-media-controls-timeline {
+    /* Custom controls would go here if implementing seek prevention */
+}
+
+/* Notes unlock animation */
+#view-notes-btn:not(:disabled) {
+    animation: unlockPulse 2s ease-in-out;
+}
+
+@keyframes unlockPulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+    50% { box-shadow: 0 0 20px 5px var(--accent-glow); }
+}

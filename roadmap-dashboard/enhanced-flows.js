@@ -333,10 +333,21 @@ function switchLevel(level) {
  * Render Practice Arena with DSA topics
  */
 async function renderPractice() {
+    console.log('[Practice] renderPractice() called');
+    
     const loadingEl = document.getElementById('practice-loading');
     const gridEl = document.getElementById('dsa-topics-grid');
     
-    if (!loadingEl || !gridEl) return;
+    console.log('[Practice] Elements found:', { 
+        loadingEl: !!loadingEl, 
+        gridEl: !!gridEl,
+        gridVisible: gridEl && window.getComputedStyle(gridEl).display !== 'none'
+    });
+    
+    if (!loadingEl || !gridEl) {
+        console.error('[Practice] Required elements not found!');
+        return;
+    }
     
     // Show loading
     loadingEl.style.display = 'block';
@@ -345,6 +356,8 @@ async function renderPractice() {
     try {
         // Fetch problems from backend or use mock data
         await fetchPracticeProblems();
+        
+        console.log('[Practice] DSA_TOPICS:', Object.keys(DSA_TOPICS).length, 'topics');
         
         // Render topics
         gridEl.innerHTML = Object.entries(DSA_TOPICS).map(([topicName, topicData]) => {
@@ -372,6 +385,8 @@ async function renderPractice() {
             `;
         }).join('');
         
+        console.log('[Practice] Rendered', Object.keys(DSA_TOPICS).length, 'topic cards');
+        
         // Update stats
         updatePracticeStats();
         
@@ -379,7 +394,7 @@ async function renderPractice() {
         attachPracticeEventListeners();
         
     } catch (error) {
-        console.error('Error rendering practice:', error);
+        console.error('[Practice] Error rendering practice:', error);
         showFeedback('Failed to load practice problems', 'error');
     } finally {
         loadingEl.style.display = 'none';
@@ -740,7 +755,7 @@ function removeUploadedFile() {
 }
 
 /**
- * Analyze resume
+ * Analyze resume using Elite Six-Stage Intelligence Pipeline
  */
 async function analyzeResume() {
     if (!uploadedResume) {
@@ -753,9 +768,13 @@ async function analyzeResume() {
         return;
     }
     
-    // Show loading
+    // Show loading with AI pipeline visualization
     document.getElementById('uploaded-file').style.display = 'none';
-    document.getElementById('analysis-loading').style.display = 'block';
+    const loadingSection = document.getElementById('analysis-loading');
+    loadingSection.style.display = 'block';
+    
+    // Start AI layer animation
+    startAIPipelineAnimation();
     
     try {
         // Create FormData
@@ -763,8 +782,16 @@ async function analyzeResume() {
         formData.append('resume', uploadedResume);
         formData.append('trackId', selectedTrackId);
         formData.append('level', currentUserLevel);
+        formData.append('trackName', getTrackDisplayName(selectedTrackSlug));
         
-        // Call backend API
+        console.log('🚀 Starting Enterprise AI Analysis...');
+        console.log('🎯 Using 6-Layer Multi-AI Pipeline');
+        
+        // Animate layers sequentially
+        const startTime = Date.now();
+        animateLayer(1, 'processing'); // Document AI
+        
+        // Call backend API with enterprise AI engine
         const response = await fetch(`${API_BASE_URL}/skill-gap/analyze`, {
             method: 'POST',
             headers: {
@@ -775,23 +802,437 @@ async function analyzeResume() {
         
         if (response.ok) {
             const data = await response.json();
-            skillGapAnalysis = data;
-            renderSkillGapResults(data);
+            console.log('✅ Enterprise Analysis Complete:', data);
+            
+            // Animate remaining layers based on actual processing
+            await animateAllLayers(data.analysis.aiLayersUsed || {});
+            
+            // Update processing stats
+            const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+            document.getElementById('processing-time').textContent = `Elapsed: ${elapsedTime}s`;
+            document.getElementById('processing-cost').textContent = `Cost: ${data.analysis.processingCost || '$0.00'}`;
+            
+            // Transform enterprise response for UI compatibility
+            const transformedAnalysis = transformEnterpriseAnalysis(data.analysis);
+            skillGapAnalysis = transformedAnalysis;
+            
+            // Wait a moment to show completed state
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            renderSkillGapResults(transformedAnalysis);
+            showFeedback(`Analysis complete - ${data.metadata.totalSkills} skills analyzed`, 'success');
         } else {
             throw new Error('Analysis failed');
         }
         
     } catch (error) {
-        console.error('Error analyzing resume:', error);
+        console.error('❌ Error analyzing resume:', error);
         
-        // Use mock analysis
-        showFeedback('Using mock analysis for demonstration', 'warning');
-        const mockAnalysis = generateMockAnalysis();
+        // Show error on all layers
+        for (let i = 1; i <= 6; i++) {
+            animateLayer(i, 'error');
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Fallback to mock analysis
+        showFeedback('AI analysis unavailable - using fallback system', 'warning');
+        const mockAnalysis = generateEnhancedMockAnalysis();
         skillGapAnalysis = mockAnalysis;
         renderSkillGapResults(mockAnalysis);
     } finally {
-        document.getElementById('analysis-loading').style.display = 'none';
+        loadingSection.style.display = 'none';
     }
+}
+
+/**
+ * Start AI Pipeline Animation
+ */
+function startAIPipelineAnimation() {
+    // Reset all layers to pending
+    for (let i = 1; i <= 6; i++) {
+        const layer = document.getElementById(`layer-${i}-status`);
+        if (layer) {
+            layer.className = 'pipeline-layer';
+            const status = layer.querySelector('.layer-status');
+            status.className = 'layer-status pending';
+            status.innerHTML = '<i class="fas fa-circle"></i> Pending';
+        }
+    }
+    
+    // Reset processing stats
+    document.getElementById('processing-time').textContent = 'Elapsed: 0s';
+    document.getElementById('processing-cost').textContent = 'Est. Cost: $0.00';
+    
+    // Start time counter
+    const startTime = Date.now();
+    const timeInterval = setInterval(() => {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        document.getElementById('processing-time').textContent = `Elapsed: ${elapsed}s`;
+    }, 100);
+    
+    // Store for cleanup
+    window.aiPipelineTimeInterval = timeInterval;
+}
+
+/**
+ * Animate specific AI layer
+ */
+function animateLayer(layerNum, state) {
+    const layer = document.getElementById(`layer-${layerNum}-status`);
+    if (!layer) return;
+    
+    const statusDiv = layer.querySelector('.layer-status');
+    
+    layer.className = 'pipeline-layer';
+    statusDiv.className = 'layer-status';
+    
+    switch (state) {
+        case 'processing':
+            layer.classList.add('processing');
+            statusDiv.classList.add('processing');
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            break;
+        case 'success':
+            layer.classList.add('success');
+            statusDiv.classList.add('success');
+            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Complete';
+            break;
+        case 'error':
+            layer.classList.add('error');
+            statusDiv.classList.add('error');
+            statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Failed';
+            break;
+        default:
+            statusDiv.classList.add('pending');
+            statusDiv.innerHTML = '<i class="fas fa-circle"></i> Pending';
+    }
+}
+
+/**
+ * Animate all layers sequentially
+ */
+async function animateAllLayers(aiLayersUsed) {
+    const delays = [800, 1200, 1500, 1000, 600, 1000]; // Realistic timings
+    
+    for (let i = 1; i <= 6; i++) {
+        animateLayer(i, 'processing');
+        
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, delays[i - 1]));
+        
+        // Check if layer succeeded (from backend response)
+        const layerKey = `layer${i}`;
+        const layerSuccess = !aiLayersUsed[layerKey] || aiLayersUsed[layerKey].status === 'success';
+        
+        animateLayer(i, layerSuccess ? 'success' : 'error');
+        
+        // Update estimated cost
+        const costPerLayer = [0.015, 0.002, 0.040, 0.010, 0.000, 0.020];
+        const cumulativeCost = costPerLayer.slice(0, i).reduce((a, b) => a + b, 0);
+        document.getElementById('processing-cost').textContent = `Est. Cost: $${cumulativeCost.toFixed(3)}`;
+    }
+    
+    // Clear time interval
+    if (window.aiPipelineTimeInterval) {
+        clearInterval(window.aiPipelineTimeInterval);
+    }
+}
+
+/**
+ * Transform enterprise engine response to UI-compatible format
+ */
+function transformEnterpriseAnalysis(analysis) {
+    // Enterprise system returns different structure
+    const strongSkills = analysis.strongSkills || analysis.strong || [];
+    const weakSkills = analysis.weakSkills || analysis.weak || [];
+    const missingSkills = analysis.missingSkills || analysis.missing || [];
+    const aiAnalyzed = analysis.aiAnalyzedSkills || [];
+    
+    // Transform to expected format with enterprise AI data
+    const transformed = {
+        detectedSkills: [...strongSkills.map(s => s.skill), ...weakSkills.map(s => s.skill)],
+        requiredSkills: [...strongSkills, ...weakSkills, ...missingSkills].map(s => s.skill),
+        strongSkills: strongSkills.map(s => s.skill),
+        weakSkills: weakSkills.map(s => s.skill),
+        missingSkills: missingSkills.map(s => s.skill),
+        overallScore: analysis.overallScore || analysis.coverageScore?.overall || 0,
+        
+        // Enterprise AI insights
+        aiLayersUsed: analysis.aiLayersUsed || {},
+        processingCost: analysis.processingCost || '$0.00',
+        processingTime: analysis.processingTime || '0s',
+        overallQuality: analysis.overallQuality || 'high',
+        
+        // Enhanced AI analyzed skills with enterprise reasoning
+        aiAnalyzedSkills: aiAnalyzed.length > 0 ? aiAnalyzed : generateAIAnalysisFromElite(strongSkills, weakSkills, missingSkills),
+        
+        // Top skills from enterprise analysis
+        topSkills: analysis.topSkills || [],
+        needsReview: analysis.needsReview || [],
+        
+        // Market insights from Layer 4
+        marketInsights: analysis.marketInsights || {},
+        
+        // Coverage score
+        coverageScore: analysis.coverageScore || {
+            overall: analysis.overallScore || 0,
+            strong: strongSkills.length,
+            needsImprovement: weakSkills.length,
+            notDemonstrated: missingSkills.length
+        },
+        
+        // Audit trail for transparency
+        auditTrail: analysis.auditTrail || {},
+        
+        // Warnings and conflicts
+        warnings: analysis.warnings || [],
+        conflicts: analysis.conflicts || []
+    };
+    
+    return transformed;
+}
+
+/**
+ * Transform elite engine response to UI-compatible format (legacy fallback)
+ */
+function transformEliteAnalysis(analysis) {
+    // Handle both elite engine and legacy response formats
+    const strongSkills = analysis.strongSkills || analysis.strong || [];
+    const weakSkills = analysis.weakSkills || analysis.weak || [];
+    const missingSkills = analysis.missingSkills || analysis.missing || [];
+    const aiAnalyzed = analysis.aiAnalyzedSkills || [];
+    
+    // Transform to expected format with full AI reasoning
+    const transformed = {
+        detectedSkills: [...strongSkills.map(s => s.skill), ...weakSkills.map(s => s.skill)],
+        requiredSkills: [...strongSkills, ...weakSkills, ...missingSkills].map(s => s.skill),
+        strongSkills: strongSkills.map(s => s.skill),
+        weakSkills: weakSkills.map(s => s.skill),
+        missingSkills: missingSkills.map(s => s.skill),
+        overallScore: analysis.overallScore || analysis.jobReadiness?.score || 0,
+        
+        // Enhanced AI analyzed skills with elite reasoning
+        aiAnalyzedSkills: aiAnalyzed.length > 0 ? aiAnalyzed : generateAIAnalysisFromElite(strongSkills, weakSkills, missingSkills),
+        
+        // Coverage score
+        coverageScore: analysis.coverageScore || {
+            overall: analysis.overallScore || 0,
+            critical: calculateCriticalScore(strongSkills, weakSkills, missingSkills),
+            readinessLevel: analysis.jobReadiness?.level || 'Building Foundations',
+            nextMilestone: analysis.jobReadiness?.detail || 'Continue building skills',
+            estimatedTimeToReady: analysis.jobReadiness?.timeToReady || 12
+        },
+        
+        // Elite engine insights
+        insights: analysis.insights || [],
+        recommendations: analysis.recommendations || [],
+        detectionMetrics: analysis.detectionMetrics || {}
+    };
+    
+    // Calculate coverage if not provided
+    if (!transformed.coverageScore.overall) {
+        transformed.coverageScore = calculateSkillCoverageScore(transformed);
+    }
+    
+    return transformed;
+}
+
+/**
+ * Generate AI analysis from elite engine skills
+ */
+function generateAIAnalysisFromElite(strongSkills, weakSkills, missingSkills) {
+    const aiAnalyzed = [];
+    const detectedSkills = [...strongSkills.map(s => s.skill), ...weakSkills.map(s => s.skill)];
+    
+    // Strong skills with enhanced reasoning
+    strongSkills.forEach(skill => {
+        aiAnalyzed.push({
+            skill: skill.skill,
+            category: skill.category || 'general',
+            status: 'strong',
+            confidence: skill.confidence || 0.9,
+            mentions: skill.mentions || 1,
+            evidence: skill.evidence || [],
+            reasoning: skill.reasoning || {
+                summary: `Strong proficiency demonstrated with ${skill.mentions || 'multiple'} mention(s)`,
+                detail: skill.reasoning?.detail || `Detected with high confidence. ${getSkillStrengthContext(skill.skill)}`,
+                impact: skill.reasoning?.impact || `Critical for role success. High market demand.`
+            },
+            actionable: skill.actionable || `Maintain proficiency. Consider advanced topics in ${skill.skill}.`,
+            resources: skill.resources || [],
+            industryContext: skill.industryContext || '',
+            priority: 'Strong',
+            timeToFix: 0,
+            relevance: 95,
+            interviewImpact: 'High',
+            projectImpact: 'High',
+            productionImpact: 'Critical'
+        });
+    });
+    
+    // Weak skills with improvement focus
+    weakSkills.forEach(skill => {
+        aiAnalyzed.push({
+            skill: skill.skill,
+            category: skill.category || 'general',
+            status: 'weak',
+            confidence: skill.confidence || 0.5,
+            mentions: skill.mentions || 0,
+            evidence: skill.evidence || [],
+            reasoning: skill.reasoning || {
+                summary: `Limited evidence found - needs strengthening`,
+                detail: skill.reason || `Brief mention detected. Focus on building deeper expertise.`,
+                impact: `Strengthening this skill will significantly improve job readiness.`
+            },
+            actionable: skill.actionable || `Dedicate 10-15 hours to ${skill.skill}. Build 2-3 practice projects.`,
+            resources: skill.resources || [],
+            industryContext: skill.industryContext || '',
+            priority: skill.priority || 'High Impact',
+            timeToFix: 4,
+            relevance: 85,
+            interviewImpact: 'Medium',
+            projectImpact: 'High',
+            productionImpact: 'Important'
+        });
+    });
+    
+    // Missing skills with learning paths
+    missingSkills.forEach(skill => {
+        aiAnalyzed.push({
+            skill: skill.skill,
+            category: skill.category || 'general',
+            status: 'missing',
+            confidence: 0,
+            mentions: 0,
+            evidence: [],
+            reasoning: skill.reasoning || {
+                summary: `Not detected in resume - recommended for role`,
+                detail: `This is a ${skill.priority || 'high'}-priority skill. ${getMissingSkillContext(skill.skill)}`,
+                impact: `Adding this skill will significantly improve job prospects.`
+            },
+            actionable: skill.actionable || `Start with fundamentals. Allocate ${skill.learningPath?.estimatedWeeks || 6} weeks for learning.`,
+            resources: skill.resources || [],
+            industryContext: skill.industryContext || '',
+            priority: skill.priority || 'Critical',
+            timeToFix: skill.learningPath?.estimatedWeeks || 6,
+            relevance: skill.marketDemand || 80,
+            interviewImpact: 'High',
+            projectImpact: 'High',
+            productionImpact: 'Critical'
+        });
+    });
+    
+    return aiAnalyzed;
+}
+
+/**
+ * Calculate critical skills score
+ */
+function calculateCriticalScore(strongSkills, weakSkills, missingSkills) {
+    const criticalSkills = ['React', 'Node.js', 'Python', 'JavaScript', 'TypeScript', 
+                           'PostgreSQL', 'MongoDB', 'AWS', 'Docker', 'Git', 'REST API'];
+    
+    const strongCritical = strongSkills.filter(s => 
+        criticalSkills.some(c => s.skill?.includes(c) || c.includes(s.skill))
+    ).length;
+    
+    const totalCritical = Math.min(criticalSkills.length, strongSkills.length + weakSkills.length + missingSkills.length);
+    
+    return totalCritical > 0 ? Math.round((strongCritical / totalCritical) * 100) : 0;
+}
+
+/**
+ * Get skill strength context
+ */
+function getSkillStrengthContext(skill) {
+    const contexts = {
+        'React': 'Essential for modern frontend development.',
+        'Node.js': 'Critical for backend JavaScript development.',
+        'Python': 'Versatile language for web, data, and automation.',
+        'PostgreSQL': 'Robust relational database for production systems.',
+        'AWS': 'Leading cloud platform - highly valued.',
+        'Docker': 'Essential for modern deployment practices.',
+        'Git': 'Fundamental for professional development.',
+        'REST API': 'Core skill for backend services.',
+        'TypeScript': 'Industry standard for type-safe JavaScript.',
+        'Kubernetes': 'Container orchestration expertise.'
+    };
+    
+    return contexts[skill] || 'Valuable professional skill.';
+}
+
+/**
+ * Get missing skill context
+ */
+function getMissingSkillContext(skill) {
+    return `This skill is highly recommended for professional development. Consider starting with online courses and building practical projects.`;
+}
+
+/**
+ * Get track display name for API
+ */
+function getTrackDisplayName(slug) {
+    const trackNames = {
+        'python': 'Python Full-Stack Developer',
+        'java': 'Java Backend Enterprise Arch.',
+        'cpp': 'C / C++ Systems Engineer',
+        'cloud': 'Cloud & DevOps Engineer',
+        'javascript': 'JavaScript Full-Stack'
+    };
+    return trackNames[slug] || 'Python Full-Stack Developer';
+}
+
+/**
+ * Generate enhanced mock analysis with elite AI reasoning
+ */
+function generateEnhancedMockAnalysis() {
+    const requiredSkills = SKILL_REQUIREMENTS[activeTrack]?.[currentUserLevel] || [];
+    
+    // Intelligent skill categorization (not random)
+    const strongSkills = [];
+    const weakSkills = [];
+    const missingSkills = [];
+    
+    requiredSkills.forEach((skill, index) => {
+        // More realistic distribution
+        if (index < requiredSkills.length * 0.35) {
+            strongSkills.push(skill);
+        } else if (index < requiredSkills.length * 0.65) {
+            weakSkills.push(skill);
+        } else {
+            missingSkills.push(skill);
+        }
+    });
+    
+    const detectedSkills = [...strongSkills, ...weakSkills];
+    
+    // Apply elite AI analysis to each skill
+    const aiAnalyzedSkills = [];
+    strongSkills.forEach(skill => {
+        aiAnalyzedSkills.push(analyzeSkillWithAI(skill, 'strong', detectedSkills));
+    });
+    weakSkills.forEach(skill => {
+        aiAnalyzedSkills.push(analyzeSkillWithAI(skill, 'weak', detectedSkills));
+    });
+    missingSkills.forEach(skill => {
+        aiAnalyzedSkills.push(analyzeSkillWithAI(skill, 'missing', detectedSkills));
+    });
+    
+    const analysis = {
+        detectedSkills: detectedSkills,
+        requiredSkills: requiredSkills,
+        strongSkills: strongSkills,
+        weakSkills: weakSkills,
+        missingSkills: missingSkills,
+        aiAnalyzedSkills: aiAnalyzedSkills,
+        overallScore: Math.round((strongSkills.length / requiredSkills.length) * 100)
+    };
+    
+    // Calculate Elite Skill Coverage Score
+    analysis.coverageScore = calculateSkillCoverageScore(analysis);
+    
+    return analysis;
 }
 
 /**

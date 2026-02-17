@@ -281,10 +281,9 @@ function renderCareers() {
     });
 }
 
-function renderDashboard() {
-    // Determine data source
+async function renderDashboard() {
     const data = TRACK_DATA[activeTrack];
-    const roleInfo = CAREERS.find(c => c.id === activeTrack);
+    const roleInfo = CAREERS.find(c => c.slug === activeTrack);
     
     // Update Dashboard Header Stats
     if(document.getElementById('dash-role-title')) {
@@ -304,19 +303,68 @@ function renderDashboard() {
     const readinessFill = document.querySelector('.meter-fill');
     if(readinessFill) readinessFill.style.width = `${data.stats.readiness}%`;
 
-    // Render Roadmap
+    // Fetch and render real modules from API
     const container = document.getElementById('roadmap-container');
     if (container) {
-        container.innerHTML = ''; // Ensure clean slate
-        container.innerHTML = data.roadmap.map(node => `
-            <article class="node ${node.status}">
-                <header class="node-header">
-                    <span class="node-title">${node.title}</span>
-                    <span class="node-status">${node.status.toUpperCase()}</span>
-                </header>
-                <p class="node-desc">${node.desc}</p>
-            </article>
-        `).join('');
+        container.innerHTML = '<div style="text-align:center;padding:2rem;color:#888;">Loading modules...</div>';
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/tracks/${activeTrack}/modules?level=${currentUserLevel}`);
+            if (!response.ok) throw new Error('Failed to fetch');
+            
+            const modules = await response.json();
+            
+            // Fetch progress if logged in
+            let userProgress = [];
+            if (authToken) {
+                try {
+                    const progressResponse = await fetch(`${API_BASE_URL}/progress/${activeTrack}`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    if (progressResponse.ok) {
+                        const progressData = await progressResponse.json();
+                        userProgress = progressData.progress || [];
+                    }
+                } catch (err) {
+                    console.warn('Could not fetch progress:', err);
+                }
+            }
+            
+            // Render modules
+            container.innerHTML = modules.map(module => {
+                const progress = userProgress.find(p => p.module_id === module.id);
+                let status = 'locked';
+                if (progress) {
+                    status = progress.status === 'completed' ? 'completed' : 'in-progress';
+                } else if (module.sequence_order === 1) {
+                    status = 'in-progress';
+                }
+                
+                return `
+                    <article class="node ${status}">
+                        <header class="node-header">
+                            <span class="node-title">${module.title}</span>
+                            <span class="node-status">${status.toUpperCase()}</span>
+                        </header>
+                        <p class="node-desc">${module.description || ''}</p>
+                        <small class="text-muted">${module.estimated_hours}hrs • ${module.category}</small>
+                    </article>
+                `;
+            }).join('');
+            
+        } catch (error) {
+            console.error('Error fetching modules:', error);
+            // Fallback to mock data
+            container.innerHTML = data.roadmap.map(node => `
+                <article class="node ${node.status}">
+                    <header class="node-header">
+                        <span class="node-title">${node.title}</span>
+                        <span class="node-status">${node.status.toUpperCase()}</span>
+                    </header>
+                    <p class="node-desc">${node.desc}</p>
+                </article>
+            `).join('');
+        }
     }
 }
 

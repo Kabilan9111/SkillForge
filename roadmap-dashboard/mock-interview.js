@@ -120,7 +120,7 @@ const MockInterview = (function() {
         state.recognition = initializeSpeechRecognition();
         loadUserInfo();
         checkForSavedSession();
-        console.log('[Mock Interview] Initialization complete.');
+        console.log('[Mock Interview] ✓ Initialization complete. Start screen should be visible.');
     }
 
     function cacheElements() {
