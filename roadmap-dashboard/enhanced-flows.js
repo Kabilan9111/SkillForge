@@ -787,18 +787,59 @@ async function analyzeResume() {
         console.log('🚀 Starting Enterprise AI Analysis...');
         console.log('🎯 Using 6-Layer Multi-AI Pipeline');
         
+        // Get authentication token
+        const authToken = AuthHelper.getToken();
+        
+        if (!authToken) {
+            console.warn('⚠️ No authentication token - attempting unauthenticated request');
+            // Show warning but continue (for development/testing)
+            showFeedback('Warning: No authentication token found', 'warning');
+        }
+        
         // Animate layers sequentially
         const startTime = Date.now();
         animateLayer(1, 'processing'); // Document AI
         
         // Call backend API with enterprise AI engine
+        const headers = {};
+        if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
+        }
+        
         const response = await fetch(`${API_BASE_URL}/skill-gap/analyze`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            },
+            headers: headers,
             body: formData
         });
+        
+        // Handle 401 Unauthorized specifically
+        if (response.status === 401) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Authentication Error (401):', errorData);
+            
+            // Show all layers as error
+            for (let i = 1; i <= 6; i++) {
+                animateLayer(i, 'error');
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Handle the auth error properly
+            const message = errorData.error || 'Authentication required. Please log in.';
+            showFeedback(message, 'error');
+            
+            // If AuthHelper is available, use it to redirect to login
+            if (typeof AuthHelper !== 'undefined') {
+                AuthHelper.removeToken();
+                setTimeout(() => {
+                    // Redirect to login page (adjust path as needed)
+                    // window.location.href = '/login.html';
+                    console.log('👉 Redirect to login would happen here');
+                }, 2000);
+            }
+            
+            throw new Error(message);
+        }
         
         if (response.ok) {
             const data = await response.json();
@@ -812,17 +853,43 @@ async function analyzeResume() {
             document.getElementById('processing-time').textContent = `Elapsed: ${elapsedTime}s`;
             document.getElementById('processing-cost').textContent = `Cost: ${data.analysis.processingCost || '$0.00'}`;
             
-            // Transform enterprise response for UI compatibility
-            const transformedAnalysis = transformEnterpriseAnalysis(data.analysis);
-            skillGapAnalysis = transformedAnalysis;
-            
             // Wait a moment to show completed state
             await new Promise(resolve => setTimeout(resolve, 1500));
             
-            renderSkillGapResults(transformedAnalysis);
-            showFeedback(`Analysis complete - ${data.metadata.totalSkills} skills analyzed`, 'success');
+            // ✅ Check if 6-Layer Intelligence data exists (NEW API response format)
+            if (data.advancedMetrics && data.intelligence && data.visualizations) {
+                console.log('🎨 Rendering Quantum Intelligence Dashboard...');
+                console.log('📊 DCI Score:', data.advancedMetrics.dci);
+                console.log('📊 Engineering Maturity:', data.advancedMetrics.engineeringMaturity);
+                
+                // Hide loading, show results container
+                const resultsSection = document.getElementById('results-section');
+                if (resultsSection) resultsSection.style.display = 'block';
+                
+                // Render Quantum Dashboard with 6-Layer Intelligence
+                if (typeof renderQuantumDashboard === 'function') {
+                    renderQuantumDashboard(data, 'results-section');
+                } else {
+                    console.warn('⚠️ Quantum dashboard renderer not loaded, using fallback');
+                    const transformedAnalysis = transformEnterpriseAnalysis(data.analysis);
+                    skillGapAnalysis = transformedAnalysis;
+                    renderSkillGapResults(transformedAnalysis);
+                }
+                
+                showFeedback(`✅ AI Intelligence Analysis Complete - DCI: ${data.advancedMetrics.dci}`, 'success');
+            } else {
+                // Fallback to legacy UI rendering
+                console.log('📊 Using legacy analysis format');
+                const transformedAnalysis = transformEnterpriseAnalysis(data.analysis);
+                skillGapAnalysis = transformedAnalysis;
+                renderSkillGapResults(transformedAnalysis);
+                showFeedback(`Analysis complete - ${data.metadata.totalSkills} skills analyzed`, 'success');
+            }
         } else {
-            throw new Error('Analysis failed');
+            // Handle other HTTP errors
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error || `Server error: ${response.status}`;
+            throw new Error(errorMessage);
         }
         
     } catch (error) {
@@ -979,7 +1046,11 @@ function transformEnterpriseAnalysis(analysis) {
             overall: analysis.overallScore || 0,
             strong: strongSkills.length,
             needsImprovement: weakSkills.length,
-            notDemonstrated: missingSkills.length
+            notDemonstrated: missingSkills.length,
+            critical: analysis.coverageScore?.critical || 0,
+            readinessLevel: analysis.coverageScore?.readinessLevel || 'Building Foundations',
+            estimatedTimeToReady: analysis.coverageScore?.estimatedTimeToReady || 12,
+            nextMilestone: analysis.coverageScore?.nextMilestone || 'Continue building skills'
         },
         
         // Audit trail for transparency
@@ -1500,7 +1571,14 @@ function renderSkillGapResults(analysis) {
     const resultsSection = document.getElementById('results-section');
     if (!resultsSection) return;
     
-    const coverage = analysis.coverageScore;
+    // Ensure coverageScore has all required properties with defaults
+    const coverage = analysis.coverageScore || {};
+    coverage.overall = coverage.overall || 0;
+    coverage.readinessLevel = coverage.readinessLevel || 'Building Foundations';
+    coverage.critical = coverage.critical || 0;
+    coverage.estimatedTimeToReady = coverage.estimatedTimeToReady || 12;
+    coverage.nextMilestone = coverage.nextMilestone || 'Focus on high-impact skills to reach 70% coverage';
+    
     const critical = analysis.aiAnalyzedSkills.filter(s => s.priority === 'Critical');
     const highImpact = analysis.aiAnalyzedSkills.filter(s => s.priority === 'High Impact');
     const optional = analysis.aiAnalyzedSkills.filter(s => s.priority === 'Optional');
@@ -1536,7 +1614,7 @@ function renderSkillGapResults(analysis) {
                     </div>
                 </div>
                 <div class="coverage-insights">
-                    <div class="readiness-badge ${coverage.readinessLevel.toLowerCase().replace(/\s/g, '-')}">
+                    <div class="readiness-badge ${(coverage.readinessLevel || 'building-foundations').toLowerCase().replace(/\s/g, '-')}">
                         <i class="fas ${coverage.overall >= 85 ? 'fa-rocket' : coverage.overall >= 70 ? 'fa-star' : coverage.overall >= 50 ? 'fa-chart-line' : 'fa-seedling'}"></i>
                         ${coverage.readinessLevel}
                     </div>
