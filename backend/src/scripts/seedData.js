@@ -3,6 +3,8 @@ const Institution = require('../models/Institution');
 const User = require('../models/User');
 const Track = require('../models/Track');
 const Module = require('../models/Module');
+const Video = require('../models/Video');
+const VideoNotes = require('../models/VideoNotes');
 
 const seedData = async () => {
   try {
@@ -50,8 +52,12 @@ const seedData = async () => {
     console.log(`✓ C/C++ modules created (${cppCount} total)`);
 
     // Seed Cloud Computing modules (all levels)
-    await seedCloudModules(cloudTrack.id);
+    await seedCloudModules(cloudTrack.id, pythonTrack.id);
     console.log('✓ Cloud Computing modules created');
+
+    // Seed sample videos
+    await seedSampleVideos(pythonTrack.id);
+    console.log('✓ Sample videos created');
 
     console.log('\n🎉 Database seeded successfully!');
     console.log('\nSample credentials:');
@@ -133,7 +139,7 @@ async function seedJavaModules(trackId) {
 
   // Prerequisites - Beginner (sequential)
   for (let i = 2; i <= 17; i++) {
-    await Module.addPrerequisite(eval(`b${i}`), eval(`b${i-1}`));
+    await Module.addPrerequisite(eval(`b${i}`), eval(`b${i - 1}`));
   }
 
   // Prerequisites - Intermediate (sequential with some branches)
@@ -162,99 +168,88 @@ async function seedJavaModules(trackId) {
 
   // Prerequisites - Advanced (sequential)
   for (let i = 2; i <= 20; i++) {
-    await Module.addPrerequisite(eval(`a${i}`), eval(`a${i-1}`));
+    await Module.addPrerequisite(eval(`a${i}`), eval(`a${i - 1}`));
   }
 }
 
 async function seedPythonFullStackModules(trackId) {
-  // ============ BEGINNER LEVEL - 18 Modules ============
-  const b1 = await Module.create(trackId, 'beginner', 'Introduction to Programming and Python', 'Programming fundamentals and Python overview', 'fundamentals', 4, 1);
-  const b2 = await Module.create(trackId, 'beginner', 'Python Installation and IDE Setup', 'Setting up development environment', 'fundamentals', 3, 2);
-  const b3 = await Module.create(trackId, 'beginner', 'Python Syntax and Indentation Rules', 'Understanding Python syntax', 'fundamentals', 4, 3);
-  const b4 = await Module.create(trackId, 'beginner', 'Variables and Data Types', 'Numbers, strings, booleans', 'fundamentals', 4, 4);
-  const b5 = await Module.create(trackId, 'beginner', 'Input and Output Operations', 'User interaction basics', 'fundamentals', 3, 5);
-  const b6 = await Module.create(trackId, 'beginner', 'Arithmetic, Relational, and Logical Operators', 'Operators and expressions', 'fundamentals', 4, 6);
-  const b7 = await Module.create(trackId, 'beginner', 'Conditional Statements (if, elif, else)', 'Control flow basics', 'fundamentals', 5, 7);
-  const b8 = await Module.create(trackId, 'beginner', 'Looping Constructs (for, while)', 'Iteration fundamentals', 'fundamentals', 5, 8);
-  const b9 = await Module.create(trackId, 'beginner', 'Loop Control Statements (break, continue, pass)', 'Advanced loop control', 'fundamentals', 4, 9);
-  const b10 = await Module.create(trackId, 'beginner', 'Strings and String Operations', 'String manipulation', 'fundamentals', 5, 10);
-  const b11 = await Module.create(trackId, 'beginner', 'Lists and List Operations', 'Working with lists', 'data-structures', 6, 11);
-  const b12 = await Module.create(trackId, 'beginner', 'Tuples and Sets', 'Immutable and unique collections', 'data-structures', 5, 12);
-  const b13 = await Module.create(trackId, 'beginner', 'Dictionaries and Key-Value Operations', 'Hash maps in Python', 'data-structures', 6, 13);
-  const b14 = await Module.create(trackId, 'beginner', 'Basic Functions', 'Function definition and calling', 'fundamentals', 5, 14);
-  const b15 = await Module.create(trackId, 'beginner', 'Function Arguments and Return Values', 'Parameters and return statements', 'fundamentals', 5, 15);
-  const b16 = await Module.create(trackId, 'beginner', 'Basic Error Handling', 'Try-except basics', 'fundamentals', 4, 16);
-  const b17 = await Module.create(trackId, 'beginner', 'Writing Simple Programs', 'Building console applications', 'practice', 6, 17);
-  const b18 = await Module.create(trackId, 'beginner', 'Beginner-Level Mini Tasks', 'Practice exercises and challenges', 'projects', 10, 18);
+  // BEGINNER: 20 modules - Python fundamentals ONLY
+  const b1 = await Module.create(trackId, 'beginner', 'Introduction to Programming Concepts', 'What is programming, algorithms, problem-solving basics', 'fundamentals', 3, 1);
+  const b2 = await Module.create(trackId, 'beginner', 'Python Installation and Environment Setup', 'Installing Python, IDE setup, first program', 'fundamentals', 3, 2);
+  const b3 = await Module.create(trackId, 'beginner', 'Python Syntax and Indentation', 'Syntax rules, indentation, code structure, comments', 'fundamentals', 4, 3);
+  const b4 = await Module.create(trackId, 'beginner', 'Variables and Basic Data Types', 'int, float, str, bool - declaration, type conversion', 'fundamentals', 4, 4);
+  const b5 = await Module.create(trackId, 'beginner', 'Input and Output Operations', 'input(), print(), formatting output, string interpolation', 'fundamentals', 3, 5);
+  const b6 = await Module.create(trackId, 'beginner', 'Operators and Expressions', 'Arithmetic, comparison, logical, assignment operators', 'fundamentals', 4, 6);
+  const b7 = await Module.create(trackId, 'beginner', 'Conditional Statements', 'if, elif, else - decision making and nested conditions', 'fundamentals', 5, 7);
+  const b8 = await Module.create(trackId, 'beginner', 'Loops: for and while', 'Iteration, range(), loop patterns, nested loops', 'fundamentals', 5, 8);
+  const b9 = await Module.create(trackId, 'beginner', 'Loop Control: break, continue, pass', 'Flow control within loops, else clause in loops', 'fundamentals', 4, 9);
+  const b10 = await Module.create(trackId, 'beginner', 'Strings and String Methods', 'String indexing, slicing, methods, immutability', 'fundamentals', 5, 10);
+  const b11 = await Module.create(trackId, 'beginner', 'Lists and List Operations', 'List creation, indexing, slicing, methods, mutability', 'data-structures', 6, 11);
+  const b12 = await Module.create(trackId, 'beginner', 'Tuples and Their Use Cases', 'Immutable sequences, tuple packing/unpacking', 'data-structures', 4, 12);
+  const b13 = await Module.create(trackId, 'beginner', 'Dictionaries and Key-Value Storage', 'dict creation, accessing, modifying, methods', 'data-structures', 6, 13);
+  const b14 = await Module.create(trackId, 'beginner', 'Sets and Set Operations', 'Unique collections, set methods, mathematical operations', 'data-structures', 4, 14);
+  const b15 = await Module.create(trackId, 'beginner', 'Functions: Definition and Calling', 'def keyword, parameters, return values, scope basics', 'fundamentals', 6, 15);
+  const b16 = await Module.create(trackId, 'beginner', 'File Handling Basics', 'Reading and writing text files, with statement, file modes', 'fundamentals', 5, 16);
+  const b17 = await Module.create(trackId, 'beginner', 'Exception Handling with try-except', 'Common exceptions, try-except-finally, raising exceptions', 'fundamentals', 5, 17);
+  const b18 = await Module.create(trackId, 'beginner', 'Introduction to Classes and Objects', 'Basic class syntax, __init__, methods, self', 'fundamentals', 6, 18);
+  const b19 = await Module.create(trackId, 'beginner', 'Code Quality and Debugging', 'PEP 8, naming conventions, print debugging', 'practice', 5, 19);
+  const b20 = await Module.create(trackId, 'beginner', 'Beginner Capstone Project', 'Build a small console application', 'projects', 15, 20);
 
-  // ============ INTERMEDIATE LEVEL - 30 Modules ============
-  const i1 = await Module.create(trackId, 'intermediate', 'Advanced Functions', 'Nested functions, closures', 'fundamentals', 6, 1);
-  const i2 = await Module.create(trackId, 'intermediate', 'Lambda Functions', 'Anonymous functions', 'fundamentals', 5, 2);
-  const i3 = await Module.create(trackId, 'intermediate', 'Recursion Concepts', 'Recursive problem solving', 'algorithms', 6, 3);
-  const i4 = await Module.create(trackId, 'intermediate', 'Modules and Packages', 'Code organization', 'fundamentals', 5, 4);
-  const i5 = await Module.create(trackId, 'intermediate', 'Virtual Environments', 'Managing dependencies', 'fundamentals', 4, 5);
-  const i6 = await Module.create(trackId, 'intermediate', 'File Handling (Text and Binary)', 'File operations', 'fundamentals', 6, 6);
-  const i7 = await Module.create(trackId, 'intermediate', 'Exception Handling Deep Dive', 'Advanced error handling', 'fundamentals', 6, 7);
-  const i8 = await Module.create(trackId, 'intermediate', 'Object-Oriented Programming Concepts', 'OOP principles', 'fundamentals', 7, 8);
-  const i9 = await Module.create(trackId, 'intermediate', 'Classes and Objects', 'Creating classes', 'fundamentals', 6, 9);
-  const i10 = await Module.create(trackId, 'intermediate', 'Constructors and Destructors', '__init__ and __del__', 'fundamentals', 5, 10);
-  const i11 = await Module.create(trackId, 'intermediate', 'Inheritance', 'Class inheritance', 'fundamentals', 6, 11);
-  const i12 = await Module.create(trackId, 'intermediate', 'Polymorphism', 'Method overriding', 'fundamentals', 6, 12);
-  const i13 = await Module.create(trackId, 'intermediate', 'Encapsulation', 'Data hiding', 'fundamentals', 5, 13);
-  const i14 = await Module.create(trackId, 'intermediate', 'Abstraction', 'Abstract classes', 'fundamentals', 5, 14);
-  const i15 = await Module.create(trackId, 'intermediate', 'Python Standard Library Overview', 'Built-in modules', 'fundamentals', 6, 15);
-  const i16 = await Module.create(trackId, 'intermediate', 'Date and Time Handling', 'datetime module', 'fundamentals', 4, 16);
-  const i17 = await Module.create(trackId, 'intermediate', 'Regular Expressions', 'Pattern matching', 'algorithms', 6, 17);
-  const i18 = await Module.create(trackId, 'intermediate', 'Iterators and Generators', 'Lazy evaluation', 'algorithms', 6, 18);
-  const i19 = await Module.create(trackId, 'intermediate', 'Decorators', 'Function modification', 'algorithms', 6, 19);
-  const i20 = await Module.create(trackId, 'intermediate', 'JSON and CSV Handling', 'Data formats', 'fundamentals', 5, 20);
-  const i21 = await Module.create(trackId, 'intermediate', 'Debugging Techniques', 'Debugging tools', 'practice', 5, 21);
-  const i22 = await Module.create(trackId, 'intermediate', 'Logging Mechanisms', 'Logging framework', 'fundamentals', 5, 22);
-  const i23 = await Module.create(trackId, 'intermediate', 'Unit Testing Basics', 'unittest and pytest', 'practice', 6, 23);
-  const i24 = await Module.create(trackId, 'intermediate', 'Command Line Applications', 'CLI development', 'practice', 6, 24);
-  const i25 = await Module.create(trackId, 'intermediate', 'Data Structures Introduction', 'Advanced structures', 'data-structures', 6, 25);
-  const i26 = await Module.create(trackId, 'intermediate', 'Stacks', 'LIFO data structure', 'data-structures', 5, 26);
-  const i27 = await Module.create(trackId, 'intermediate', 'Queues', 'FIFO data structure', 'data-structures', 5, 27);
-  const i28 = await Module.create(trackId, 'intermediate', 'Linked Lists', 'Node-based structures', 'data-structures', 6, 28);
-  const i29 = await Module.create(trackId, 'intermediate', 'Searching Algorithms', 'Linear and binary search', 'algorithms', 6, 29);
-  const i30 = await Module.create(trackId, 'intermediate', 'Console-Based Project', 'Complete CLI application', 'projects', 20, 30);
+  // INTERMEDIATE: 23 modules - Advanced Python + FastAPI + Databases
+  const i1 = await Module.create(trackId, 'intermediate', 'Advanced Function Concepts', 'Nested functions, closures, first-class functions, LEGB scope', 'fundamentals', 6, 1);
+  const i2 = await Module.create(trackId, 'intermediate', 'Lambda Functions and Functional Tools', 'lambda, map(), filter(), reduce()', 'fundamentals', 5, 2);
+  const i3 = await Module.create(trackId, 'intermediate', 'Decorators', 'Function decorators, @property, wrapping functions', 'algorithms', 7, 3);
+  const i4 = await Module.create(trackId, 'intermediate', 'Generators and Iterators', 'yield keyword, generator expressions, iterator protocol', 'algorithms', 7, 4);
+  const i5 = await Module.create(trackId, 'intermediate', 'Context Managers', 'with statement, __enter__/__exit__, contextlib', 'fundamentals', 5, 5);
+  const i6 = await Module.create(trackId, 'intermediate', 'Modules, Packages, and Import System', 'Creating modules, __init__.py, relative imports', 'fundamentals', 5, 6);
+  const i7 = await Module.create(trackId, 'intermediate', 'Virtual Environments and Dependency Management', 'venv, pip, requirements.txt', 'fundamentals', 4, 7);
+  const i8 = await Module.create(trackId, 'intermediate', 'Intermediate OOP Design', 'Inheritance, super(), MRO, composition', 'fundamentals', 7, 8);
+  const i9 = await Module.create(trackId, 'intermediate', 'Magic Methods and Operator Overloading', '__str__, __repr__, __eq__, __add__', 'fundamentals', 6, 9);
+  const i10 = await Module.create(trackId, 'intermediate', 'Working with JSON and Configuration Files', 'json module, YAML, TOML, env variables', 'fundamentals', 5, 10);
+  const i11 = await Module.create(trackId, 'intermediate', 'Regular Expressions for Pattern Matching', 're module, patterns, search, match, groups', 'algorithms', 6, 11);
+  const i12 = await Module.create(trackId, 'intermediate', 'Introduction to Concurrency', 'Synchronous vs asynchronous, threading basics, GIL', 'algorithms', 6, 12);
+  const i13 = await Module.create(trackId, 'intermediate', 'Async/Await Fundamentals', 'asyncio, coroutines, async/await syntax, event loop', 'algorithms', 8, 13);
+  const i14 = await Module.create(trackId, 'intermediate', 'HTTP Basics and Requests Library', 'HTTP methods, status codes, requests library', 'fundamentals', 5, 14);
+  const i15 = await Module.create(trackId, 'intermediate', 'Introduction to REST APIs', 'REST principles, endpoints, JSON responses', 'fundamentals', 5, 15);
+  const i16 = await Module.create(trackId, 'intermediate', 'FastAPI Quick Start', 'Installing FastAPI, creating endpoints, path/query parameters', 'projects', 8, 16);
+  const i17 = await Module.create(trackId, 'intermediate', 'SQL Database Fundamentals', 'Relational databases, SQL syntax, CRUD, joins', 'data-structures', 8, 17);
+  const i18 = await Module.create(trackId, 'intermediate', 'Database Connectivity with Python', 'sqlite3, psycopg2, connection management, transactions', 'data-structures', 6, 18);
+  const i19 = await Module.create(trackId, 'intermediate', 'ORM Basics with SQLAlchemy', 'ORM concept, models, sessions, basic queries', 'data-structures', 8, 19);
+  const i20 = await Module.create(trackId, 'intermediate', 'Logging and Monitoring', 'logging module, log levels, handlers, formatters', 'practice', 5, 20);
+  const i21 = await Module.create(trackId, 'intermediate', 'Environment Configuration Management', 'python-dotenv, config classes, 12-factor app', 'fundamentals', 4, 21);
+  const i22 = await Module.create(trackId, 'intermediate', 'Introduction to Testing', 'pytest basics, writing tests, assertions', 'practice', 6, 22);
+  const i23 = await Module.create(trackId, 'intermediate', 'Intermediate Project: Build a REST API', 'Create a CRUD API with FastAPI and SQLAlchemy', 'projects', 25, 23);
 
-  // ============ ADVANCED LEVEL - 20 Modules ============
-  const a1 = await Module.create(trackId, 'advanced', 'Advanced OOP Design Patterns', 'Design pattern implementation', 'algorithms', 10, 1);
-  const a2 = await Module.create(trackId, 'advanced', 'Memory Management in Python', 'Reference counting, garbage collection', 'algorithms', 7, 2);
-  const a3 = await Module.create(trackId, 'advanced', 'Multithreading', 'Threading module', 'algorithms', 8, 3);
-  const a4 = await Module.create(trackId, 'advanced', 'Multiprocessing', 'Process-based parallelism', 'algorithms', 8, 4);
-  const a5 = await Module.create(trackId, 'advanced', 'AsyncIO and Concurrency', 'Asynchronous programming', 'algorithms', 10, 5);
-  const a6 = await Module.create(trackId, 'advanced', 'Performance Optimization', 'Code profiling and optimization', 'algorithms', 8, 6);
-  const a7 = await Module.create(trackId, 'advanced', 'Profiling and Benchmarking', 'Performance measurement', 'practice', 6, 7);
-  const a8 = await Module.create(trackId, 'advanced', 'Advanced Exception Design', 'Custom exception hierarchies', 'fundamentals', 5, 8);
-  const a9 = await Module.create(trackId, 'advanced', 'File System Internals', 'OS-level file operations', 'fundamentals', 6, 9);
-  const a10 = await Module.create(trackId, 'advanced', 'Networking Fundamentals', 'Sockets and protocols', 'fundamentals', 8, 10);
-  const a11 = await Module.create(trackId, 'advanced', 'REST APIs with FastAPI', 'Modern API development', 'projects', 12, 11);
-  const a12 = await Module.create(trackId, 'advanced', 'API Authentication and Authorization', 'Security implementation', 'algorithms', 8, 12);
-  const a13 = await Module.create(trackId, 'advanced', 'Database Integration', 'Database connectivity', 'data-structures', 8, 13);
-  const a14 = await Module.create(trackId, 'advanced', 'ORM Concepts', 'Object-relational mapping', 'data-structures', 7, 14);
-  const a15 = await Module.create(trackId, 'advanced', 'SQLAlchemy Deep Dive', 'Advanced ORM usage', 'data-structures', 10, 15);
-  const a16 = await Module.create(trackId, 'advanced', 'Caching Strategies', 'Redis and caching patterns', 'algorithms', 8, 16);
-  const a17 = await Module.create(trackId, 'advanced', 'Advanced Testing for APIs', 'Integration and end-to-end testing', 'practice', 8, 17);
-  const a18 = await Module.create(trackId, 'advanced', 'Security Best Practices', 'Application security', 'fundamentals', 7, 18);
-  const a19 = await Module.create(trackId, 'advanced', 'Deployment Fundamentals', 'Production deployment', 'practice', 8, 19);
-  const a20 = await Module.create(trackId, 'advanced', 'Capstone API Project', 'Full production API system', 'projects', 40, 20);
+  // ADVANCED: 22 modules - Production engineering, Docker, CI/CD, Cloud
+  const a1 = await Module.create(trackId, 'advanced', 'Python Internals and Memory Model', 'CPython, bytecode, memory management, GC', 'algorithms', 8, 1);
+  const a2 = await Module.create(trackId, 'advanced', 'Performance Profiling and Optimization', 'cProfile, line_profiler, optimization techniques', 'algorithms', 8, 2);
+  const a3 = await Module.create(trackId, 'advanced', 'Advanced Concurrency: Threading and Multiprocessing', 'Thread pools, process pools, GIL workarounds', 'algorithms', 9, 3);
+  const a4 = await Module.create(trackId, 'advanced', 'Async/Await in Production', 'asyncio patterns, aiohttp, async database drivers', 'algorithms', 9, 4);
+  const a5 = await Module.create(trackId, 'advanced', 'Backend Architecture Patterns', 'MVC, layered architecture, dependency injection, SOLID', 'algorithms', 8, 5);
+  const a6 = await Module.create(trackId, 'advanced', 'Scalable API Design', 'Pagination, filtering, rate limiting, versioning', 'projects', 7, 6);
+  const a7 = await Module.create(trackId, 'advanced', 'Advanced FastAPI Features', 'Dependency injection, background tasks, WebSockets', 'projects', 8, 7);
+  const a8 = await Module.create(trackId, 'advanced', 'Authentication and Authorization', 'JWT, OAuth2, session management, RBAC', 'algorithms', 10, 8);
+  const a9 = await Module.create(trackId, 'advanced', 'API Security Best Practices', 'OWASP Top 10, input validation, SQL injection prevention', 'fundamentals', 8, 9);
+  const a10 = await Module.create(trackId, 'advanced', 'Advanced Database Design and Optimization', 'Indexing, query optimization, database pooling, Alembic', 'data-structures', 9, 10);
+  const a11 = await Module.create(trackId, 'advanced', 'Caching Strategies', 'Redis fundamentals, caching patterns, cache invalidation', 'algorithms', 8, 11);
+  const a12 = await Module.create(trackId, 'advanced', 'Message Queues and Task Processing', 'Celery, RabbitMQ/Redis, async tasks, worker management', 'algorithms', 9, 12);
+  const a13 = await Module.create(trackId, 'advanced', 'Testing in Production Environments', 'Integration tests, mocking, fixtures, coverage', 'practice', 7, 13);
+  const a14 = await Module.create(trackId, 'advanced', 'Error Handling and Resilience', 'Custom exceptions, retry logic, circuit breakers', 'fundamentals', 6, 14);
+  const a15 = await Module.create(trackId, 'advanced', 'Docker and Containerization', 'Dockerfile, Docker Compose, multi-stage builds', 'practice', 8, 15);
+  const a16 = await Module.create(trackId, 'advanced', 'CI/CD Pipeline Setup', 'GitHub Actions, automated testing, deployment automation', 'practice', 7, 16);
+  const a17 = await Module.create(trackId, 'advanced', 'Cloud Deployment Fundamentals', 'AWS/GCP/Azure basics, deploying to cloud', 'practice', 8, 17);
+  const a18 = await Module.create(trackId, 'advanced', 'Infrastructure as Code', 'Terraform basics, infrastructure automation', 'practice', 7, 18);
+  const a19 = await Module.create(trackId, 'advanced', 'Application Monitoring and Observability', 'Logging aggregation, metrics, tracing, alerting', 'practice', 8, 19);
+  const a20 = await Module.create(trackId, 'advanced', 'Production Deployment Strategies', 'Blue-green deployment, rolling updates, zero-downtime', 'practice', 7, 20);
+  const a21 = await Module.create(trackId, 'advanced', 'Advanced Capstone Project Planning', 'Planning a production-ready application architecture', 'projects', 10, 21);
+  const a22 = await Module.create(trackId, 'advanced', 'Advanced Capstone Project Implementation', 'Build and deploy a scalable Python backend system', 'projects', 50, 22);
 
-  // Prerequisites - Beginner (sequential)
-  for (let i = 2; i <= 18; i++) {
-    await Module.addPrerequisite(eval(`b${i}`), eval(`b${i-1}`));
-  }
+  // Prerequisites
+  for (let i = 2; i <= 20; i++) await Module.addPrerequisite(eval(`b${i}`), eval(`b${i - 1}`));
+  for (let i = 2; i <= 23; i++) await Module.addPrerequisite(eval(`i${i}`), eval(`i${i - 1}`));
+  for (let i = 2; i <= 22; i++) await Module.addPrerequisite(eval(`a${i}`), eval(`a${i - 1}`));
 
-  // Prerequisites - Intermediate (mostly sequential)
-  for (let i = 2; i <= 30; i++) {
-    await Module.addPrerequisite(eval(`i${i}`), eval(`i${i-1}`));
-  }
-
-  // Prerequisites - Advanced (sequential)
-  for (let i = 2; i <= 20; i++) {
-    await Module.addPrerequisite(eval(`a${i}`), eval(`a${i-1}`));
-  }
+  return 65; // Total: 20 + 23 + 22
 }
 
 async function seedCppModules(trackId) {
@@ -316,21 +311,21 @@ async function seedCppModules(trackId) {
 
   // Prerequisites - Beginner (sequential)
   for (let i = 2; i <= 15; i++) {
-    await Module.addPrerequisite(eval(`b${i}`), eval(`b${i-1}`));
+    await Module.addPrerequisite(eval(`b${i}`), eval(`b${i - 1}`));
   }
 
   // Prerequisites - Intermediate (sequential)
   for (let i = 2; i <= 20; i++) {
-    await Module.addPrerequisite(eval(`i${i}`), eval(`i${i-1}`));
+    await Module.addPrerequisite(eval(`i${i}`), eval(`i${i - 1}`));
   }
 
   // Prerequisites - Advanced (sequential)
   for (let i = 2; i <= 15; i++) {
-    await Module.addPrerequisite(eval(`a${i}`), eval(`a${i-1}`));
+    await Module.addPrerequisite(eval(`a${i}`), eval(`a${i - 1}`));
   }
 }
 
-async function seedCloudModules(trackId) {
+async function seedCloudModules(trackId, pythonTrackId) {
   // ============ BEGINNER LEVEL - 14 Modules ============
   const b1 = await Module.create(trackId, 'beginner', 'Introduction to Cloud Computing', 'Cloud fundamentals and benefits', 'fundamentals', 4, 1);
   const b2 = await Module.create(trackId, 'beginner', 'Types of Cloud Models', 'Public, private, hybrid cloud', 'fundamentals', 4, 2);
@@ -386,18 +381,183 @@ async function seedCloudModules(trackId) {
 
   // Prerequisites - Beginner (sequential)
   for (let i = 2; i <= 14; i++) {
-    await Module.addPrerequisite(eval(`b${i}`), eval(`b${i-1}`));
+    await Module.addPrerequisite(eval(`b${i}`), eval(`b${i - 1}`));
   }
 
   // Prerequisites - Intermediate (sequential)
   for (let i = 2; i <= 18; i++) {
-    await Module.addPrerequisite(eval(`i${i}`), eval(`i${i-1}`));
+    await Module.addPrerequisite(eval(`i${i}`), eval(`i${i - 1}`));
   }
 
   // Prerequisites - Advanced (sequential)
   for (let i = 2; i <= 15; i++) {
-    await Module.addPrerequisite(eval(`a${i}`), eval(`a${i-1}`));
+    await Module.addPrerequisite(eval(`a${i}`), eval(`a${i - 1}`));
   }
+
+  // Seed sample videos
+  await seedSampleVideos(pythonTrack.id);
+  console.log('✓ Sample videos created');
+}
+
+// Seed sample videos for demonstration
+async function seedSampleVideos(pythonTrackId) {
+  // Get admin user (first user created)
+  const adminUser = await db.get('SELECT id FROM users WHERE id = 1');
+  const adminId = adminUser ? adminUser.id : 1;
+
+  // Get some module IDs for linking
+  const modules = await db.all('SELECT id, title FROM modules WHERE track_id = ? LIMIT 5', [pythonTrackId]);
+
+  // Sample video 1: Beginner
+  const video1Id = await Video.create(
+    'Python Basics: Variables and Data Types',
+    'Learn the fundamental building blocks of Python programming including variables, data types, and basic operations.',
+    'https://www.youtube.com/watch?v=kqtD5dpn9C8', // Sample Python tutorial
+    'https://img.youtube.com/vi/kqtD5dpn9C8/maxresdefault.jpg',
+    720,
+    'beginner',
+    'python, basics, variables, data types',
+    modules[0]?.id || null,
+    adminId
+  );
+
+  await VideoNotes.create(video1Id, `
+    <h2>Key Concepts</h2>
+    <ul>
+      <li><strong>Variables:</strong> Containers for storing data values</li>
+      <li><strong>Data Types:</strong> int, float, string, boolean, list, dict</li>
+      <li><strong>Type Conversion:</strong> Converting between different data types</li>
+      <li><strong>Operators:</strong> Arithmetic, comparison, and logical operators</li>
+    </ul>
+    
+    <h2>Code Examples</h2>
+    <p>Variable assignment and type checking:</p>
+    <pre>
+name = "Alice"
+age = 25
+is_student = True
+print(f"{name} is {age} years old")
+    </pre>
+    
+    <h2>Best Practices</h2>
+    <ul>
+      <li>Use descriptive variable names</li>
+      <li>Follow PEP 8 naming conventions</li>
+      <li>Understand mutable vs immutable types</li>
+    </ul>
+  `, [
+    { time: 0, title: 'Introduction', content: 'Overview of Python data types' },
+    { time: 180, title: 'Variables', content: 'Creating and naming variables' },
+    { time: 360, title: 'Data Types', content: 'Numbers, strings, booleans' },
+    { time: 540, title: 'Type Conversion', content: 'Converting between types' }
+  ]);
+
+  // Sample video 2: Intermediate
+  const video2Id = await Video.create(
+    'FastAPI Fundamentals: Building REST APIs',
+    'Build modern, fast REST APIs with FastAPI including path operations, request validation, and async endpoints.',
+    'https://www.youtube.com/watch?v=0sOvCWFmrtA', // Sample FastAPI tutorial
+    'https://img.youtube.com/vi/0sOvCWFmrtA/maxresdefault.jpg',
+    1800,
+    'intermediate',
+    'fastapi, rest api, python, backend',
+    modules[2]?.id || null,
+    adminId
+  );
+
+  await VideoNotes.create(video2Id, `
+    <h2>FastAPI Overview</h2>
+    <p>FastAPI is a modern, fast web framework for building APIs with Python based on standard Python type hints.</p>
+    
+    <h2>Key Features</h2>
+    <ul>
+      <li><strong>Fast:</strong> Very high performance, on par with NodeJS and Go</li>
+      <li><strong>Type Hints:</strong> Automatic request validation using Python type hints</li>
+      <li><strong>Auto Documentation:</strong> Interactive API docs with Swagger UI</li>
+      <li><strong>Async Support:</strong> Native support for async/await</li>
+    </ul>
+    
+    <h2>Basic API Example</h2>
+    <pre>
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/items/{item_id}")
+async def read_item(item_id: int):
+    return {"item_id": item_id}
+    </pre>
+    
+    <h2>Path Operations</h2>
+    <ul>
+      <li>GET, POST, PUT, DELETE operations</li>
+      <li>Path parameters and query parameters</li>
+      <li>Request body validation with Pydantic</li>
+      <li>Response models and status codes</li>
+    </ul>
+  `, [
+    { time: 0, title: 'FastAPI Introduction', content: 'What is FastAPI and why use it' },
+    { time: 300, title: 'First API', content: 'Creating your first endpoint' },
+    { time: 900, title: 'Path Operations', content: 'GET, POST, PUT, DELETE' },
+    { time: 1200, title: 'Validation', content: 'Request validation with Pydantic' },
+    { time: 1500, title: 'Async Endpoints', content: 'Using async/await in FastAPI' }
+  ]);
+
+  // Sample video 3: Advanced
+  const video3Id = await Video.create(
+    'Docker for Python Applications',
+    'Containerize Python applications with Docker, create multi-stage builds, and optimize images for production deployment.',
+    'https://www.youtube.com/watch?v=bi0cKgmRuiA', // Sample Docker tutorial
+    'https://img.youtube.com/vi/bi0cKgmRuiA/maxresdefault.jpg',
+    2400,
+    'advanced',
+    'docker, containers, deployment, devops',
+    modules[4]?.id || null,
+    adminId
+  );
+
+  await VideoNotes.create(video3Id, `
+    <h2>Docker Essentials</h2>
+    <p>Docker enables you to package applications with all dependencies into standardized containers.</p>
+    
+    <h2>Key Concepts</h2>
+    <ul>
+      <li><strong>Images:</strong> Read-only templates for creating containers</li>
+      <li><strong>Containers:</strong> Runnable instances of images</li>
+      <li><strong>Dockerfile:</strong> Script to build custom images</li>
+      <li><strong>Docker Compose:</strong> Multi-container orchestration</li>
+    </ul>
+    
+    <h2>Python Dockerfile Example</h2>
+    <pre>
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]
+    </pre>
+    
+    <h2>Multi-Stage Builds</h2>
+    <p>Optimize image size by using multi-stage builds that separate build dependencies from runtime.</p>
+    
+    <h2>Best Practices</h2>
+    <ul>
+      <li>Use specific base image versions</li>
+      <li>Minimize layers with combined RUN commands</li>
+      <li>Use .dockerignore to exclude unnecessary files</li>
+      <li>Don't run containers as root</li>
+      <li>Health checks for production deployments</li>
+    </ul>
+  `, [
+    { time: 0, title: 'Docker Overview', content: 'Introduction to containerization' },
+    { time: 480, title: 'Dockerfile Basics', content: 'Writing your first Dockerfile' },
+    { time: 960, title: 'Building Images', content: 'Docker build process and caching' },
+    { time: 1440, title: 'Multi-Stage Builds', content: 'Optimizing image size' },
+    { time: 1920, title: 'Production Tips', content: 'Security and best practices' }
+  ]);
+
+  return 3; // Number of videos created
 }
 
 // Run if called directly

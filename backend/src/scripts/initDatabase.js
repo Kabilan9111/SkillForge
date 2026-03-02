@@ -1,10 +1,10 @@
-const db = require('../config/database');
+﻿const db = require('../config/database');
 
 const initializeDatabase = async () => {
   try {
     await db.connect();
 
-    console.log('Creating database tables...');
+    console.log('Ensuring database tables exist (safe – preserves data)...');
 
     // Create institutions table
     await db.run(`
@@ -101,6 +101,123 @@ const initializeDatabase = async () => {
       )
     `);
 
+    // Create videos table
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS videos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        video_url TEXT NOT NULL,
+        thumbnail_url TEXT,
+        duration_seconds INTEGER NOT NULL,
+        level TEXT CHECK(level IN ('beginner', 'intermediate', 'advanced')),
+        tags TEXT,
+        module_id INTEGER,
+        uploaded_by INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        display_order INTEGER DEFAULT 0,
+        FOREIGN KEY (uploaded_by) REFERENCES users(id),
+        FOREIGN KEY (module_id) REFERENCES modules(id)
+      )
+    `);
+
+    // Create video_progress table
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS video_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        video_id INTEGER NOT NULL,
+        progress_seconds INTEGER DEFAULT 0,
+        progress_percentage INTEGER DEFAULT 0,
+        completed INTEGER DEFAULT 0 CHECK(completed IN (0, 1)),
+        last_watched_at TEXT NOT NULL,
+        completed_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (video_id) REFERENCES videos(id),
+        UNIQUE(user_id, video_id)
+      )
+    `);
+
+    // Create video_notes table
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS video_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        video_id INTEGER NOT NULL,
+        content TEXT NOT NULL,
+        timestamps TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        FOREIGN KEY (video_id) REFERENCES videos(id),
+        UNIQUE(video_id)
+      )
+    `);
+
+    // Create projects_workspace table
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS projects_workspace (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        tech_stack TEXT,
+        visibility TEXT DEFAULT 'private' CHECK(visibility IN ('private', 'public')),
+        status TEXT DEFAULT 'active' CHECK(status IN ('active', 'archived')),
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    // Create projects_files table
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS projects_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        commit_hash TEXT,
+        file_path TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        file_type TEXT,
+        file_size INTEGER,
+        file_content TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (project_id) REFERENCES projects_workspace(id)
+      )
+    `);
+
+    // Create projects_commits table
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS projects_commits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        commit_hash TEXT UNIQUE NOT NULL,
+        message TEXT NOT NULL,
+        files_count INTEGER DEFAULT 0,
+        total_lines INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (project_id) REFERENCES projects_workspace(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    // Create projects_ai_reviews table
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS projects_ai_reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        commit_hash TEXT UNIQUE NOT NULL,
+        overall_score INTEGER DEFAULT 0,
+        code_quality TEXT,
+        best_practices TEXT,
+        performance TEXT,
+        security TEXT,
+        maintainability TEXT,
+        documentation TEXT,
+        suggestions TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (commit_hash) REFERENCES projects_commits(commit_hash)
+      )
+    `);
+
     // Create indexes for better performance
     await db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_users_institution ON users(institution_id)`);
@@ -109,6 +226,9 @@ const initializeDatabase = async () => {
     await db.run(`CREATE INDEX IF NOT EXISTS idx_modules_track ON modules(track_id)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_modules_track_level ON modules(track_id, level)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_progress_user_track ON user_progress(user_id, track_id)`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_videos_order ON videos(display_order)`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_video_progress_user ON video_progress(user_id, video_id)`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_video_progress_completed ON video_progress(user_id, completed)`);
 
     console.log('Database initialized successfully!');
     

@@ -188,6 +188,22 @@ async function enrollInTrack(trackId, level) {
     }
 }
 
+// Clear expired token and re-authenticate, then retry the callback
+async function handleTokenExpiry(retryCallback) {
+    console.warn('[Auth] Token expired or invalid. Clearing token and redirecting to login...');
+    authToken = null;
+    localStorage.removeItem('authToken');
+    // Save current page state so we can return after login
+    const currentPage = document.querySelector('.page.active')?.id || '';
+    if (currentPage) localStorage.setItem('postLoginPage', currentPage);
+    showFeedback('Session expired. Please log in again.', 'warning');
+    setTimeout(() => {
+        // Show the login section directly in-page rather than hard redirecting
+        navigateTo('auth-page');
+    }, 1500);
+    return null;
+}
+
 async function fetchRoadmap(trackId, level) {
     try {
         const response = await fetch(`${API_BASE_URL}/roadmap/${trackId}?level=${level}`, {
@@ -197,6 +213,10 @@ async function fetchRoadmap(trackId, level) {
         });
         
         if (!response.ok) {
+            if (response.status === 401) {
+                // Token is expired or invalid — re-authenticate and retry
+                return await handleTokenExpiry(() => fetchRoadmap(trackId, level));
+            }
             if (response.status === 403) {
                 await enrollInTrack(trackId, level);
                 const retryResponse = await fetch(`${API_BASE_URL}/roadmap/${trackId}?level=${level}`, {
@@ -738,37 +758,11 @@ function finishOnboarding() {
     localStorage.setItem('onboardingComplete', 'true');
     
     if (!authToken) {
-        showFeedback('Logging in...', 'info');
-        loginUser('student1@techvidya.edu', 'password123').then(loginData => {
-            if (loginData) {
-                authToken = loginData.token;
-                userData = loginData.user || {};
-                localStorage.setItem('authToken', authToken);
-                localStorage.setItem('userData', JSON.stringify(userData));
-                showFeedback('Login successful! Setting up your roadmap...', 'success');
-                
-                if (selectedTrackId) {
-                    enrollInTrack(selectedTrackId, currentUserLevel).then(() => {
-                        setActiveTrack(selectedTrackSlug);
-                        showFeedback('Welcome to SkillForge! Starting your journey...', 'success');
-                        navigateTo('dashboard-page');
-                    }).catch(err => {
-                        console.error('Enrollment failed:', err);
-                        showFeedback('Enrollment failed. Continuing with mock data.', 'warning');
-                        navigateTo('dashboard-page');
-                    });
-                } else {
-                    navigateTo('dashboard-page');
-                }
-            } else {
-                showFeedback('Login failed. Using offline mode with demo data.', 'warning');
-                navigateTo('dashboard-page');
-            }
-        }).catch(err => {
-            console.error('Login error:', err);
-            showFeedback('Connection error. Using offline mode with demo data.', 'warning');
-            navigateTo('dashboard-page');
-        });
+        // User hasn't logged in — save onboarding state and prompt login
+        localStorage.setItem('postLoginPage', 'dashboard-page');
+        showFeedback('Please log in to continue setting up your roadmap.', 'warning');
+        setTimeout(() => navigateTo('auth-page'), 1500);
+        return;
     } else {
         if (selectedTrackId) {
             enrollInTrack(selectedTrackId, currentUserLevel).then(() => {

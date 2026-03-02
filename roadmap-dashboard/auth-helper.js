@@ -14,28 +14,20 @@ const AuthHelper = {
      */
     getToken() {
         try {
-            let token = localStorage.getItem('authToken') || localStorage.getItem('token');
-            
-            // If no token found and we're on localhost (development), auto-generate one
-            if ((!token || token === 'undefined' || token === 'null') && this.isDevelopmentMode()) {
-                console.log('🔧 Development mode: Auto-generating test token...');
-                token = this.generateDevToken();
-                this.setToken(token);
-                console.log('✅ Development token generated and saved');
-            }
-            
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
             if (!token || token === 'undefined' || token === 'null') {
-                console.warn('⚠️ No valid authentication token found');
                 return null;
             }
-            
-            // Validate token format (basic check)
+
+            // Validate token structure (3 base64url segments)
             const parts = token.split('.');
             if (parts.length !== 3) {
-                console.warn('⚠️ Invalid JWT token format');
+                console.warn('⚠️ Malformed JWT in storage — clearing');
+                this.removeToken();
                 return null;
             }
-            
+
             return token;
         } catch (error) {
             console.error('❌ Error retrieving auth token:', error);
@@ -48,27 +40,9 @@ const AuthHelper = {
      * @returns {boolean} True if on localhost
      */
     isDevelopmentMode() {
-        return window.location.hostname === 'localhost' || 
-               window.location.hostname === '127.0.0.1' ||
-               window.location.hostname.includes('local');
-    },
-
-    /**
-     * Generate a test JWT token for development
-     * @returns {string} Test JWT token
-     */
-    generateDevToken() {
-        // Create a simple test token (valid for 7 days from now)
-        const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-        const payload = btoa(JSON.stringify({
-            userId: '507f1f77bcf86cd799439011',
-            email: 'test@skillforge.com',
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days
-        }));
-        // Mock signature (backend will validate properly)
-        const signature = btoa('dev-test-signature-' + Date.now());
-        return `${header}.${payload}.${signature}`;
+        return window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1' ||
+            window.location.hostname.includes('local');
     },
 
     /**
@@ -116,13 +90,13 @@ const AuthHelper = {
             const payload = this.decodeToken(token);
             const expirationTime = payload.exp * 1000; // Convert to milliseconds
             const now = Date.now();
-            
+
             if (now >= expirationTime) {
                 console.warn('⚠️ Token has expired');
                 this.removeToken();
                 return false;
             }
-            
+
             return true;
         } catch (error) {
             console.error('❌ Error checking authentication:', error);
@@ -159,7 +133,7 @@ const AuthHelper = {
     getUserInfo() {
         const token = this.getToken();
         if (!token) return null;
-        
+
         const payload = this.decodeToken(token);
         return payload ? {
             userId: payload.userId,
@@ -178,11 +152,11 @@ const AuthHelper = {
     getAuthHeaders(additionalHeaders = {}) {
         const token = this.getToken();
         const headers = { ...additionalHeaders };
-        
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
-        
+
         return headers;
     },
 
@@ -197,11 +171,11 @@ const AuthHelper = {
             'Content-Type': 'application/json',
             ...additionalHeaders
         };
-        
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
-        
+
         return headers;
     },
 
@@ -212,25 +186,21 @@ const AuthHelper = {
      */
     async handleAuthError(response) {
         if (response.status === 401) {
-            console.warn('⚠️ Authentication failed - redirecting to login');
+            console.warn('⚠️ 401 Unauthorized — clearing token and redirecting to login');
             this.removeToken();
-            
-            // Show user-friendly message
-            const errorData = await response.json().catch(() => ({}));
-            const message = errorData.error || 'Session expired. Please log in again.';
-            
-            // You can trigger a modal or redirect here
-            if (typeof showFeedback === 'function') {
-                showFeedback(message, 'error');
-            } else {
-                alert(message);
+
+            // If we are on the DNA dashboard (separate page), redirect to main app
+            if (window.location.pathname.includes('dna-dashboard')) {
+                window.location.href = 'index.html?reason=session_expired';
+                return true;
             }
-            
-            // Redirect to login after 2 seconds
-            setTimeout(() => {
-                window.location.href = '/login.html';
-            }, 2000);
-            
+
+            // Inside the SPA — surface the error, don't infinite-loop
+            const errorData = await response.clone().json().catch(() => ({}));
+            const message = errorData.error || 'Session expired. Please log in again.';
+            if (typeof showFeedback === 'function') {
+                showFeedback(message, 'warning');
+            }
             return true;
         }
         return false;
@@ -244,7 +214,7 @@ const AuthHelper = {
      */
     async authenticatedFetch(url, options = {}) {
         const token = this.getToken();
-        
+
         if (!token) {
             throw new Error('No authentication token available');
         }

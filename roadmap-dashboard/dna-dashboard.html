@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coder's DNA — SkillForge</title>
+  <link rel="stylesheet" href="coders-dna.css" />
+  <!-- Chart.js for radar + trend charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Three.js importmap (ES module) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three":          "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+    }
+  }
+  </script>
+  <style>
+    /* Inline font import without network dep */
+    body { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
+  </style>
+</head>
+<body class="dna-page">
+
+<!-- ── LOADING OVERLAY ─────────────────────────────────── -->
+<div id="dna-loading-overlay" class="dna-loading" style="position:fixed;inset:0;z-index:999;background:var(--dna-bg)">
+  <div class="dna-spinner"></div>
+  Loading Coder's DNA...
+</div>
+
+<!-- ── ERROR MESSAGE ──────────────────────────────────── -->
+<div id="dna-error-msg" style="display:none;position:fixed;top:1rem;left:50%;transform:translateX(-50%);
+  background:var(--dna-surface);border:1px solid var(--dna-danger);border-radius:6px;
+  padding:0.75rem 1.5rem;font-size:0.82rem;color:var(--dna-danger);z-index:999;"></div>
+
+<!-- ── NAVIGATION ─────────────────────────────────────── -->
+<nav class="dna-nav">
+  <a href="workspace.html" class="dna-nav-brand">
+    <span>⬡</span> SkillForge / Coder's DNA
+  </a>
+  <div class="dna-nav-actions">
+    <span id="dna-volatility" style="font-size:0.75rem;color:var(--dna-text-muted)">—</span>
+    <button class="dna-back-btn" onclick="window.location.href='workspace.html'">← Dashboard</button>
+  </div>
+</nav>
+
+<!-- ── MAIN WRAPPER ───────────────────────────────────── -->
+<div class="dna-wrapper">
+
+  <!-- Header -->
+  <div class="dna-header">
+    <div class="dna-header-title">
+      <h1>Coder's DNA Profile</h1>
+      <p id="dna-sessions-count">Loading sessions...</p>
+      <p id="dna-readiness" style="margin-top:0.2rem;font-size:0.78rem;"></p>
+    </div>
+    <div class="dna-overall-score">
+      <span class="score-label">DNA Score</span>
+      <span class="score-value" id="dna-overall-score">—</span>
+      <span class="score-sub">/ 100</span>
+    </div>
+  </div>
+
+  <!-- Row 1: Radar + Index Bars -->
+  <div class="dna-grid">
+
+    <!-- Radar Chart -->
+    <div class="dna-card">
+      <div class="dna-card-header">
+        <h3>Behavioral Radar</h3>
+        <span style="font-size:0.7rem;color:var(--dna-text-muted)">6 core indices</span>
+      </div>
+      <div class="dna-card-body">
+        <div class="dna-radar-wrap">
+          <canvas id="dna-radar-chart" width="320" height="320"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Index Bars -->
+    <div class="dna-card">
+      <div class="dna-card-header">
+        <h3>Index Breakdown</h3>
+        <span style="font-size:0.7rem;color:var(--dna-text-muted)">0 – 100</span>
+      </div>
+      <div class="dna-card-body">
+        <div class="dna-index-list" id="dna-index-list">
+          <div class="dna-loading"><div class="dna-spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Trend Chart + Analytical Summary -->
+  <div class="dna-grid">
+
+    <!-- Performance Trend -->
+    <div class="dna-card">
+      <div class="dna-card-header">
+        <h3>Performance Trend</h3>
+        <span style="font-size:0.7rem;color:var(--dna-text-muted)">last 50 sessions</span>
+      </div>
+      <div class="dna-card-body" style="padding-bottom:0.75rem">
+        <div class="dna-trend-wrap" style="height:220px">
+          <canvas id="dna-trend-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytical Summary -->
+    <div class="dna-card">
+      <div class="dna-card-header">
+        <h3>Behavioral Analysis</h3>
+      </div>
+      <div class="dna-card-body">
+        <ul class="dna-summary-list" id="dna-summary-list">
+          <li><div class="dna-loading"><div class="dna-spinner"></div></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Hiring Radar (Full Width) -->
+  <div class="dna-card" style="margin-bottom:1.5rem">
+    <div class="dna-card-header">
+      <h3>Hiring Radar</h3>
+      <span style="font-size:0.7rem;color:var(--dna-text-muted)">Recruiter-facing summary</span>
+    </div>
+    <div class="dna-card-body">
+      <div class="dna-hiring-grid" id="dna-hiring-grid">
+        <div class="dna-loading"><div class="dna-spinner"></div></div>
+      </div>
+      <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:0.5rem">
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--dna-text-muted)">Strength Zones</div>
+        <div id="dna-strength-zones" style="font-size:0.82rem;color:var(--dna-accent)">—</div>
+        <div style="font-size:0.72rem;color:var(--dna-text-muted)" id="dna-hiring-summary"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Badges (Full Width) -->
+  <div class="dna-card" style="margin-bottom:1.5rem">
+    <div class="dna-card-header">
+      <h3>Badge Collection</h3>
+      <span style="font-size:0.7rem;color:var(--dna-text-muted)">Sustained performance — not one-time</span>
+    </div>
+    <div class="dna-card-body">
+      <div class="dna-badge-grid" id="dna-badge-grid">
+        <div class="dna-loading"><div class="dna-spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 5: Cognitive Warfare Modes -->
+  <div class="dna-card" style="margin-bottom:1.5rem">
+    <div class="dna-card-header">
+      <h3>Cognitive Warfare</h3>
+      <span style="font-size:0.7rem;color:var(--dna-text-muted)">Advanced training modes</span>
+    </div>
+    <div class="dna-card-body">
+      <div class="dna-warfare-grid" id="dna-warfare-grid">
+        <div class="dna-loading"><div class="dna-spinner"></div></div>
+      </div>
+      <div style="margin-top:1.2rem;display:flex;align-items:center;gap:1rem">
+        <button onclick="launchPracticeWithWarfare()"
+          style="background:var(--dna-accent);color:#000;border:none;padding:0.6rem 1.5rem;
+                 border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.82rem;font-weight:700;">
+          Enter Warfare Arena
+        </button>
+        <span style="font-size:0.72rem;color:var(--dna-text-muted)">Select a mode above, then launch</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 6: AI Feedback Panel -->
+  <div class="dna-card" style="margin-bottom:3rem">
+    <div class="dna-card-header">
+      <h3>AI Behavioral Feedback</h3>
+      <span style="font-size:0.7rem;color:var(--dna-text-muted)">Based on last session + DNA profile</span>
+    </div>
+    <div class="dna-card-body" id="dna-ai-feedback">
+      <div class="dna-empty">
+        <span class="empty-icon">🎯</span>
+        <p>Submit a problem solution from the Practice Arena to receive AI feedback here.</p>
+        <button onclick="DNADashboard.loadAIFeedback('', {})"
+          style="margin-top:0.75rem;background:transparent;border:1px solid var(--dna-border);
+                 color:var(--dna-text-muted);padding:0.4rem 1rem;border-radius:4px;cursor:pointer;
+                 font-family:inherit;font-size:0.78rem;">
+          Load from last session
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /dna-wrapper -->
+
+<!-- ── 3D BADGE MODAL ────────────────────────────────── -->
+<div id="badge3d-modal" class="badge3d-modal hidden" onclick="if(event.target===this)window.Badge3DViewer&&Badge3DViewer.close()">
+  <div class="badge3d-panel">
+    <button class="badge3d-close" onclick="window.Badge3DViewer&&Badge3DViewer.close()" title="Close (Esc)">✕</button>
+    <div class="badge3d-info">
+      <p id="badge3d-status" class="badge3d-status">✦ UNLOCKED</p>
+      <h2 id="badge3d-title" class="badge3d-title">Badge Name</h2>
+      <span id="badge3d-tier" class="badge3d-tier-label" data-tier="gold">GOLD</span>
+      <p id="badge3d-desc" class="badge3d-desc">Description</p>
+    </div>
+    <div class="badge3d-canvas-wrap">
+      <canvas id="badge3d-canvas"></canvas>
+      <p class="badge3d-hint">Drag to rotate · Scroll to zoom · Double-click to return</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCRIPTS ────────────────────────────────────────── -->
+<script src="auth-helper.js"></script>
+<script src="coders-dna-dashboard.js"></script>
+<script type="module" src="badge-3d-viewer.js"></script>
+<script>
+  function launchPracticeWithWarfare() {
+    const mode = DNADashboard.getSelectedWarfareMode();
+    const url  = mode
+      ? `workspace.html?tab=practice&warfareMode=${encodeURIComponent(mode)}`
+      : 'workspace.html?tab=practice';
+    window.location.href = url;
+  }
+</script>
+
+</body>
+</html>

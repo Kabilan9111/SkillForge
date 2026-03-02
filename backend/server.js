@@ -12,6 +12,7 @@ const database = require(path.join(BASE_PATH, 'src/config/database'));
 const routes = require(path.join(BASE_PATH, 'src/routes'));
 const errorHandler = require(path.join(BASE_PATH, 'src/middleware/errorHandler'));
 const initializeDatabase = require(path.join(BASE_PATH, 'src/scripts/initDatabase'));
+const CodersDNA = require(path.join(BASE_PATH, 'src/models/CodersDNA'));
 
 const app = express();
 
@@ -19,8 +20,10 @@ const app = express();
 // Middleware
 // =====================
 app.use(cors({
-  origin: config.cors.origin,
-  credentials: true
+  origin: ['http://localhost:5500', 'http://127.0.0.1:5500'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
@@ -78,6 +81,10 @@ const startServer = async () => {
 
     await initializeDatabase();
     console.log('✓ Database schema ready');
+
+    // Coder's DNA Engine setup
+    await CodersDNA.initSchema();
+    await CodersDNA.seedProblems();
 
     app.listen(config.port, () => {
       console.log('\n🚀 SkillForge Backend running');

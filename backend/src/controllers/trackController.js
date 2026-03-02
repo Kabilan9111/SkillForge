@@ -63,6 +63,17 @@ class TrackController {
       next(error);
     }
   }
+
+  static async getModulesByTrack(req, res, next) {
+    try {
+      const { slug } = req.params;
+      const { level } = req.query;
+      const modules = await TrackService.getModulesBySlug(slug, level);
+      res.json(modules);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = TrackController;

@@ -38,4 +38,45 @@ const auth = async (req, res, next) => {
   }
 };
 
+// Admin middleware
+auth.admin = async (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  next();
+};
+
+// Optional auth - attach user if token exists, but don't require it
+auth.optional = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return next(); // No token, continue without user
+    }
+
+    const decoded = jwt.verify(token, config.jwt.secret);
+    const user = await User.findById(decoded.userId);
+
+    if (user) {
+      req.user = user;
+      req.userId = user.id;
+      req.institutionId = user.institution_id;
+    }
+    
+    next();
+  } catch (error) {
+    // If token is invalid, just continue without user
+    next();
+  }
+};
+
+// Required auth
+auth.required = auth;
+
 module.exports = auth;

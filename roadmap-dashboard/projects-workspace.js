@@ -31,8 +31,10 @@
             // First check and migrate any localStorage projects
             await migrateLocalStorageProjects();
             
-            // Fetch from backend (no auth required)
-            const response = await fetch(`${API_BASE_URL}/workspace/projects`);
+            // Fetch from backend (send auth token if available)
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('skillforge_token');
+            const fetchHeaders = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const response = await fetch(`${API_BASE_URL}/workspace/projects`, { headers: fetchHeaders });
             
             if (response.ok) {
                 const data = await response.json();
@@ -107,6 +109,7 @@
     const dom = {
         // Grid view
         createProjectBtn: null,
+        projectsGridView: null,
         projectsGrid: null,
         
         // Detail view
@@ -161,6 +164,7 @@
 
     function cacheDOMElements() {
         dom.createProjectBtn = document.getElementById('create-project-btn');
+        dom.projectsGridView = document.getElementById('projects-grid-view');
         dom.projectsGrid = document.querySelector('.projects-grid');
         
         dom.projectDetailView = document.getElementById('project-detail-view');
@@ -181,10 +185,16 @@
         dom.fileTree = document.getElementById('file-tree');
         dom.fileViewer = document.getElementById('file-viewer');
         dom.commitsTimeline = document.getElementById('commits-timeline');
+        dom.commitsCount = document.getElementById('commits-count');
         dom.aiReviewContainer = document.getElementById('ai-review-content');
         dom.evolutionDashboard = document.getElementById('evolution-timeline');
         
         dom.createProjectModal = document.getElementById('create-project-modal');
+        dom.newProjectName = document.getElementById('new-project-name');
+        dom.newProjectDesc = document.getElementById('new-project-desc');
+        dom.newProjectTech = document.getElementById('new-project-tech');
+        dom.newProjectType = document.getElementById('new-project-type');
+
         dom.commitModal = document.getElementById('commit-modal');
         dom.commitMessageInput = document.getElementById('commit-message');
         dom.triggerAiReviewCheckbox = document.getElementById('trigger-ai-review');
@@ -197,12 +207,34 @@
         cacheDOMElements();
         await loadState(); // Load projects from backend
         setupEventListeners();
-        
-        // Initial render if on projects page
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.projectId) {
+                openProject(e.state.projectId);
+            } else {
+                renderProjectsGrid();
+            }
+        });
+
+        // If workspace.html loaded with ?project=ID, open that project directly
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectIdParam = urlParams.get('project');
+        if (projectIdParam) {
+            await openProject(parseInt(projectIdParam, 10));
+            return;
+        }
+
+        // Initial render if on projects page (SPA mode)
         if (document.getElementById('projects-page') && document.getElementById('projects-page').classList.contains('active')) {
             renderProjectsGrid();
         }
-        
+
+        // If on workspace.html standalone (no project param), show grid
+        if (document.getElementById('projects-grid-view') && !projectIdParam) {
+            renderProjectsGrid();
+        }
+
         console.log('[Projects] Ready with', state.projects.length, 'projects');
     }
 
@@ -297,11 +329,18 @@
             return;
         }
         
+        // Disable create button while submitting
+        const submitBtn = document.querySelector('#create-project-modal .btn-primary');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating...'; }
+
         try {
-            // Create on backend
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('skillforge_token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             const response = await fetch(`${API_BASE_URL}/workspace/projects`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({
                     name,
                     description,
@@ -310,7 +349,8 @@
             });
             
             if (!response.ok) {
-                throw new Error('Failed to create project');
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${response.status}`);
             }
             
             const data = await response.json();
@@ -318,15 +358,22 @@
                 throw new Error(data.error || 'Unknown error');
             }
             
-            // Reload projects from backend
-            await loadState();
-            
             closeCreateProjectModal();
-            showNotification(`Project "${name}" created successfully!`, 'success');
-            renderProjectsGrid();
+            showNotification(`Project "${name}" created!`, 'success');
+
+            // Redirect to the new project workspace
+            const newId = data.projectId || data.project?.id;
+            if (newId) {
+                window.location.href = `workspace.html?project=${newId}`;
+            } else {
+                await loadState();
+                renderProjectsGrid();
+            }
         } catch (error) {
             console.error('[Projects] Create error:', error);
             showNotification('Failed to create project: ' + error.message, 'error');
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-plus"></i> Create Project'; }
         }
     }
 
@@ -336,7 +383,8 @@
         
         // Ensure DOM elements are cached (in case we navigated to this page)
         if (!dom.projectsGrid) {
-            dom.projectsGrid = document.getElementById('projects-grid-view');
+            dom.projectsGridView = document.getElementById('projects-grid-view');
+            dom.projectsGrid = document.querySelector('.projects-grid');
         }
         if (!dom.projectDetailView) {
             dom.projectDetailView = document.getElementById('project-detail-view');
@@ -350,8 +398,12 @@
         }
         
         state.currentView = 'grid';
+        // Show entire grid-view page, hide detail page
+        if (dom.projectsGridView) dom.projectsGridView.classList.remove('hidden');
         dom.projectsGrid.classList.remove('hidden');
         if (dom.projectDetailView) dom.projectDetailView.classList.add('hidden');
+        // Clean up URL
+        history.replaceState(null, '', window.location.pathname);
         
         if (state.projects.length === 0) {
             console.log('[Projects] No projects found, rendering empty state');
@@ -375,7 +427,7 @@
             const techStack = project.tech_stack ? (Array.isArray(project.tech_stack) ? project.tech_stack : JSON.parse(project.tech_stack || '[]')) : [];
             
             return `
-                <div class="project-card" onclick="window.location.href='workspace.html?project=${project.id}'">
+                <div class="project-card" onclick="window.ProjectsWorkspace.openProject(${project.id})">
                     <div class="project-card-header">
                         <div>
                             <h3 class="project-card-title">${escapeHtml(project.project_name || project.name || 'Untitled')}</h3>
@@ -446,7 +498,15 @@
                             message: commit.message,
                             timestamp: new Date(commit.created_at).getTime(),
                             author: 'You',
-                            changes: { added: [], modified: [], deleted: [] }
+                            filesCount: commit.files_count || 0,
+                            linesAdded: commit.total_lines || 0,
+                            files: commit.files || [],
+                            // Keep changes compat for activity chart impact calculation
+                            changes: {
+                                added: Array(commit.files_count || 0).fill(null),
+                                modified: [],
+                                deleted: []
+                            }
                         });
                     });
                 }
@@ -458,12 +518,34 @@
 
     // ==================== PROJECT DETAIL VIEW ====================
     async function openProject(projectId) {
-        const project = state.projects.find(p => p.id === projectId);
-        if (!project) return;
+        // Re-cache in case we navigated here directly (URL param path)
+        if (!dom.projectsGridView) cacheDOMElements();
+
+        // Try to find project in state; if not loaded yet, fetch directly from backend
+        let project = state.projects.find(p => p.id === projectId);
+        if (!project) {
+            try {
+                const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('skillforge_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const r = await fetch(`${API_BASE_URL}/workspace/projects/${projectId}`, { headers });
+                if (r.ok) {
+                    const d = await r.json();
+                    if (d.success && d.project) project = d.project;
+                }
+            } catch(e) { console.error('[Projects] Failed to fetch project:', e); }
+        }
+        if (!project) {
+            console.error('[Projects] Project not found:', projectId);
+            return;
+        }
         
         state.currentProject = project;
         state.currentProject.files = state.currentProject.files || {};
         state.currentView = 'detail';
+
+        // Update URL without page reload
+        const newUrl = window.location.pathname + '?project=' + projectId;
+        history.pushState({ projectId }, project.name, newUrl);
         
         // Load files and commits from backend
         await Promise.all([
@@ -471,7 +553,8 @@
             loadProjectCommits()
         ]);
         
-        dom.projectsGrid.classList.add('hidden');
+        // Hide entire grid-view page, show detail page
+        if (dom.projectsGridView) dom.projectsGridView.classList.add('hidden');
         dom.projectDetailView.classList.remove('hidden');
         
         renderProjectDetail();
@@ -489,7 +572,7 @@
             dom.detailProjectStatus.className = `project-status-badge ${project.status}`;
         }
         if (dom.detailProjectCreated) {
-            dom.detailProjectCreated.textContent = `Created ${formatDate(project.createdAt)}`;
+            dom.detailProjectCreated.textContent = `Created ${formatDate(project.created_at || project.createdAt)}`;
         }
         
         // Update commits count
@@ -751,6 +834,12 @@ if (!data.success) {
                 await loadProjectFiles();
                 renderFileTree();
                 
+                // Mark all uploaded files as pending changes
+                for (const file of filteredFiles) {
+                    const filePath = file.webkitRelativePath || file.name;
+                    state.pendingChanges.set(filePath, 'added');
+                }
+                
                 // Enable commit button
                 if (dom.commitPushBtn) dom.commitPushBtn.disabled = false;
                 
@@ -865,83 +954,6 @@ if (!data.success) {
             }
         }
     }
-                    console.warn('[Projects] Backend unavailable, falling back to localStorage:', fetchError.message);
-                }
-            }
-            
-            // Build commit object (from backend or create locally)
-            let commit;
-            if (backendSuccess && commitResult) {
-                commit = {
-                    id: commitResult.commit.id || commitResult.commit._id,
-                    projectId: state.currentProject.id,
-                    hash: commitResult.commit.hash,
-                    message: commitResult.commit.message,
-                    timestamp: commitResult.commit.timestamp || Date.now(),
-                    author: commitResult.commit.author,
-                    changes: commitResult.commit.changes,
-                    snapshot: commitResult.commit.snapshot
-                };
-            } else {
-                // Fallback: create commit locally
-                commit = {
-                    id: generateId(),
-                    projectId: state.currentProject.id,
-                    hash: generateCommitHash(),
-                    message,
-                    timestamp: Date.now(),
-                    author: 'You',
-                    changes,
-                    snapshot: JSON.parse(JSON.stringify(state.currentProject.files))
-                };
-            }
-            
-            state.commits.push(commit);
-            state.currentProject.totalCommits++;
-            state.currentProject.updatedAt = Date.now();
-            
-            // Update status to in-progress if planning
-            if (state.currentProject.status === 'planning') {
-                state.currentProject.status = 'in-progress';
-            }
-            
-            // Clear pending changes only after success
-            state.pendingChanges.clear();
-            
-            // Save to localStorage
-            saveState();
-            
-            closeCommitModal();
-            
-            // Show appropriate success message
-            if (backendSuccess) {
-                showNotification('Changes committed successfully!', 'success');
-                if (triggerAi && commitResult?.aiReviewQueued) {
-                    showNotification('AI code review queued...', 'info');
-                }
-            } else {
-                showNotification('Changes saved locally (backend unavailable)', 'warning');
-                if (triggerAi) {
-                    // Run local AI review as fallback
-                    showNotification('Running local AI review...', 'info');
-                    setTimeout(() => runAIReview(commit), 1000);
-                }
-            }
-            
-            renderCommitsTimeline();
-            
-        } catch (error) {
-            console.error('[Projects] Commit failed:', error);
-            showNotification(`Commit failed: ${error.message}`, 'error');
-            
-        } finally {
-            // Re-enable button
-            if (dom.confirmCommitBtn) {
-                dom.confirmCommitBtn.disabled = false;
-                dom.confirmCommitBtn.innerHTML = '<i class="fas fa-check"></i> Commit & Push';
-            }
-        }
-    }
 
     function generateCommitHash() {
         return Math.random().toString(36).substring(2, 9);
@@ -1002,8 +1014,8 @@ if (!data.success) {
                     <div class="stat-label">Files</div>
                 </div>
                 <div class="momentum-stat">
-                    <div class="stat-value">${totalAdditions + totalModifications}</div>
-                    <div class="stat-label">Changes</div>
+                    <div class="stat-value">${commits.reduce((s, c) => s + (c.linesAdded || 0), 0).toLocaleString()}</div>
+                    <div class="stat-label">Lines Added</div>
                 </div>
                 <div class="momentum-stat">
                     <div class="stat-value">${timeAgo}</div>
@@ -1487,65 +1499,75 @@ if (!data.success) {
     }
     
     function renderCommitCard(commit, index) {
-        const changes = commit.changes || { added: [], modified: [], deleted: [] };
-        const totalChanges = changes.added.length + changes.modified.length + changes.deleted.length;
-        
-        // Determine card accent based on changes
-        let accentClass = 'accent-neutral';
-        if (changes.added.length > changes.modified.length + changes.deleted.length) {
-            accentClass = 'accent-add';
-        } else if (changes.modified.length > 0) {
-            accentClass = 'accent-modify';
-        } else if (changes.deleted.length > 0) {
-            accentClass = 'accent-delete';
-        }
-        
+        const filesCount = commit.filesCount || 0;
+        const linesAdded = commit.linesAdded || 0;
+        const files = commit.files || [];
+        const allCommits = state.commits.filter(c => c.projectId === state.currentProject.id);
+        const commitNumber = allCommits.length - index;
+
+        // Diff bar: show proportion of file types
+        const typeColors = { js: '#f1e05a', jsx: '#f1e05a', ts: '#3178c6', tsx: '#3178c6',
+            py: '#3572A5', java: '#b07219', css: '#563d7c', html: '#e34c26',
+            md: '#083fa1', json: '#292929', cpp: '#f34b7d', c: '#555555' };
+        const typeCounts = {};
+        files.forEach(f => { typeCounts[f.type] = (typeCounts[f.type] || 0) + 1; });
+        const typeEntries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+        const diffBarHtml = typeEntries.length > 0 ? `
+            <div class="diff-bar" title="File types">
+                ${typeEntries.map(([type, count]) =>
+                    `<div class="diff-bar-segment" style="width:${Math.ceil(count/filesCount*100)}%;background:${typeColors[type]||'#666'}" title="${count} .${type} file${count>1?'s':''}"></div>`
+                ).join('')}
+            </div>` : '';
+
+        // File list (up to 8 shown)
+        const shownFiles = files.slice(0, 8);
+        const hiddenCount = Math.max(0, filesCount - shownFiles.length);
+        const fileListHtml = shownFiles.length > 0 ? `
+            <div class="commit-file-list">
+                ${shownFiles.map(f => `
+                    <div class="commit-file-item">
+                        <span class="file-type-dot" style="background:${typeColors[f.type]||'#666'}"></span>
+                        <span class="commit-file-name">${escapeHtml(f.path || f.name)}</span>
+                        ${f.lines > 0 ? `<span class="file-lines">+${f.lines.toLocaleString()}</span>` : ''}
+                    </div>`).join('')}
+                ${hiddenCount > 0 ? `<div class="commit-file-more">+${hiddenCount} more file${hiddenCount>1?'s':''}</div>` : ''}
+            </div>` : '';
+
         return `
-            <div class="commit-card ${accentClass}" data-commit-id="${commit.id}">
-                <div class="commit-card-header">
-                    <div class="commit-sequence">#${state.commits.filter(c => c.projectId === state.currentProject.id).length - index}</div>
-                    <div class="commit-message-modern">${escapeHtml(commit.message || 'No message')}</div>
+            <div class="commit-card-gh" data-commit-id="${commit.id}">
+                <div class="commit-gh-left">
+                    <div class="commit-dot"></div>
+                    <div class="commit-line"></div>
                 </div>
-                
-                <div class="commit-metadata">
-                    <div class="commit-author">
-                        <i class="fas fa-user-circle"></i>
-                        <span>${escapeHtml(commit.author || 'Unknown')}</span>
+                <div class="commit-gh-body">
+                    <div class="commit-gh-header">
+                        <span class="commit-gh-message">${escapeHtml(commit.message || 'No message')}</span>
+                        <span class="commit-seq">#${commitNumber}</span>
                     </div>
-                    <div class="commit-time">
-                        <i class="fas fa-clock"></i>
-                        <span>${formatTimeAgo(commit.timestamp)}</span>
-                    </div>
-                    <div class="commit-hash-modern" onclick="copyCommitHash('${commit.hash}')" title="Click to copy">
-                        <i class="fas fa-hashtag"></i>
-                        <code>${commit.hash || 'unknown'}</code>
-                        <i class="fas fa-copy copy-icon"></i>
-                    </div>
-                </div>
-                
-                <div class="commit-changes-modern">
-                    <div class="changes-summary">
-                        <span class="change-stat change-add">
-                            <i class="fas fa-plus-circle"></i>
-                            ${changes.added.length}
+                    <div class="commit-gh-meta">
+                        <span class="commit-gh-author">
+                            <span class="author-avatar">${(commit.author||'Y')[0].toUpperCase()}</span>
+                            ${escapeHtml(commit.author || 'You')}
                         </span>
-                        <span class="change-stat change-mod">
-                            <i class="fas fa-edit"></i>
-                            ${changes.modified.length}
+                        <span class="commit-gh-sep">committed</span>
+                        <span class="commit-gh-time">${formatTimeAgo(commit.timestamp)}</span>
+                        <span class="commit-gh-branch"><i class="fas fa-code-branch"></i> main</span>
+                        <span class="commit-gh-hash" onclick="window.ProjectsWorkspace.copyHash('${commit.hash}')" title="Click to copy full hash">
+                            <i class="fas fa-code"></i> ${commit.hash}
+                            <i class="fas fa-copy" style="opacity:.5;font-size:.7rem"></i>
                         </span>
-                        <span class="change-stat change-del">
-                            <i class="fas fa-minus-circle"></i>
-                            ${changes.deleted.length}
-                        </span>
-                        <span class="change-total">${totalChanges} file${totalChanges !== 1 ? 's' : ''}</span>
                     </div>
-                </div>
-                
-                <div class="commit-card-actions">
-                    <button class="btn-secondary-action" onclick="window.ProjectsWorkspace.rollbackToCommit('${commit.id}')">
-                        <i class="fas fa-history"></i>
-                        Rollback
-                    </button>
+                    <div class="commit-gh-stats">
+                        <span class="stat-files"><i class="fas fa-file-code"></i> ${filesCount} file${filesCount!==1?'s':''} changed</span>
+                        ${linesAdded > 0 ? `<span class="stat-additions"><span class="plus-icon">+</span>${linesAdded.toLocaleString()} additions</span>` : ''}
+                        ${diffBarHtml}
+                    </div>
+                    ${fileListHtml}
+                    <div class="commit-gh-actions">
+                        <button class="btn-gh-action" onclick="window.ProjectsWorkspace.rollbackToCommit('${commit.id}')">
+                            <i class="fas fa-history"></i> Rollback
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -2769,7 +2791,8 @@ if (!data.success) {
         createProject,
         closeCommitModal,
         commitChanges: confirmCommit,
-        rollbackToCommit
+        rollbackToCommit,
+        copyHash: copyCommitHash
     };
 
     // Auto-initialize

@@ -138,6 +138,10 @@
             dom.codeEditorArea.addEventListener('scroll', syncLineNumbers);
             dom.codeEditorArea.addEventListener('click', updateCursorPosition);
             dom.codeEditorArea.addEventListener('keyup', updateCursorPosition);
+            // DNA Tracker: attach behavioral listeners
+            if (window.CodersDNATracker) {
+                CodersDNATracker.attachToEditor(dom.codeEditorArea);
+            }
         }
         
         // Language selector
@@ -197,7 +201,19 @@
         state.hintLevel = 0;
         state.chatHistory = [];
         state.mistakePatterns = [];
-        
+
+        // ── DNA Tracker: start session ───────────────────────
+        if (window.CodersDNATracker) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const warfareMode = urlParams.get('warfareMode') || null;
+            CodersDNATracker.startSession(
+                problem.id || 'unknown',
+                problem.difficulty || 'medium',
+                state.currentLanguage || 'javascript',
+                warfareMode
+            );
+        }
+
         // Show arena, hide practice page
         if (dom.arena) {
             dom.arena.classList.remove('hidden');
@@ -480,6 +496,10 @@
         updateLineNumbers();
         detectSyntaxErrors();
         autoSaveDraft();
+        // DNA Tracker: propagate input event
+        if (window.CodersDNATracker) {
+            CodersDNATracker.attachToEditor.inputSync && CodersDNATracker.attachToEditor.inputSync(e);
+        }
     }
 
     function handleCodeKeydown(e) {
@@ -689,19 +709,28 @@
             displayResults(results);
             
             const allPassed = results.every(r => r.passed);
+            const passRatio  = results.filter(r => r.passed).length / (results.length || 1);
+
+            // ── DNA Tracker: run attempt ──────────────────────
+            if (window.CodersDNATracker) {
+                CodersDNATracker.onRunAttempt(passRatio, false, !allPassed);
+            }
+
             if (allPassed) {
                 updateExecStatus('accepted', `All ${results.length} test cases passed! ✓`);
                 showAIEncouragement('success');
             } else {
-                const passedCount = results.filter(r => r.passed).length;
-                updateExecStatus('wrong-answer', `${passedCount}/${results.length} test cases passed`);
+                updateExecStatus('wrong-answer', `${results.filter(r=>r.passed).length}/${results.length} test cases passed`);
                 showAIEncouragement('partial');
             }
-            
+
         } catch (error) {
             updateExecStatus('error', 'Runtime Error');
             displayError(error);
             showAIEncouragement('error');
+            if (window.CodersDNATracker) {
+                CodersDNATracker.onRunAttempt(0, true, false);
+            }
         } finally {
             state.isRunning = false;
         }
@@ -732,6 +761,16 @@
             const results = await executeCode(state.currentCode, allTestCases);
             const allPassed = results.every(r => r.passed);
             
+            const passRatio = results.filter(r => r.passed).length / (results.length || 1);
+            const verdict   = allPassed ? 'accepted' : 'wrong-answer';
+
+            // ── DNA Tracker: submit ───────────────────────────
+            if (window.CodersDNATracker) {
+                CodersDNATracker.onSubmit(passRatio, verdict);
+                // Store last code for AI feedback
+                localStorage.setItem('dna_last_code', state.currentCode);
+            }
+
             if (allPassed) {
                 updateExecStatus('accepted', 'Accepted! All test cases passed ✓');
                 markProblemSolved();
@@ -744,11 +783,14 @@
                 displayResults(results);
                 trackProgress('attempted');
             }
-            
+
         } catch (error) {
             updateExecStatus('error', 'Runtime Error');
             displayError(error);
             trackProgress('error');
+            if (window.CodersDNATracker) {
+                CodersDNATracker.onSubmit(0, 'error');
+            }
         } finally {
             state.isRunning = false;
         }

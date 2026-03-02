@@ -1,0 +1,14 @@
+{
+  "liveServer.settings.root": "/roadmap-dashboard",
+  "liveServer.settings.file": "index.html",
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**",
+    "**/*.scss",
+    "**/*.sass",
+    "**/*.ts",
+    "**/test-*.html",
+    "**/TEST_*.html",
+    "**/*-demo.html"
+  ],
+  "simpleBrowser.defaultUrl": "http://localhost:5500/index.html"
+}

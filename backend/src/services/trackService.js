@@ -55,6 +55,14 @@ class TrackService {
 
     return { message: 'Successfully enrolled in track', track };
   }
+
+  static async getModulesBySlug(slug, level = null) {
+    const track = await Track.findBySlug(slug);
+    if (!track) {
+      throw { status: 404, message: 'Track not found' };
+    }
+    return await Module.findByTrack(track.id, level);
+  }
 }
 
 module.exports = TrackService;

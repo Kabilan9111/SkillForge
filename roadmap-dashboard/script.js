@@ -15,8 +15,8 @@ const CAREERS = [
 const TRACK_DATA = {
     java: { // JAVA BACKEND TRACK
         stats: {
-             progress: 35,
-             readiness: 45,
+            progress: 35,
+            readiness: 45,
         },
         roadmap: [
             { title: "Java Core & OOP", status: "completed", desc: "Classes, Interfaces, Polymorphism, Memory Mgmt." },
@@ -46,8 +46,8 @@ const TRACK_DATA = {
     },
     python: { // PYTHON FULL-STACK TRACK
         stats: {
-             progress: 15,
-             readiness: 20,
+            progress: 15,
+            readiness: 20,
         },
         roadmap: [
             { title: "Python Advanced Syntax", status: "completed", desc: "Decorators, Generators, Context Managers, Metaclasses." },
@@ -73,8 +73,8 @@ const TRACK_DATA = {
     },
     cpp: { // C++ SYSTEMS TRACK
         stats: {
-             progress: 60,
-             readiness: 75,
+            progress: 60,
+            readiness: 75,
         },
         roadmap: [
             { title: "Memory Management Deep Dive", status: "completed", desc: "Pointers, Smart Pointers, Custom Allocators, Valgrind." },
@@ -109,12 +109,12 @@ async function loginUser(email, password) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || 'Login failed');
         }
-        
+
         const data = await response.json();
         authToken = data.token;
         localStorage.setItem('authToken', authToken);
@@ -137,13 +137,27 @@ async function enrollInTrack(trackId, level) {
             },
             body: JSON.stringify({ trackId, level })
         });
-        
+
         if (!response.ok) throw new Error('Enrollment failed');
         return await response.json();
     } catch (error) {
         console.error('Enrollment error:', error);
         return null;
     }
+}
+
+// Clear expired token and re-authenticate, then retry the callback
+async function handleTokenExpiry(retryCallback) {
+    console.warn('[Auth] Token expired or invalid. Clearing and re-authenticating...');
+    authToken = null;
+    localStorage.removeItem('authToken');
+    const loginData = await loginUser('student1@techvidya.edu', 'password123');
+    if (loginData && loginData.token) {
+        authToken = loginData.token;
+        localStorage.setItem('authToken', authToken);
+        return retryCallback();
+    }
+    return null;
 }
 
 async function fetchRoadmap(trackId, level) {
@@ -153,8 +167,12 @@ async function fetchRoadmap(trackId, level) {
                 'Authorization': `Bearer ${authToken}`
             }
         });
-        
+
         if (!response.ok) {
+            if (response.status === 401) {
+                // Token is expired or invalid — re-authenticate and retry
+                return await handleTokenExpiry(() => fetchRoadmap(trackId, level));
+            }
             // If not enrolled, try to enroll first
             if (response.status === 403) {
                 await enrollInTrack(trackId, level);
@@ -167,7 +185,7 @@ async function fetchRoadmap(trackId, level) {
             }
             throw new Error('Failed to fetch roadmap');
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error('Roadmap fetch error:', error);
@@ -180,7 +198,7 @@ async function fetchRoadmap(trackId, level) {
 const views = document.querySelectorAll('.page-view');
 const sidebar = document.getElementById('global-sidebar');
 const navItems = document.querySelectorAll('.nav-item[data-target]');
-let currentRole = null; 
+let currentRole = null;
 let activeTrack = 'java'; // State variable for the active track
 
 function navigateTo(pageId) {
@@ -200,7 +218,7 @@ function navigateTo(pageId) {
         sidebar.style.display = 'none';
         updateBodyTheme('theme-dark'); // Reset to default dark on landing
     } else if (pageId === 'onboarding-page' || pageId === 'career-selection-page') {
-        sidebar.style.display = 'none'; 
+        sidebar.style.display = 'none';
     } else {
         sidebar.style.display = 'flex';
         updateActiveNav(pageId);
@@ -224,35 +242,35 @@ function updateActiveNav(pageId) {
 // --- STATE & RENDERING LOGIC ---
 
 function setActiveTrack(trackId) {
-   if (!TRACK_DATA[trackId]) return;
-   activeTrack = trackId;
-   
-   // Update theme based on track
-   const role = CAREERS.find(c => c.slug === activeTrack);
-   if (role) {
-       updateBodyTheme(role.theme);
-       
-       // Fetch roadmap from backend if logged in
-       if (authToken) {
-           fetchRoadmap(role.id, currentUserLevel).then(data => {
-               if (data && data.roadmap) {
-                   // Convert backend format to display format
-                   TRACK_DATA[trackId].roadmap = data.roadmap.map(module => ({
-                       title: module.title,
-                       status: module.isCompleted ? 'completed' : (module.isUnlocked ? 'in-progress' : 'locked'),
-                       desc: module.description
-                   }));
-                   
-                   // Calculate progress
-                   const completed = data.roadmap.filter(m => m.isCompleted).length;
-                   const total = data.roadmap.length;
-                   TRACK_DATA[trackId].stats.progress = Math.round((completed / total) * 100);
-                   
-                   renderDashboard();
-               }
-           });
-       }
-   }
+    if (!TRACK_DATA[trackId]) return;
+    activeTrack = trackId;
+
+    // Update theme based on track
+    const role = CAREERS.find(c => c.slug === activeTrack);
+    if (role) {
+        updateBodyTheme(role.theme);
+
+        // Fetch roadmap from backend if logged in
+        if (authToken) {
+            fetchRoadmap(role.id, currentUserLevel).then(data => {
+                if (data && data.roadmap) {
+                    // Convert backend format to display format
+                    TRACK_DATA[trackId].roadmap = data.roadmap.map(module => ({
+                        title: module.title,
+                        status: module.isCompleted ? 'completed' : (module.isUnlocked ? 'in-progress' : 'locked'),
+                        desc: module.description
+                    }));
+
+                    // Calculate progress
+                    const completed = data.roadmap.filter(m => m.isCompleted).length;
+                    const total = data.roadmap.length;
+                    TRACK_DATA[trackId].stats.progress = Math.round((completed / total) * 100);
+
+                    renderDashboard();
+                }
+            });
+        }
+    }
 }
 
 function updateBodyTheme(themeClass) {
@@ -271,10 +289,10 @@ function renderCareers() {
             </div>
         </article>
     `).join('');
-    
+
     // Attach click handlers after rendering
     document.querySelectorAll('.role-card').forEach(card => {
-        card.addEventListener('click', function() {
+        card.addEventListener('click', function () {
             const slug = this.dataset.slug;
             selectCareer(slug);
         });
@@ -284,36 +302,36 @@ function renderCareers() {
 async function renderDashboard() {
     const data = TRACK_DATA[activeTrack];
     const roleInfo = CAREERS.find(c => c.slug === activeTrack);
-    
+
     // Update Dashboard Header Stats
-    if(document.getElementById('dash-role-title')) {
+    if (document.getElementById('dash-role-title')) {
         document.getElementById('dash-role-title').innerText = roleInfo ? roleInfo.title : "Track Not Selected";
     }
-    
-    if(document.getElementById('dash-progress-text')) {
+
+    if (document.getElementById('dash-progress-text')) {
         document.getElementById('dash-progress-text').innerText = `${data.stats.progress}%`;
     }
-    if(document.getElementById('dash-progress-bar')) {
+    if (document.getElementById('dash-progress-bar')) {
         document.getElementById('dash-progress-bar').style.width = `${data.stats.progress}%`;
     }
-    
+
     const readinessVal = document.querySelector('.score-value');
-    if(readinessVal) readinessVal.innerText = `${data.stats.readiness}/100`;
-    
+    if (readinessVal) readinessVal.innerText = `${data.stats.readiness}/100`;
+
     const readinessFill = document.querySelector('.meter-fill');
-    if(readinessFill) readinessFill.style.width = `${data.stats.readiness}%`;
+    if (readinessFill) readinessFill.style.width = `${data.stats.readiness}%`;
 
     // Fetch and render real modules from API
     const container = document.getElementById('roadmap-container');
     if (container) {
         container.innerHTML = '<div style="text-align:center;padding:2rem;color:#888;">Loading modules...</div>';
-        
+
         try {
             const response = await fetch(`${API_BASE_URL}/tracks/${activeTrack}/modules?level=${currentUserLevel}`);
             if (!response.ok) throw new Error('Failed to fetch');
-            
+
             const modules = await response.json();
-            
+
             // Fetch progress if logged in
             let userProgress = [];
             if (authToken) {
@@ -329,7 +347,7 @@ async function renderDashboard() {
                     console.warn('Could not fetch progress:', err);
                 }
             }
-            
+
             // Render modules
             container.innerHTML = modules.map(module => {
                 const progress = userProgress.find(p => p.module_id === module.id);
@@ -339,7 +357,7 @@ async function renderDashboard() {
                 } else if (module.sequence_order === 1) {
                     status = 'in-progress';
                 }
-                
+
                 return `
                     <article class="node ${status}">
                         <header class="node-header">
@@ -351,7 +369,7 @@ async function renderDashboard() {
                     </article>
                 `;
             }).join('');
-            
+
         } catch (error) {
             console.error('Error fetching modules:', error);
             // Fallback to mock data
@@ -371,8 +389,8 @@ async function renderDashboard() {
 function renderProjects() {
     const data = TRACK_DATA[activeTrack];
     const list = document.getElementById('projects-list');
-    
-    if(!list) return; // Guard clause if not on page
+
+    if (!list) return; // Guard clause if not on page
 
     list.innerHTML = ''; // Clean slate
     list.innerHTML = data.projects.map(p => `
@@ -394,8 +412,8 @@ function renderPractice() {
     const designList = document.getElementById('sys-design-list');
 
     // Clean slate before rendering
-    if (dsaList) { 
-        dsaList.innerHTML = ''; 
+    if (dsaList) {
+        dsaList.innerHTML = '';
         dsaList.innerHTML = data.tasks.dsa.map(t => taskHtml(t)).join('');
     }
     if (designList) {
@@ -428,7 +446,7 @@ function selectCareer(careerSlug) {
         showFeedback('Please select a valid career path', 'error');
         return;
     }
-    
+
     // Find career by slug
     const career = CAREERS.find(c => c.slug === careerSlug);
     if (!career) {
@@ -436,17 +454,17 @@ function selectCareer(careerSlug) {
         showFeedback('Career path not found', 'error');
         return;
     }
-    
+
     // Store career selection
     currentRole = career;
     selectedTrackId = career.id;
     selectedTrackSlug = career.slug;
-    
+
     // Persist to localStorage
     localStorage.setItem('selectedTrack', career.slug);
     localStorage.setItem('selectedTrackId', career.id);
     localStorage.setItem('selectedRole', career.title);
-    
+
     // Set active track immediately
     setActiveTrack(careerSlug);
 
@@ -455,18 +473,18 @@ function selectCareer(careerSlug) {
     if (roleInput) {
         roleInput.value = currentRole.title;
     }
-    
+
     // Navigate to onboarding
     navigateTo('onboarding-page');
-    
+
     // Reset form to step 1
     currentStep = 1;
-    
+
     // Reset onboarding DOM state
     document.querySelectorAll('.form-step').forEach(s => s.classList.add('hidden'));
     const step1 = document.getElementById('step-1');
     if (step1) step1.classList.remove('hidden');
-    
+
     document.querySelectorAll('.progress-indicator .step').forEach(s => s.classList.remove('active'));
     const progStep1 = document.getElementById('prog-step-1');
     if (progStep1) progStep1.classList.add('active');
@@ -475,17 +493,17 @@ function selectCareer(careerSlug) {
 function nextStep(step) {
     document.getElementById(`step-${currentStep}`).classList.add('hidden');
     document.getElementById(`step-${step}`).classList.remove('hidden');
-    
+
     // Update indicator
     document.getElementById(`prog-step-${step}`).classList.add('active');
-    
+
     currentStep = step;
 }
 
 function prevStep(step) {
     document.getElementById(`step-${currentStep}`).classList.add('hidden');
     document.getElementById(`step-${step}`).classList.remove('hidden');
-     // Update indicator
+    // Update indicator
     document.getElementById(`prog-step-${currentStep}`).classList.remove('active');
     currentStep = step;
 }
@@ -497,28 +515,28 @@ function finishOnboarding() {
         showFeedback('Please select your skill level', 'error');
         return;
     }
-    
+
     const commitmentSlider = document.getElementById('time-slider');
     if (!commitmentSlider) {
         showFeedback('Please set your time commitment', 'error');
         return;
     }
-    
+
     if (!selectedTrackId || !selectedTrackSlug) {
         showFeedback('No career path selected. Please go back to career selection.', 'error');
         setTimeout(() => navigateTo('career-selection-page'), 2000);
         return;
     }
-    
+
     // Store selections
     currentUserLevel = levelRadio.value;
     currentCommitment = commitmentSlider.value;
-    
+
     // Persist to localStorage
     localStorage.setItem('userLevel', currentUserLevel);
     localStorage.setItem('userCommitment', currentCommitment);
     localStorage.setItem('onboardingComplete', 'true');
-    
+
     // Auto-login with demo credentials if not logged in
     if (!authToken) {
         showFeedback('Logging in...', 'info');
@@ -527,7 +545,7 @@ function finishOnboarding() {
                 authToken = loginData.token;
                 localStorage.setItem('authToken', authToken);
                 showFeedback('Login successful! Setting up your roadmap...', 'success');
-                
+
                 // Enroll in selected track with chosen level
                 if (selectedTrackId) {
                     enrollInTrack(selectedTrackId, currentUserLevel).then(() => {
@@ -587,7 +605,7 @@ function openProjectModal(id) {
     modal.classList.remove('hidden');
 }
 
-if(closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
 window.onclick = (e) => { if (e.target == modal) modal.classList.add('hidden'); }
 
 // User Feedback System
@@ -595,7 +613,7 @@ function showFeedback(message, type = 'info') {
     // Remove existing feedback
     const existing = document.querySelector('.feedback-toast');
     if (existing) existing.remove();
-    
+
     // Create new feedback toast
     const toast = document.createElement('div');
     toast.className = `feedback-toast feedback-${type}`;
@@ -611,7 +629,7 @@ function showFeedback(message, type = 'info') {
         animation: slideIn 0.3s ease;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     `;
-    
+
     // Set colors based on type
     const colors = {
         success: 'background: #10b981; color: white;',
@@ -620,9 +638,9 @@ function showFeedback(message, type = 'info') {
         info: 'background: #3b82f6; color: white;'
     };
     toast.style.cssText += colors[type] || colors.info;
-    
+
     document.body.appendChild(toast);
-    
+
     // Auto-remove after 4 seconds
     setTimeout(() => {
         toast.style.animation = 'slideOut 0.3s ease';
@@ -636,10 +654,10 @@ function switchLevel(level) {
         console.error('Invalid level:', level);
         return;
     }
-    
+
     currentUserLevel = level;
     localStorage.setItem('userLevel', level);
-    
+
     // Update active button
     document.querySelectorAll('.level-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -647,7 +665,7 @@ function switchLevel(level) {
             btn.classList.add('active');
         }
     });
-    
+
     // Fetch new roadmap data for selected level
     if (authToken && selectedTrackId) {
         fetchRoadmap(selectedTrackId, level).then(data => {
@@ -658,12 +676,12 @@ function switchLevel(level) {
                     status: module.isCompleted ? 'completed' : (module.isUnlocked ? 'in-progress' : 'locked'),
                     desc: module.description
                 }));
-                
+
                 // Calculate progress
                 const completed = data.roadmap.filter(m => m.isCompleted).length;
                 const total = data.roadmap.length;
                 TRACK_DATA[activeTrack].stats.progress = Math.round((completed / total) * 100);
-                
+
                 renderDashboard();
             }
         });
@@ -682,7 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Could automatically navigate to dashboard if desired
             // navigateTo('dashboard-page');
         }
-        
+
         // Restore level button state if on dashboard
         const activeLevelBtn = document.querySelector(`.level-btn[data-level="${currentUserLevel}"]`);
         if (activeLevelBtn) {
@@ -690,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activeLevelBtn.classList.add('active');
         }
     }
-    
+
     // Attach Nav Listeners (Data Attributes)
     document.querySelectorAll('[data-action="nav-careers"]').forEach(b => {
         b.addEventListener('click', () => navigateTo('career-selection-page'));
@@ -699,20 +717,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.nav-item[data-target]').forEach(b => {
         b.addEventListener('click', () => {
             const targetPage = b.dataset.target;
-            
+
             // Validate that onboarding is complete before allowing dashboard access
             if (targetPage === 'dashboard-page' && !selectedTrackSlug) {
                 showFeedback('Please complete career selection first', 'warning');
                 navigateTo('career-selection-page');
                 return;
             }
-            
+
             navigateTo(targetPage);
         });
     });
 
     const logoutBtn = document.getElementById('logout-btn');
-    if(logoutBtn) {
+    if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             // Clear state on logout
             localStorage.clear();
@@ -730,8 +748,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Slider Input
     const slider = document.getElementById('time-slider');
-    if(slider) {
-        slider.oninput = function() {
+    if (slider) {
+        slider.oninput = function () {
             document.getElementById('hours-val').innerText = this.value;
         }
     }

@@ -1,39 +1,201 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Workspace - SkillForge</title>
-    <!-- Ultra-Premium 2075 Styles -->
-    <link rel="stylesheet" href="projects-workspace.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Workspace &mdash; SkillForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="projects-workspace.css" />
 </head>
 <body>
-    <div id="workspace-root"></div>
 
-    <!-- Core Logic -->
-    <script src="projects-workspace.js"></script>
+  <!-- PROJECTS GRID VIEW -->
+  <div class="workspace-page" id="projects-grid-view">
+    <div class="workspace-wrapper">
+      <div class="grid-page-header">
+        <div class="grid-header-left">
+          <h1 class="grid-title">Project Workspaces</h1>
+          <p class="grid-subtitle">Manage your engineering portfolio</p>
+        </div>
+        <button class="btn btn-primary" id="create-project-btn">
+          <i class="fas fa-plus"></i> New Project
+        </button>
+      </div>
+      <div class="projects-grid"></div>
+    </div>
+  </div>
 
-    <!-- Initialize Workspace -->
-    <script>
-        // Get project ID from URL (e.g., workspace.html?project=123)
-        const urlParams = new URLSearchParams(window.location.search);
-        const projectId = urlParams.get('project');
+  <!-- PROJECT DETAIL VIEW -->
+  <div class="workspace-page hidden" id="project-detail-view">
+    <div class="workspace-wrapper">
 
-        // API base URL
-        const API_BASE = 'http://localhost:5000/api/workspace';
+      <div class="workspace-header">
+        <div class="workspace-header-left">
+          <a href="#" class="back-link" id="back-to-projects-btn">
+            <i class="fas fa-arrow-left"></i> Back to Projects
+          </a>
+          <div class="workspace-title-row">
+            <h1 class="workspace-title" id="detail-project-title">Loading</h1>
+            <span class="workspace-status-badge project-status-badge planning" id="detail-project-status">Planning</span>
+          </div>
+          <span class="workspace-created" id="detail-project-created">Created --</span>
+        </div>
+        <div class="workspace-actions">
+          <button class="btn btn-upload" id="upload-files-btn">
+            <i class="fas fa-upload"></i> Upload Files
+          </button>
+          <button class="btn btn-commit" id="commit-push-btn">
+            <i class="fas fa-code-branch"></i> Commit &amp; Push
+          </button>
+          <button class="btn btn-complete" id="mark-complete-btn">
+            <span class="red-dot"></span> Mark Complete
+          </button>
+        </div>
+      </div>
 
-        // Initialize workspace when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            const workspace = new ProjectWorkspace('workspace-root', API_BASE);
-            
-            if (projectId) {
-                workspace.init(projectId);
-            } else {
-                // Show project selection if no ID provided
-                workspace.showProjectSelector();
-            }
+      <div class="workspace-tabs-bar">
+        <button class="project-tab active" data-tab="files">
+          <i class="fas fa-folder-open"></i> Files
+        </button>
+        <button class="project-tab" data-tab="commits">
+          <i class="fas fa-code-branch"></i> Commits
+          <span class="tab-count" id="commits-count">0</span>
+        </button>
+        <button class="project-tab highlighted" data-tab="ai-review">
+          <i class="fas fa-brain"></i> AI Review
+        </button>
+        <button class="project-tab" data-tab="evolution">
+          <i class="fas fa-chart-line"></i> Evolution
+        </button>
+      </div>
+
+      <div class="workspace-content">
+
+        <div id="tab-files" class="tab-pane">
+          <div class="files-layout">
+            <div class="file-tree" id="file-tree">
+              <div class="file-tree-empty">
+                <i class="fas fa-folder"></i>
+                <span>No files yet</span>
+              </div>
+            </div>
+            <div class="file-viewer" id="file-viewer">
+              <div class="file-viewer-empty">
+                <i class="fas fa-file-code fa-2x"></i>
+                <p>Select a file to view its contents</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-commits" class="tab-pane hidden">
+          <div id="commits-timeline"></div>
+        </div>
+
+        <div id="tab-ai-review" class="tab-pane hidden">
+          <div id="ai-review-content"></div>
+        </div>
+
+        <div id="tab-evolution" class="tab-pane hidden">
+          <div id="evolution-timeline"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE PROJECT -->
+  <div class="modal-overlay hidden" id="create-project-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">New Project Workspace</h2>
+        <button class="modal-close" onclick="window.ProjectsWorkspace && window.ProjectsWorkspace.closeCreateModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Project Name <span class="required">*</span></label>
+          <input type="text" id="new-project-name" class="form-input" placeholder="e.g. E-Commerce Platform" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="new-project-desc" class="form-input form-textarea" placeholder="Brief description of what you are building..." rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tech Stack (comma-separated)</label>
+          <input type="text" id="new-project-tech" class="form-input" placeholder="React, Node.js, PostgreSQL, Docker" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Project Type</label>
+          <select id="new-project-type" class="form-input form-select">
+            <option value="fullstack">Full Stack</option>
+            <option value="frontend">Frontend</option>
+            <option value="backend">Backend</option>
+            <option value="mobile">Mobile</option>
+            <option value="devops">DevOps / Infrastructure</option>
+            <option value="ml">Machine Learning</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="window.ProjectsWorkspace && window.ProjectsWorkspace.closeCreateModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="window.ProjectsWorkspace && window.ProjectsWorkspace.createProject()">
+          <i class="fas fa-plus"></i> Create Project
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: COMMIT -->
+  <div class="modal-overlay hidden" id="commit-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fas fa-code-branch"></i> Commit &amp; Push</h2>
+        <button class="modal-close" onclick="window.ProjectsWorkspace && window.ProjectsWorkspace.closeCommitModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="changed-files-summary" class="changed-files-summary"></div>
+        <div class="form-group">
+          <label class="form-label">Commit Message <span class="required">*</span></label>
+          <input type="text" id="commit-message" class="form-input" placeholder="feat: implement user authentication" />
+        </div>
+        <div class="form-group form-group-inline">
+          <label class="toggle-label">
+            <input type="checkbox" id="trigger-ai-review" class="toggle-input" checked />
+            <span class="toggle-thumb"></span>
+            <span class="toggle-text">Trigger AI Code Review after commit</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="window.ProjectsWorkspace && window.ProjectsWorkspace.closeCommitModal()">Cancel</button>
+        <button class="btn btn-commit" onclick="window.ProjectsWorkspace && window.ProjectsWorkspace.commitChanges()">
+          <i class="fas fa-upload"></i> Commit &amp; Push
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="projects-workspace.js"></script>
+  <script>
+    // The module's init() handles ?project= param and renderProjectsGrid automatically.
+    // Just wire the back button after DOM is ready.
+    document.addEventListener('DOMContentLoaded', function() {
+      var backBtn = document.getElementById('back-to-projects-btn');
+      if (backBtn) {
+        backBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (window.ProjectsWorkspace) window.ProjectsWorkspace.renderProjectsGrid();
         });
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>

@@ -9,6 +9,10 @@ const progressRoutes = require('./progressRoutes');
 const practiceRoutes = require('./practiceRoutes');
 const skillGapRoutes = require('./skillGapRoutes');
 const interviewRoutes = require('./interviewRoutes');
+const projectsRoutes = require('./projectsRoutes');
+const videoRoutes = require('./videoRoutes');
+const projectWorkspaceRoutes = require('./projectWorkspaceRoutes');
+const codersDnaRoutes = require('./codersDnaRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -19,6 +23,10 @@ router.use('/progress', progressRoutes);
 router.use('/practice', practiceRoutes);
 router.use('/skill-gap', skillGapRoutes);
 router.use('/interview', interviewRoutes);
+router.use('/projects', projectsRoutes);
+router.use('/videos', videoRoutes);
+router.use('/workspace', projectWorkspaceRoutes);
+router.use('/coders-dna', codersDnaRoutes);
 
 // Health check
 router.get('/health', (req, res) => {
