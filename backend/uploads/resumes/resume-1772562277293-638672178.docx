@@ -1,0 +1,24 @@
+JOHN DOE — Senior Software Engineer
+San Francisco, CA | 8 years of professional experience
+
+SUMMARY
+Senior Software Engineer and technical lead with 8+ years of experience building
+distributed backend systems at scale. Architected microservices on AWS EKS.
+
+EXPERIENCE
+Senior Software Engineer — TechCorp (2019–2024)
+• Architected event-driven microservices system serving 10 million daily active users
+• Led team of 6 engineers, reducing bug rate by 40% through rigorous code review culture
+• Reduced API P99 latency by 55% via Redis caching layer and database query optimization
+• Deployed Kubernetes clusters on AWS EKS with Terraform and GitHub Actions CI/CD pipeline
+• Designed distributed order processing handling 500K+ daily transactions with Kafka
+• Achieved 99.9% uptime SLA; on-call rotation with Prometheus/Grafana observability stack
+• Scaled system from 100K to 5 million users over 18 months with zero downtime migrations
+
+SKILLS
+Languages: Node.js, Python, TypeScript, Go, Java
+Frontend: React, Next.js, TypeScript
+Databases: PostgreSQL, MongoDB, Redis, DynamoDB, Cassandra
+Cloud/DevOps: AWS, Docker, Kubernetes, Terraform, Ansible, CI/CD, GitHub Actions
+Architecture: Microservices, Event-Driven, Distributed Systems, API Gateway, Kafka
+Observability: Prometheus, Grafana, ELK Stack, OpenTelemetry, Datadog

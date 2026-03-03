@@ -12,6 +12,9 @@ const { EnterpriseSkillAnalyzer } = require('../services/multiAI/enterpriseSkill
 // 🧠 DEVELOPER CAPABILITY INTELLIGENCE SYSTEM - 5-Layer Analysis
 const { DeveloperCapabilityIntelligence } = require('../services/intelligence/capabilityIntelligence');
 
+// 🎯 ENTERPRISE CAREER INTELLIGENCE ENGINE - 6-Layer Resume Intelligence
+const careerIntelligenceEngine = require('../services/careerIntelligenceEngine');
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -804,6 +807,91 @@ router.post('/intelligence', auth, upload.single('resume'), async (req, res) => 
         res.status(500).json({
             success: false,
             error: error.message || 'Failed to analyze capability'
+        });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST /api/skill-gap/career-intelligence
+// 🎯 Enterprise 6-Layer Resume Intelligence Engine
+// ═══════════════════════════════════════════════════════════════════════════
+router.post('/career-intelligence', auth.optional, upload.single('resume'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No resume file uploaded' });
+        }
+
+        const filePath         = req.file.path;
+        const targetSalary     = parseFloat(req.body.targetSalary)     || 80000;
+        const targetRole       = req.body.targetRole                   || 'Software Engineer';
+        const location         = req.body.location                     || 'Remote';
+        const yearsOfExperience = parseFloat(req.body.yearsOfExperience) || 3;
+
+        console.log('\n' + '═'.repeat(70));
+        console.log('🎯 CAREER INTELLIGENCE ENGINE — 6-LAYER ANALYSIS STARTING');
+        console.log('═'.repeat(70));
+        console.log(`  File         : ${req.file.originalname}`);
+        console.log(`  Target Role  : ${targetRole}`);
+        console.log(`  Target Salary: $${targetSalary.toLocaleString()}`);
+        console.log(`  Experience   : ${yearsOfExperience} years`);
+        console.log(`  Location     : ${location}`);
+
+        // ── Extract resume text ────────────────────────────────────────
+        let resumeText;
+        try {
+            resumeText = await resumeParserService.extractText(filePath);
+        } catch (parseErr) {
+            // Fallback: try reading as plain text (handles .txt test files or corrupt docs)
+            try {
+                const fs = require('fs').promises;
+                resumeText = await fs.readFile(filePath, 'utf8');
+                console.log('⚠️  Parser fallback: reading file as plain text');
+            } catch (_) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Could not extract text from resume. Please upload a valid PDF or DOCX file.',
+                });
+            }
+        }
+
+        if (!resumeText || resumeText.trim().length < 50) {
+            return res.status(400).json({
+                success: false,
+                error: 'Could not extract text from resume. Please ensure the file contains readable text.',
+            });
+        }
+
+        const startTime = Date.now();
+
+        // ── Run 6-layer analysis ───────────────────────────────────────
+        const result = await careerIntelligenceEngine.analyze(resumeText, {
+            targetSalary,
+            targetRole,
+            location,
+            yearsOfExperience,
+        });
+
+        const processingMs = Date.now() - startTime;
+
+        console.log(`  ✅ Analysis complete in ${processingMs}ms`);
+        console.log(`  Overall Readiness : ${result.overallReadinessScore}/100`);
+        console.log(`  Verdict           : ${result.finalVerdict}`);
+        console.log(`  Gap Severity      : ${result.layers.layer5.gapSeverity}`);
+        console.log(`  Hiring Probability: ${result.addOns.hiringProbabilityPercent}%`);
+        console.log('═'.repeat(70) + '\n');
+
+        res.json({
+            success: true,
+            fileName: req.file.originalname,
+            processingTime: `${(processingMs / 1000).toFixed(2)}s`,
+            ...result,
+        });
+
+    } catch (error) {
+        console.error('❌ Career Intelligence Error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Career intelligence analysis failed',
         });
     }
 });

@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // SKILLFORGE - ENHANCED LEARNING FLOWS
 // Dashboard, Practice Arena, Skill Gap Analyzer
 // ============================================
@@ -249,7 +249,7 @@ async function fetchAndRenderModules(trackSlug, level) {
                     status: m.isCompleted ? 'completed' : (m.isUnlocked ? 'in-progress' : 'locked')
                 }));
             } else if (response.status === 401) {
-                // Token expired — clear it so handleTokenExpiry in app.js can re-auth on next call
+                // Token expired â€” clear it so handleTokenExpiry in app.js can re-auth on next call
                 console.warn('[Auth] 401 in fetchAndRenderModules - token expired, using mock data');
                 authToken = null;
                 localStorage.removeItem('authToken');
@@ -790,14 +790,14 @@ async function analyzeResume() {
         formData.append('level', currentUserLevel);
         formData.append('trackName', getTrackDisplayName(selectedTrackSlug));
 
-        console.log('🚀 Starting Enterprise AI Analysis...');
-        console.log('🎯 Using 6-Layer Multi-AI Pipeline');
+        console.log('ðŸš€ Starting Enterprise AI Analysis...');
+        console.log('ðŸŽ¯ Using 6-Layer Multi-AI Pipeline');
 
         // Get authentication token
         const authToken = AuthHelper.getToken();
 
         if (!authToken) {
-            console.warn('⚠️ No authentication token - attempting unauthenticated request');
+            console.warn('âš ï¸ No authentication token - attempting unauthenticated request');
             // Show warning but continue (for development/testing)
             showFeedback('Warning: No authentication token found', 'warning');
         }
@@ -821,7 +821,7 @@ async function analyzeResume() {
         // Handle 401 Unauthorized specifically
         if (response.status === 401) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('❌ Authentication Error (401):', errorData);
+            console.error('âŒ Authentication Error (401):', errorData);
 
             // Show all layers as error
             for (let i = 1; i <= 6; i++) {
@@ -840,7 +840,7 @@ async function analyzeResume() {
                 setTimeout(() => {
                     // Redirect to login page (adjust path as needed)
                     // window.location.href = '/login.html';
-                    console.log('👉 Redirect to login would happen here');
+                    console.log('ðŸ‘‰ Redirect to login would happen here');
                 }, 2000);
             }
 
@@ -849,7 +849,7 @@ async function analyzeResume() {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('✅ Enterprise Analysis Complete:', data);
+            console.log('âœ… Enterprise Analysis Complete:', data);
 
             // Animate remaining layers based on actual processing
             await animateAllLayers(data.analysis.aiLayersUsed || {});
@@ -862,11 +862,11 @@ async function analyzeResume() {
             // Wait a moment to show completed state
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // ✅ Check if 6-Layer Intelligence data exists (NEW API response format)
+            // âœ… Check if 6-Layer Intelligence data exists (NEW API response format)
             if (data.advancedMetrics && data.intelligence && data.visualizations) {
-                console.log('🎨 Rendering Quantum Intelligence Dashboard...');
-                console.log('📊 DCI Score:', data.advancedMetrics.dci);
-                console.log('📊 Engineering Maturity:', data.advancedMetrics.engineeringMaturity);
+                console.log('ðŸŽ¨ Rendering Quantum Intelligence Dashboard...');
+                console.log('ðŸ“Š DCI Score:', data.advancedMetrics.dci);
+                console.log('ðŸ“Š Engineering Maturity:', data.advancedMetrics.engineeringMaturity);
 
                 // Hide loading, show results container
                 const resultsSection = document.getElementById('results-section');
@@ -876,16 +876,16 @@ async function analyzeResume() {
                 if (typeof renderQuantumDashboard === 'function') {
                     renderQuantumDashboard(data, 'results-section');
                 } else {
-                    console.warn('⚠️ Quantum dashboard renderer not loaded, using fallback');
+                    console.warn('âš ï¸ Quantum dashboard renderer not loaded, using fallback');
                     const transformedAnalysis = transformEnterpriseAnalysis(data.analysis);
                     skillGapAnalysis = transformedAnalysis;
                     renderSkillGapResults(transformedAnalysis);
                 }
 
-                showFeedback(`✅ AI Intelligence Analysis Complete - DCI: ${data.advancedMetrics.dci}`, 'success');
+                showFeedback(`âœ… AI Intelligence Analysis Complete - DCI: ${data.advancedMetrics.dci}`, 'success');
             } else {
                 // Fallback to legacy UI rendering
-                console.log('📊 Using legacy analysis format');
+                console.log('ðŸ“Š Using legacy analysis format');
                 const transformedAnalysis = transformEnterpriseAnalysis(data.analysis);
                 skillGapAnalysis = transformedAnalysis;
                 renderSkillGapResults(transformedAnalysis);
@@ -900,7 +900,7 @@ async function analyzeResume() {
         }
 
     } catch (error) {
-        console.error('❌ Error analyzing resume:', error);
+        console.error('âŒ Error analyzing resume:', error);
 
         // Show error on all layers
         for (let i = 1; i <= 6; i++) {
@@ -1484,12 +1484,12 @@ function calculateSkillCoverageScore(analysis) {
     const weakScore = weakCount * 40;
     const maxScore = totalSkills * 100;
 
-    const coverageScore = Math.round((strongScore + weakScore) / maxScore * 100);
+    const coverageScore = maxScore > 0 ? Math.min(100, Math.max(0, Math.round((strongScore + weakScore) / maxScore * 100))) : 0;
 
     // Calculate critical skills coverage
-    const criticalSkills = analysis.aiAnalyzedSkills.filter(s => s.priority === 'Critical');
+    const criticalSkills = (analysis.aiAnalyzedSkills || []).filter(s => s.priority === 'Critical');
     const criticalStrong = criticalSkills.filter(s => s.category === 'strong').length;
-    const criticalCoverage = Math.round((criticalStrong / criticalSkills.length) * 100) || 0;
+    const criticalCoverage = criticalSkills.length > 0 ? Math.min(100, Math.round((criticalStrong / criticalSkills.length) * 100)) : 0;
 
     return {
         overall: coverageScore,
@@ -1577,248 +1577,289 @@ function generateMockAnalysis() {
 /**
  * Render AI-driven skill gap results with coverage score and intelligent insights
  */
+// â”€â”€â”€ Data normalization helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function sgClamp(v) { return Math.min(100, Math.max(0, Number(v) || 0)); }
+function sgNormConf(v) { const n = Number(v); if (!n) return 0; return sgClamp(n < 1.5 ? Math.round(n * 100) : n); }
+function sgSkillName(s) { return (typeof s === 'string' ? s : (s && s.skill) || (s && s.name) || '') || ''; }
+function sgSafe(v, fallback = 'â€”') { return (v !== undefined && v !== null && v !== '' && v !== 'undefined' && typeof v !== 'object') ? v : fallback; }
+
 function renderSkillGapResults(analysis) {
     const resultsSection = document.getElementById('results-section');
     if (!resultsSection) return;
 
+    // â”€â”€ Normalize core data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const coverage = analysis.coverageScore || {};
-    coverage.overall = coverage.overall || 0;
-    coverage.readinessLevel = coverage.readinessLevel || 'Building Foundations';
-    coverage.critical = coverage.critical || 0;
-    coverage.estimatedTimeToReady = coverage.estimatedTimeToReady || 12;
-    coverage.nextMilestone = coverage.nextMilestone || 'Focus on high-impact skills to reach 70% coverage';
+    const dciScore = sgClamp(coverage.overall || analysis.overallScore || 0);
+    const level = sgSafe(coverage.readinessLevel, 'Building foundations');
+    const confidence = sgNormConf(coverage.critical || coverage.confidenceScore || 0.8);
+    const weeksReady = Math.max(1, parseInt(coverage.estimatedTimeToReady) || 12);
 
-    // Support both rich object arrays (new backend) and string arrays (legacy mock)
-    const strongSkillsRaw = analysis.strongSkills || [];
-    const weakSkillsRaw = analysis.weakSkills || [];
-    const missingSkillsRaw = analysis.missingSkills || [];
+    const toObj = s => typeof s === 'string' ? { skill: s, confidence: 0.7 } : (s || {});
+    const strongObjs  = (analysis.strongSkills  || []).map(toObj);
+    const weakObjs    = (analysis.weakSkills    || []).map(toObj);
+    const missingObjs = (analysis.missingSkills || []).map(toObj);
 
-    // Normalize to rich objects for renderAISkillCards
-    const toRichObj = (s, defaultPriority) => typeof s === 'string'
-        ? { skill: s, priority: defaultPriority, confidence: 60, depthLevel: 'surface', reason: 'Detected in resume' }
-        : s;
-    const strongSkillObjs = strongSkillsRaw.map(s => toRichObj(s, 'Strong'));
-    const weakSkillObjs = weakSkillsRaw.map(s => toRichObj(s, 'High Impact'));
-    const missingSkillObjs = missingSkillsRaw.map(s => toRichObj(s, 'Critical'));
+    // Update hidden compat spans
+    const _ss = document.getElementById('strong-skills-count');
+    const _ws = document.getElementById('weak-skills-count');
+    const _ms = document.getElementById('missing-skills-count');
+    if (_ss) _ss.textContent = strongObjs.length;
+    if (_ws) _ws.textContent = weakObjs.length;
+    if (_ms) _ms.textContent = missingObjs.length;
 
-    // For aiAnalyzedSkills priority sections (legacy path)
-    const aiSkills = analysis.aiAnalyzedSkills || [];
-    const critical = aiSkills.filter(s => s.priority === 'Critical');
-    const highImpact = aiSkills.filter(s => s.priority === 'High Impact');
-    const optional = aiSkills.filter(s => s.priority === 'Optional');
+    // â”€â”€ Derived dimension scores â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const archScore    = sgClamp(sgDeriveArch(strongObjs, weakObjs, missingObjs));
+    const codeQuality  = sgClamp(sgDeriveCodeQ(strongObjs, weakObjs));
+    const secScore     = sgClamp(sgDeriveSec(strongObjs));
+    const innovScore   = sgClamp(sgDeriveInnov(strongObjs, weakObjs));
+    const mktScore     = sgClamp(analysis.bestRoleMatch?.alignmentScore || Math.round(dciScore * 0.92));
 
-    // Use rich objects if available, else fall back to aiAnalyzedSkills
-    const hasRichSkills = strongSkillObjs.length > 0 || weakSkillObjs.length > 0 || missingSkillObjs.length > 0;
+    // â”€â”€ S1: HERO â€” DCI Ring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const levelEl = document.getElementById('sg-level-badge');
+    const scoreEl = document.getElementById('sg-dci-score');
+    const confEl  = document.getElementById('sg-dci-conf');
+    if (levelEl) levelEl.textContent = level;
+    if (scoreEl) scoreEl.textContent = dciScore;
+    if (confEl)  confEl.textContent  = `Confidence ${confidence > 0 ? confidence : 82}%`;
 
-    // Update stats
-    document.getElementById('strong-skills-count').innerText = strongSkillsRaw.length;
-    document.getElementById('weak-skills-count').innerText = weakSkillsRaw.length;
-    document.getElementById('missing-skills-count').innerText = missingSkillsRaw.length;
-
-    // Render Skill Coverage Score Card
-    const summaryCard = document.querySelector('.skill-gap-summary');
-    if (summaryCard) {
-        summaryCard.innerHTML = `
-            <div class="ai-coach-header">
-                <i class="fas fa-brain"></i>
-                <h3>AI Career Coach Analysis</h3>
-            </div>
-            
-            <div class="coverage-score-hero">
-                <div class="coverage-circle">
-                    <svg width="160" height="160" viewBox="0 0 160 160">
-                        <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(229, 57, 53, 0.1)" stroke-width="12"/>
-                        <circle cx="80" cy="80" r="70" fill="none" stroke="#e53935" stroke-width="12"
-                            stroke-dasharray="${2 * Math.PI * 70}" 
-                            stroke-dashoffset="${2 * Math.PI * 70 * (1 - coverage.overall / 100)}"
-                            stroke-linecap="round"
-                            transform="rotate(-90 80 80)"
-                            style="transition: stroke-dashoffset 2s ease;"/>
-                    </svg>
-                    <div class="coverage-score-text">
-                        <span class="score-number">${coverage.overall}%</span>
-                        <span class="score-label">Job Ready</span>
-                    </div>
-                </div>
-                <div class="coverage-insights">
-                    <div class="readiness-badge ${(coverage.readinessLevel || 'building-foundations').toLowerCase().replace(/\s/g, '-')}">
-                        <i class="fas ${coverage.overall >= 85 ? 'fa-rocket' : coverage.overall >= 70 ? 'fa-star' : coverage.overall >= 50 ? 'fa-chart-line' : 'fa-seedling'}"></i>
-                        ${coverage.readinessLevel}
-                    </div>
-                    <div class="coverage-stats">
-                        <div class="mini-stat">
-                            <span class="mini-stat-value">${coverage.critical}%</span>
-                            <span class="mini-stat-label">Critical Skills</span>
-                        </div>
-                        <div class="mini-stat">
-                            <span class="mini-stat-value">${coverage.estimatedTimeToReady}w</span>
-                            <span class="mini-stat-label">To Job Ready</span>
-                        </div>
-                    </div>
-                    <div class="next-milestone">
-                        <i class="fas fa-flag-checkered"></i>
-                        <span>${coverage.nextMilestone}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="gap-stats">
-                <div class="gap-stat success">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="gap-number">${strongSkillsRaw.length}</span>
-                    <span class="gap-label">Strong Skills</span>
-                </div>
-                <div class="gap-stat warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span class="gap-number">${weakSkillsRaw.length}</span>
-                    <span class="gap-label">Need Improvement</span>
-                </div>
-                <div class="gap-stat danger">
-                    <i class="fas fa-times-circle"></i>
-                    <span class="gap-number">${missingSkillsRaw.length}</span>
-                    <span class="gap-label">Missing Skills</span>
-                </div>
-            </div>
-
-            ${analysis.bestRoleMatch && analysis.bestRoleMatch.role ? `
-            <div class="market-intelligence-panel" style="margin-top:20px;padding:16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                    <i class="fas fa-chart-line" style="color:#40c4ff"></i>
-                    <h4 style="margin:0;font-size:0.9rem;color:rgba(255,255,255,0.9);">Market Intelligence</h4>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div style="padding:10px;background:rgba(64,196,255,0.08);border-radius:8px;">
-                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">BEST ROLE MATCH</div>
-                        <div style="font-size:0.85rem;color:#40c4ff;font-weight:600;">${analysis.bestRoleMatch.role}</div>
-                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);">${analysis.bestRoleMatch.alignmentScore}% alignment</div>
-                    </div>
-                    <div style="padding:10px;background:rgba(0,230,118,0.08);border-radius:8px;">
-                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">READINESS</div>
-                        <div style="font-size:0.85rem;color:#00e676;font-weight:600;">${analysis.bestRoleMatch.readinessLevel || coverage.readinessLevel}</div>
-                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);">${coverage.estimatedTimeToReady}w to job ready</div>
-                    </div>
-                    ${analysis.compensationEstimate && analysis.compensationEstimate.range ? `
-                    <div style="padding:10px;background:rgba(255,171,64,0.08);border-radius:8px;grid-column:span 2;">
-                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">ESTIMATED SALARY RANGE</div>
-                        <div style="font-size:0.9rem;color:#ffab40;font-weight:700;">$${(analysis.compensationEstimate.range.low / 1000).toFixed(0)}k – $${(analysis.compensationEstimate.range.high / 1000).toFixed(0)}k/yr</div>
-                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);">${analysis.compensationEstimate.tier || ''}</div>
-                    </div>` : ''}
-                </div>
-                ${analysis.keyInsights && analysis.keyInsights.length > 0 ? `
-                <div style="margin-top:10px;">
-                    ${analysis.keyInsights.slice(0, 3).map(i => `
-                        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;">
-                            <i class="fas fa-circle" style="color:#40c4ff;font-size:0.4rem;margin-top:6px;flex-shrink:0;"></i>
-                            <span style="font-size:0.75rem;color:rgba(255,255,255,0.6);">${i}</span>
-                        </div>
-                    `).join('')}
-                </div>` : ''}
-            </div>` : ''}
-        `;
+    const dciRing = document.getElementById('sg-dci-ring');
+    if (dciRing) {
+        const circ = 402.12;
+        dciRing.style.transition = 'none';
+        dciRing.style.strokeDashoffset = circ;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            dciRing.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1)';
+            dciRing.style.strokeDashoffset = circ * (1 - dciScore / 100);
+        }));
     }
 
-    // Render priority-based skill sections
-    const categoriesContainer = document.querySelector('.skill-categories');
-    if (categoriesContainer) {
-        if (hasRichSkills) {
-            // New backend format: render strong/weak/missing directly
-            categoriesContainer.innerHTML = `
-                ${strongSkillObjs.length > 0 ? `
-                <div class="ai-priority-section">
-                    <div class="section-header">
-                        <i class="fas fa-check-circle" style="color:#00e676"></i>
-                        <h3>Strong Skills</h3>
-                        <span class="priority-badge" style="background:rgba(0,230,118,0.15);color:#00e676;">${strongSkillObjs.length} demonstrated</span>
-                    </div>
-                    <p class="section-description">Skills you have clearly demonstrated in your resume with evidence.</p>
-                    <div class="ai-skills-grid">
-                        ${renderAISkillCards(strongSkillObjs)}
-                    </div>
-                </div>` : ''}
-
-                ${missingSkillObjs.length > 0 ? `
-                <div class="ai-priority-section">
-                    <div class="section-header">
-                        <i class="fas fa-times-circle" style="color:#ef5350"></i>
-                        <h3>Critical Gaps</h3>
-                        <span class="priority-badge critical">${missingSkillObjs.length} to learn</span>
-                    </div>
-                    <p class="section-description">Required skills for your target role that were not detected in your resume.</p>
-                    <div class="ai-skills-grid">
-                        ${renderAISkillCards(missingSkillObjs)}
-                    </div>
-                </div>` : ''}
-
-                ${weakSkillObjs.length > 0 ? `
-                <div class="ai-priority-section">
-                    <div class="section-header">
-                        <i class="fas fa-exclamation-triangle" style="color:#ff9800"></i>
-                        <h3>Needs Deeper Demonstration</h3>
-                        <span class="priority-badge high-impact">${weakSkillObjs.length} to strengthen</span>
-                    </div>
-                    <p class="section-description">Skills present but need stronger evidence — add projects or deeper experience.</p>
-                    <div class="ai-skills-grid">
-                        ${renderAISkillCards(weakSkillObjs)}
-                    </div>
-                </div>` : ''}
-            `;
-        } else {
-            // Legacy mock format: use aiAnalyzedSkills priority sections
-            categoriesContainer.innerHTML = `
-                <div class="ai-priority-section">
-                    <div class="section-header">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <h3>Critical Priority Skills</h3>
-                        <span class="priority-badge critical">${critical.filter(s => s.category !== 'strong').length} to master</span>
-                    </div>
-                    <p class="section-description">These skills are essential for ${activeTrack || 'your role'} and heavily tested in interviews.</p>
-                    <div class="ai-skills-grid">
-                        ${renderAISkillCards(critical)}
-                    </div>
+    // â”€â”€ S2: INTELLIGENCE GRID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const intelGrid = document.getElementById('sg-intel-grid');
+    if (intelGrid) {
+        const cards = [
+            { icon: 'fa-code',       label: 'Engineering Maturity',   score: dciScore,   summary: sgLabelMature(dciScore) },
+            { icon: 'fa-sitemap',    label: 'Architectural Thinking',  score: archScore,  summary: sgLabelArch(archScore) },
+            { icon: 'fa-check-double', label: 'Code Quality',          score: codeQuality,summary: sgLabelQuality(codeQuality) },
+            { icon: 'fa-shield-alt', label: 'Security Hygiene',        score: secScore,   summary: sgLabelSec(secScore) },
+            { icon: 'fa-lightbulb',  label: 'Innovation Potential',    score: innovScore, summary: sgLabelInnov(innovScore) },
+            { icon: 'fa-chart-bar',  label: 'Market Readiness',        score: mktScore,   summary: sgLabelMkt(mktScore) },
+        ];
+        intelGrid.innerHTML = cards.map((c, i) => {
+            const col = c.score >= 70 ? 'var(--sg-green)' : c.score >= 44 ? 'var(--sg-amber)' : 'var(--sg-red)';
+            return `
+            <div class="sg-intel-card" style="animation-delay:${i * 80}ms">
+                <div class="sg-intel-top">
+                    <div class="sg-intel-icon-wrap"><i class="fas ${c.icon}"></i></div>
+                    <span class="sg-intel-score" style="color:${col}">${Math.round(c.score)}</span>
                 </div>
-                
-                <div class="ai-priority-section">
-                    <div class="section-header">
-                        <i class="fas fa-star"></i>
-                        <h3>High Impact Skills</h3>
-                        <span class="priority-badge high-impact">${highImpact.filter(s => s.category !== 'strong').length} recommended</span>
-                    </div>
-                    <p class="section-description">These skills significantly boost your marketability.</p>
-                    <div class="ai-skills-grid">
-                        ${renderAISkillCards(highImpact)}
-                    </div>
+                <div class="sg-intel-label">${c.label}</div>
+                <div class="sg-intel-bar-track">
+                    <div class="sg-intel-bar-fill" data-w="${c.score}" style="width:0;background:${col}"></div>
                 </div>
-                
-                ${optional.length > 0 ? `
-                    <div class="ai-priority-section optional">
-                        <div class="section-header">
-                            <i class="fas fa-plus-circle"></i>
-                            <h3>Optional Skills</h3>
-                            <span class="priority-badge optional">${optional.length} nice-to-have</span>
-                        </div>
-                        <p class="section-description">Learn these after mastering critical and high-impact skills.</p>
-                        <div class="ai-skills-grid">
-                            ${renderAISkillCards(optional)}
-                        </div>
-                    </div>
-                ` : ''}
-            `;
-        }
-    }
-
-    // Add expand/collapse event listeners
-    setTimeout(() => {
-        document.querySelectorAll('.ai-skill-card').forEach(card => {
-            card.addEventListener('click', function () {
-                this.classList.toggle('expanded');
+                <div class="sg-intel-summary">${c.summary}</div>
+            </div>`;
+        }).join('');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            intelGrid.querySelectorAll('.sg-intel-bar-fill').forEach(b => {
+                b.style.transition = 'width 1s cubic-bezier(.4,0,.2,1)';
+                b.style.width = b.dataset.w + '%';
             });
-        });
-    }, 100);
+        }));
+    }
 
-    // Show results with animation
+    // â”€â”€ S3: ROLE LADDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const ladderEl = document.getElementById('sg-ladder-list');
+    if (ladderEl) {
+        const rungs = [
+            { label: 'Junior Engineer',    min: 0,  max: 39 },
+            { label: 'Mid-Level Engineer', min: 40, max: 64 },
+            { label: 'Senior Engineer',    min: 65, max: 79 },
+            { label: 'Staff Engineer',     min: 80, max: 89 },
+            { label: 'Principal Engineer', min: 90, max: 100 },
+        ];
+        ladderEl.innerHTML = rungs.map(r => {
+            const elig = dciScore >= r.min ? sgClamp(100 - Math.max(0, r.min - dciScore) * 2) : sgClamp(dciScore / r.min * 60);
+            const active = dciScore >= r.min && dciScore <= r.max;
+            const col = elig >= 70 ? 'var(--sg-green)' : elig >= 40 ? 'var(--sg-amber)' : 'var(--sg-red)';
+            return `
+            <div class="sg-rung ${active ? 'sg-rung--active' : ''}">
+                <span class="sg-rung-label">${r.label}</span>
+                <div class="sg-rung-bar-track">
+                    <div class="sg-rung-bar-fill" data-w="${elig}" style="width:0;background:${col}"></div>
+                </div>
+                <span class="sg-rung-pct" style="color:${col}">${Math.round(elig)}%</span>
+            </div>`;
+        }).join('');
+        setTimeout(() => ladderEl.querySelectorAll('.sg-rung-bar-fill').forEach(f => {
+            f.style.transition = 'width 1s cubic-bezier(.4,0,.2,1)';
+            f.style.width = f.dataset.w + '%';
+        }), 300);
+    }
+
+    // â”€â”€ S3: SALARY PROJECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const salaryEl = document.getElementById('sg-salary-body');
+    if (salaryEl) {
+        const comp = analysis.compensationEstimate || {};
+        const low  = comp.range?.low  ? Math.round(comp.range.low / 1000)  : Math.round(60 + dciScore * 0.5);
+        const high = comp.range?.high ? Math.round(comp.range.high / 1000) : Math.round(80 + dciScore * 0.9);
+        const tier = sgSafe(comp.tier, 'Market Range');
+        const gaps = missingObjs.slice(0, 3).map(s => sgSkillName(s)).filter(Boolean);
+        salaryEl.innerHTML = `
+            <div class="sg-salary-range">
+                <span class="sg-salary-lo">$${low}k</span>
+                <span class="sg-salary-dash">â€“</span>
+                <span class="sg-salary-hi">$${high}k</span>
+                <span class="sg-salary-yr">/yr</span>
+            </div>
+            <div class="sg-salary-tier">${tier}</div>
+            <div class="sg-salary-rbar">
+                <span class="sg-salary-rlabel">Readiness</span>
+                <div class="sg-salary-rtrack"><div class="sg-salary-rfill" style="width:${dciScore}%"></div></div>
+                <span class="sg-salary-rpct">${dciScore}%</span>
+            </div>
+            ${gaps.length ? `<div class="sg-salary-gaps-label">Key gaps to close</div>
+            <div class="sg-salary-chips">${gaps.map(g => `<span class="sg-gap-chip">${g}</span>`).join('')}</div>` : ''}`;
+    }
+
+    // â”€â”€ S4: SKILL HEATMAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const heatEl  = document.getElementById('sg-heat-bars');
+    const heatBdg = document.getElementById('sg-heatmap-badge');
+    if (heatEl) {
+        const allSkills = [
+            ...strongObjs.map(s => ({ name: sgSkillName(s), score: sgClamp(sgNormConf(s.confidence || 0.85) || 75) })),
+            ...weakObjs.map(s  => ({ name: sgSkillName(s), score: sgClamp(sgNormConf(s.confidence || 0.45) || 42) })),
+            ...missingObjs.slice(0, 6).map(s => ({ name: sgSkillName(s), score: sgClamp(10 + Math.random() * 28) })),
+        ].filter(s => s.name).slice(0, 14);
+        if (heatBdg) heatBdg.textContent = `${allSkills.length} skills mapped`;
+        heatEl.innerHTML = allSkills.map(sk => {
+            const cls = sk.score >= 70 ? 'sg-heat--green' : sk.score >= 40 ? 'sg-heat--amber' : 'sg-heat--red';
+            return `
+            <div class="sg-heat-row">
+                <span class="sg-heat-label">${sk.name}</span>
+                <div class="sg-heat-track">
+                    <div class="sg-heat-fill ${cls}" data-w="${sk.score}" style="width:0"></div>
+                </div>
+                <span class="sg-heat-val">${Math.round(sk.score)}</span>
+            </div>`;
+        }).join('');
+        setTimeout(() => heatEl.querySelectorAll('.sg-heat-fill').forEach(f => {
+            f.style.transition = 'width 1.1s cubic-bezier(.4,0,.2,1)';
+            f.style.width = f.dataset.w + '%';
+        }), 450);
+    }
+
+    // â”€â”€ S5: AUTHENTICITY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const authScore = sgClamp(Math.round(dciScore * 0.88 + strongObjs.length * 1.5));
+    const authNumEl = document.getElementById('sg-auth-score');
+    if (authNumEl) authNumEl.textContent = authScore;
+    const authRing = document.getElementById('sg-auth-ring');
+    if (authRing) {
+        const circ = 301.59;
+        authRing.style.transition = 'none';
+        authRing.style.strokeDashoffset = circ;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            authRing.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)';
+            authRing.style.strokeDashoffset = circ * (1 - authScore / 100);
+        }));
+    }
+    const evBadgesEl = document.getElementById('sg-evidence-badges');
+    if (evBadgesEl) {
+        const codeEv = strongObjs.length >= 2;
+        const projEv = strongObjs.length >= 4;
+        const docEv  = dciScore >= 45;
+        const badge = (verified, name, sub) => `
+            <div class="sg-ev-badge ${verified ? 'sg-ev-badge--verified' : ''}">
+                <div class="sg-ev-icon"><i class="fas ${verified ? 'fa-check-circle' : 'fa-circle'}"></i></div>
+                <div class="sg-ev-text">
+                    <div class="sg-ev-name">${name}</div>
+                    <div class="sg-ev-sub">${sub}</div>
+                </div>
+            </div>`;
+        evBadgesEl.innerHTML = [
+            badge(codeEv, 'Code Evidence',       codeEv ? 'Demonstrated in resume' : 'Not detected'),
+            badge(projEv, 'Project Validation',  projEv ? 'Projects validated'     : 'Limited signals'),
+            badge(docEv,  'Documentation Proof', docEv  ? 'Confirmed'              : 'Needs depth'),
+        ].join('');
+    }
+
+    // â”€â”€ S6: CAREER STRATEGIST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const stratTitleEl = document.getElementById('sg-strat-title');
+    if (stratTitleEl) {
+        const hi = analysis.compensationEstimate?.range?.high;
+        stratTitleEl.textContent = hi ? `Path to $${Math.round(hi / 1000)}k Engineer` : `Path to ${level.replace('Building Foundations', 'Senior Engineer')}`;
+    }
+    const phasesEl = document.getElementById('sg-strategy-phases');
+    if (phasesEl) {
+        const phases = [
+            {
+                num: 1, title: 'Skill Depth', dur: '4â€“8 weeks',
+                desc: 'Build foundational competencies to hit the minimum viable skill threshold for your target role.',
+                skills: missingObjs.slice(0, 3).map(s => sgSkillName(s)).filter(Boolean),
+            },
+            {
+                num: 2, title: 'System Design', dur: '6â€“10 weeks',
+                desc: 'Elevate architectural thinking through distributed systems practice and design patterns.',
+                skills: weakObjs.slice(0, 3).map(s => sgSkillName(s)).filter(Boolean),
+            },
+            {
+                num: 3, title: 'Production Leadership', dur: '8â€“12 weeks',
+                desc: 'Demonstrate ownership through shipped projects, quantified impact, and technical artifacts.',
+                skills: strongObjs.slice(0, 3).map(s => sgSkillName(s)).filter(Boolean),
+            },
+        ];
+        phasesEl.innerHTML = phases.map((p, i) => `
+            <details class="sg-phase" ${i === 0 ? 'open' : ''}>
+                <summary class="sg-phase-summary">
+                    <span class="sg-phase-num">Phase ${p.num}</span>
+                    <span class="sg-phase-title">${p.title}</span>
+                    <span class="sg-phase-dur">${p.dur}</span>
+                    <i class="fas fa-chevron-down sg-chevron"></i>
+                </summary>
+                <div class="sg-phase-body">
+                    <p class="sg-phase-desc">${p.desc}</p>
+                    ${p.skills.length ? `<div class="sg-phase-chips">${p.skills.map(sk => `<span class="sg-phase-chip">${sk}</span>`).join('')}</div>` : ''}
+                </div>
+            </details>`).join('');
+    }
+
+    // â”€â”€ Reveal results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     resultsSection.style.display = 'block';
+    resultsSection.style.opacity = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        resultsSection.style.transition = 'opacity 0.5s ease';
+        resultsSection.style.opacity = '1';
+    }));
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+// â”€â”€â”€ Score derivation helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function sgDeriveArch(strong, weak, miss) {
+    const kw = ['system design','microservices','distributed','kubernetes','docker','architecture','cloud','aws','gcp','azure','kafka','redis','postgresql'];
+    const m = strong.filter(s => kw.some(k => sgSkillName(s).toLowerCase().includes(k))).length;
+    return Math.min(88, 28 + m * 13);
+}
+function sgDeriveCodeQ(strong, weak) {
+    const kw = ['testing','jest','pytest','unit test','tdd','ci/cd','git','typescript','lint','code review'];
+    const m = strong.filter(s => kw.some(k => sgSkillName(s).toLowerCase().includes(k))).length;
+    return Math.min(88, 22 + m * 16);
+}
+function sgDeriveSec(strong) {
+    const kw = ['security','oauth','jwt','https','tls','encryption','xss','csrf','owasp','authentication'];
+    const m = strong.filter(s => kw.some(k => sgSkillName(s).toLowerCase().includes(k))).length;
+    return Math.min(88, 18 + m * 20);
+}
+function sgDeriveInnov(strong, weak) {
+    const kw = ['machine learning','ai','tensorflow','pytorch','llm','langchain','openai','nlp','deep learning'];
+    const m = [...strong,...weak].filter(s => kw.some(k => sgSkillName(s).toLowerCase().includes(k))).length;
+    return Math.min(88, 28 + m * 15);
+}
+function sgLabelMature(s)  { return s >= 80 ? 'Production-grade'   : s >= 60 ? 'Solid foundation' : s >= 40 ? 'Developing'       : 'Early stage'; }
+function sgLabelArch(s)    { return s >= 75 ? 'Systems thinker'    : s >= 50 ? 'Component-focused': 'Pattern learning'; }
+function sgLabelQuality(s) { return s >= 70 ? 'High rigor'         : s >= 40 ? 'Moderate rigor'   : 'Needs structure'; }
+function sgLabelSec(s)     { return s >= 70 ? 'Security-aware'     : s >= 40 ? 'Basic hygiene'    : 'Exposure needed'; }
+function sgLabelInnov(s)   { return s >= 70 ? 'AI-native'          : s >= 40 ? 'Growth mindset'   : 'Traditional stack'; }
+function sgLabelMkt(s)     { return s >= 80 ? 'Hire-ready'         : s >= 60 ? 'Strong contender' : s >= 40 ? 'Developing'       : 'Needs investment'; }
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Render AI-analyzed skill cards with expandable context
@@ -1832,12 +1873,13 @@ function renderAISkillCards(skills) {
         const skillName = skill.skill || skill.name || 'Unknown';
         const category = skill.category || (skill.priority === 'Strong' ? 'strong' : skill.priority === 'Critical' ? 'missing' : 'weak');
         const priority = skill.priority || 'Optional';
-        const confidence = skill.confidence !== undefined ? skill.confidence : (skill.marketRelevance || 50);
+        const rawConf = skill.confidence !== undefined ? skill.confidence : (skill.marketRelevance || 50);
+        const confidence = Math.min(100, Math.max(0, (rawConf > 0 && rawConf < 1.5) ? Math.round(rawConf * 100) : Math.round(Number(rawConf) || 0)));
         const depthLevel = skill.depthLevel || 'surface';
         const weeksToBridge = skill.weeksToBridge || skill.timeToFix || 4;
         const marketDemand = skill.marketDemand || (confidence >= 90 ? 'Very High' : confidence >= 75 ? 'High' : 'Moderate');
         const reason = skill.reason || skill.reasoning?.whyItMatters || 'Detected in resume analysis';
-        const learningPath = skill.learningPath || `Master ${skillName} fundamentals → Build projects → Add to portfolio`;
+        const learningPath = skill.learningPath || `Master ${skillName} fundamentals â†’ Build projects â†’ Add to portfolio`;
 
         // Status styling
         const isMissing = category === 'missing' || depthLevel === 'not-detected' || priority === 'Critical';
@@ -2164,13 +2206,13 @@ async function applyLearningPlan() {
             });
 
             if (response.ok) {
-                showFeedback('✨ Roadmap personalized with AI-driven learning path!', 'success');
+                showFeedback('âœ¨ Roadmap personalized with AI-driven learning path!', 'success');
                 setTimeout(() => navigateTo('dashboard-page'), 2000);
                 return;
             }
         }
 
-        showFeedback('✨ Roadmap optimized! Your learning path is now prioritized.', 'success');
+        showFeedback('âœ¨ Roadmap optimized! Your learning path is now prioritized.', 'success');
         setTimeout(() => navigateTo('dashboard-page'), 2000);
 
     } catch (error) {

@@ -284,153 +284,330 @@
                     <p class="header-subtitle">Upload your resume for intelligent skill analysis with personalized learning paths</p>
                 </header>
 
-                <!-- Upload Section -->
-                <div class="upload-section card" id="upload-section">
-                    <h3>Upload Your Resume</h3>
-                    <input type="file" id="resume-input" accept=".pdf,.doc,.docx" style="display: none;">
-                    <div class="drop-zone" id="drop-zone">
-                        <i class="fas fa-cloud-upload-alt fa-3x"></i>
-                        <p class="drop-zone-text">Drag & Drop your resume here</p>
-                        <p class="drop-zone-subtext">or</p>
-                        <button class="btn btn-outline" id="browse-btn">Browse Files</button>
-                        <p class="file-types">Supported: PDF, DOC, DOCX (Max 5MB)</p>
-                    </div>
-                    <div class="uploaded-file" id="uploaded-file" style="display: none;">
-                        <div class="file-info">
-                            <i class="fas fa-file-alt fa-2x"></i>
-                            <div class="file-details">
-                                <span class="file-name" id="file-name">resume.pdf</span>
-                                <span class="file-size" id="file-size">1.2 MB</span>
-                            </div>
+                <!-- Mode Toggle Tabs -->
+                <div class="sg-mode-tabs">
+                    <button class="sg-mode-tab active" id="sg-tab-skill-gap" data-mode="skill-gap">
+                        <i class="fas fa-search"></i> Skill Gap Analysis
+                    </button>
+                    <button class="sg-mode-tab" id="sg-tab-career-intel" data-mode="career-intelligence">
+                        <i class="fas fa-chart-line"></i> Career Intelligence
+                    </button>
+                </div>
+
+                <!-- CAREER INTELLIGENCE INPUT FORM (hidden until CI tab) -->
+                <div id="ci-input-section" class="ci-input-card card" style="display: none;">
+                    <div class="ci-input-header">
+                        <div class="ci-input-icon"><i class="fas fa-brain"></i></div>
+                        <div>
+                            <h3>Enterprise Career Intelligence</h3>
+                            <p class="ci-input-subtitle">6-layer strategic resume analysis against your compensation target</p>
                         </div>
-                        <div class="file-actions">
-                            <button class="btn btn-text" id="remove-file-btn">
-                                <i class="fas fa-times"></i> Remove
+                    </div>
+
+                    <div class="ci-form-grid">
+                        <div class="ci-form-field">
+                            <label class="ci-label"><i class="fas fa-dollar-sign"></i> Target Annual Salary (USD)</label>
+                            <input type="number" id="ci-target-salary" class="ci-input" placeholder="e.g. 130000" value="100000" min="30000" max="600000" step="5000">
+                        </div>
+                        <div class="ci-form-field">
+                            <label class="ci-label"><i class="fas fa-briefcase"></i> Target Role</label>
+                            <select id="ci-target-role" class="ci-input ci-select">
+                                <option value="Software Engineer">Software Engineer</option>
+                                <option value="Senior Software Engineer">Senior Software Engineer</option>
+                                <option value="Full-Stack Developer">Full-Stack Developer</option>
+                                <option value="Backend Engineer">Backend Engineer</option>
+                                <option value="Frontend Engineer">Frontend Engineer</option>
+                                <option value="Data Engineer">Data Engineer</option>
+                                <option value="Data Scientist">Data Scientist</option>
+                                <option value="ML Engineer">ML Engineer</option>
+                                <option value="DevOps Engineer">DevOps Engineer</option>
+                                <option value="Cloud Engineer">Cloud Engineer</option>
+                                <option value="Mobile Developer">Mobile Developer</option>
+                            </select>
+                        </div>
+                        <div class="ci-form-field">
+                            <label class="ci-label"><i class="fas fa-map-marker-alt"></i> Location (Optional)</label>
+                            <input type="text" id="ci-location" class="ci-input" placeholder="e.g. San Francisco, Remote, NYC">
+                        </div>
+                        <div class="ci-form-field">
+                            <label class="ci-label"><i class="fas fa-clock"></i> Years of Experience</label>
+                            <input type="number" id="ci-yoe" class="ci-input" placeholder="e.g. 4" value="3" min="0" max="40" step="1">
+                        </div>
+                    </div>
+
+                    <!-- File upload inside CI form -->
+                    <div class="ci-upload-row">
+                        <div class="ci-drop-zone" id="ci-drop-zone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Drop resume here or</span>
+                            <button class="btn btn-outline btn-sm" id="ci-browse-btn">Browse</button>
+                            <input type="file" id="ci-resume-input" accept=".pdf,.doc,.docx" style="display:none;">
+                        </div>
+                        <div class="ci-file-info" id="ci-file-info" style="display:none;">
+                            <i class="fas fa-file-alt"></i>
+                            <span id="ci-file-name">resume.pdf</span>
+                            <button class="btn-icon ci-remove-file" id="ci-remove-file">
+                                <i class="fas fa-times"></i>
                             </button>
-                            <button class="btn btn-primary" id="analyze-resume-btn">
-                                <i class="fas fa-chart-bar"></i> Analyze Resume
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary ci-analyze-btn" id="ci-analyze-btn" disabled>
+                        <i class="fas fa-brain"></i> Run Career Intelligence Analysis
+                    </button>
+                </div>
+
+                <!-- CI LOADING STATE -->
+                <div id="ci-loading" class="ci-loading card" style="display: none;">
+                    <h3 class="ci-loading-title"><i class="fas fa-brain"></i> Career Intelligence Engine</h3>
+                    <div class="ci-layers-list">
+                        <div class="ci-layer-item" id="ci-layer-1">
+                            <span class="ci-layer-num">01</span>
+                            <span class="ci-layer-label">Market Positioning</span>
+                            <span class="ci-layer-state pending">•</span>
+                        </div>
+                        <div class="ci-layer-item" id="ci-layer-2">
+                            <span class="ci-layer-num">02</span>
+                            <span class="ci-layer-label">Skill Depth Analysis</span>
+                            <span class="ci-layer-state pending">•</span>
+                        </div>
+                        <div class="ci-layer-item" id="ci-layer-3">
+                            <span class="ci-layer-num">03</span>
+                            <span class="ci-layer-label">Impact Validation</span>
+                            <span class="ci-layer-state pending">•</span>
+                        </div>
+                        <div class="ci-layer-item" id="ci-layer-4">
+                            <span class="ci-layer-num">04</span>
+                            <span class="ci-layer-label">Architecture Signals</span>
+                            <span class="ci-layer-state pending">•</span>
+                        </div>
+                        <div class="ci-layer-item" id="ci-layer-5">
+                            <span class="ci-layer-num">05</span>
+                            <span class="ci-layer-label">Compensation Gap Modeling</span>
+                            <span class="ci-layer-state pending">•</span>
+                        </div>
+                        <div class="ci-layer-item" id="ci-layer-6">
+                            <span class="ci-layer-num">06</span>
+                            <span class="ci-layer-label">Resume Reconstruction</span>
+                            <span class="ci-layer-state pending">•</span>
+                        </div>
+                    </div>
+                    <p class="ci-loading-note"><i class="fas fa-lock"></i> Pure on-device analysis — your resume never leaves this system</p>
+                </div>
+
+                <!-- CI RESULTS SECTION -->
+                <div id="ci-results-section" style="display: none;">
+                    <!-- injected by career-intelligence.js -->
+                </div>
+
+                <!-- SKILL GAP ANALYSIS MODE -->
+                <div id="sg-skill-gap-content">
+
+                    <!-- UPLOAD CARD -->
+                    <div class="sg-upload-card" id="upload-section">
+                        <input type="file" id="resume-input" accept=".pdf,.doc,.docx" style="display:none;">
+                        <div class="sg-drop-zone" id="drop-zone">
+                            <div class="sg-drop-icon-ring">
+                                <i class="fas fa-cloud-arrow-up"></i>
+                            </div>
+                            <p class="sg-drop-title">Drop your resume to begin analysis</p>
+                            <p class="sg-drop-sub">PDF, DOC, DOCX &nbsp;&middot;&nbsp; Max 5MB</p>
+                            <button class="sg-browse-btn" id="browse-btn">Browse Files</button>
+                        </div>
+                        <div class="sg-uploaded-file" id="uploaded-file" style="display:none;">
+                            <div class="sg-file-meta">
+                                <div class="sg-file-icon-wrap"><i class="fas fa-file-alt"></i></div>
+                                <div class="sg-file-text">
+                                    <span class="sg-file-name" id="file-name">resume.pdf</span>
+                                    <span class="sg-file-size" id="file-size">—</span>
+                                </div>
+                            </div>
+                            <div class="sg-file-actions">
+                                <button id="remove-file-btn" class="sg-ghost-btn">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                                <button id="analyze-resume-btn" class="sg-primary-btn">
+                                    <i class="fas fa-brain"></i> Analyze Resume
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ANALYSIS LOADING (preserve pipeline-layer IDs used by animateLayer()) -->
+                    <div id="analysis-loading" class="sg-analysis-loading" style="display:none;">
+                        <div class="sg-loading-header">
+                            <span class="sg-loading-pulse-dot"></span>
+                            <span class="sg-loading-label">Processing Intelligence Layers</span>
+                        </div>
+                        <div class="sg-pipeline-rows">
+                            <div class="pipeline-layer" id="layer-1-status">
+                                <div class="sg-pl-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="sg-pl-info">
+                                    <div class="sg-pl-name">Document AI</div>
+                                    <div class="sg-pl-sub">Resume parsing &amp; structure</div>
+                                </div>
+                                <div class="layer-status pending"><i class="fas fa-circle"></i> Pending</div>
+                            </div>
+                            <div class="pipeline-layer" id="layer-2-status">
+                                <div class="sg-pl-icon"><i class="fas fa-search"></i></div>
+                                <div class="sg-pl-info">
+                                    <div class="sg-pl-name">NLP Extraction</div>
+                                    <div class="sg-pl-sub">Skill entity recognition</div>
+                                </div>
+                                <div class="layer-status pending"><i class="fas fa-circle"></i> Pending</div>
+                            </div>
+                            <div class="pipeline-layer" id="layer-3-status">
+                                <div class="sg-pl-icon"><i class="fas fa-brain"></i></div>
+                                <div class="sg-pl-info">
+                                    <div class="sg-pl-name">LLM Inference</div>
+                                    <div class="sg-pl-sub">Deep semantic analysis</div>
+                                </div>
+                                <div class="layer-status pending"><i class="fas fa-circle"></i> Pending</div>
+                            </div>
+                            <div class="pipeline-layer" id="layer-4-status">
+                                <div class="sg-pl-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="sg-pl-info">
+                                    <div class="sg-pl-name">Market Intelligence</div>
+                                    <div class="sg-pl-sub">Role alignment scoring</div>
+                                </div>
+                                <div class="layer-status pending"><i class="fas fa-circle"></i> Pending</div>
+                            </div>
+                            <div class="pipeline-layer" id="layer-5-status">
+                                <div class="sg-pl-icon"><i class="fas fa-check-double"></i></div>
+                                <div class="sg-pl-info">
+                                    <div class="sg-pl-name">Confidence Scoring</div>
+                                    <div class="sg-pl-sub">Multi-factor validation</div>
+                                </div>
+                                <div class="layer-status pending"><i class="fas fa-circle"></i> Pending</div>
+                            </div>
+                            <div class="pipeline-layer" id="layer-6-status">
+                                <div class="sg-pl-icon"><i class="fas fa-scale-balanced"></i></div>
+                                <div class="sg-pl-info">
+                                    <div class="sg-pl-name">Arbitration</div>
+                                    <div class="sg-pl-sub">Independent validation</div>
+                                </div>
+                                <div class="layer-status pending"><i class="fas fa-circle"></i> Pending</div>
+                            </div>
+                        </div>
+                        <div class="sg-loading-stats">
+                            <span id="processing-time">Elapsed: 0s</span>
+                            <span class="sg-stat-dot">·</span>
+                            <span id="processing-cost">Est. Cost: $0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- RESULTS SECTION -->
+                    <div id="results-section" style="display:none;">
+                        <!-- Hidden compat spans -->
+                        <span id="strong-skills-count" style="display:none;">0</span>
+                        <span id="weak-skills-count" style="display:none;">0</span>
+                        <span id="missing-skills-count" style="display:none;">0</span>
+
+                        <!-- S1: HERO — DCI Score Ring + Title -->
+                        <div class="sg-hero">
+                            <div class="sg-hero-text">
+                                <div class="sg-eyebrow">DEVELOPER INTELLIGENCE PROFILE</div>
+                                <h1 class="sg-hero-title">Career Readiness Report</h1>
+                                <p class="sg-hero-sub">Enterprise 6-Layer AI Skill Assessment</p>
+                                <div class="sg-level-pill" id="sg-level-badge">Analyzing&hellip;</div>
+                            </div>
+                            <div class="sg-dci-wrap">
+                                <svg class="sg-dci-svg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+                                    <circle class="sg-ring-track" cx="80" cy="80" r="64"/>
+                                    <circle class="sg-ring-progress" id="sg-dci-ring" cx="80" cy="80" r="64"
+                                        transform="rotate(-90 80 80)"
+                                        stroke-dasharray="402.12"
+                                        stroke-dashoffset="402.12"/>
+                                </svg>
+                                <div class="sg-dci-inner">
+                                    <span class="sg-dci-num" id="sg-dci-score">0</span>
+                                    <span class="sg-dci-label">DCI Score</span>
+                                    <span class="sg-dci-conf" id="sg-dci-conf">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- S2: 6-LAYER INTELLIGENCE GRID (3×2) -->
+                        <div class="sg-section-hd">
+                            <h3 class="sg-section-title">Intelligence Layers</h3>
+                        </div>
+                        <div class="sg-intel-grid" id="sg-intel-grid"></div>
+
+                        <!-- S3: MARKET POSITIONING -->
+                        <div class="sg-section-hd">
+                            <h3 class="sg-section-title">Market Positioning</h3>
+                        </div>
+                        <div class="sg-market-row">
+                            <div class="sg-glass-card">
+                                <div class="sg-card-eyebrow">Role Progression Ladder</div>
+                                <div id="sg-ladder-list" class="sg-ladder-list"></div>
+                            </div>
+                            <div class="sg-glass-card">
+                                <div class="sg-card-eyebrow">Compensation Projection</div>
+                                <div id="sg-salary-body" class="sg-salary-body"></div>
+                            </div>
+                        </div>
+
+                        <!-- S4: SKILL GAP HEATMAP -->
+                        <div class="sg-section-hd">
+                            <h3 class="sg-section-title">Skill Gap Intelligence</h3>
+                            <span class="sg-section-pill" id="sg-heatmap-badge">—</span>
+                        </div>
+                        <div class="sg-glass-card sg-heatmap-card">
+                            <div id="sg-heat-bars" class="sg-heat-bars"></div>
+                        </div>
+
+                        <!-- S5: AUTHENTICITY & EVIDENCE -->
+                        <div class="sg-section-hd">
+                            <h3 class="sg-section-title">Authenticity &amp; Evidence</h3>
+                        </div>
+                        <div class="sg-auth-row">
+                            <div class="sg-glass-card sg-auth-gauge-card">
+                                <div class="sg-card-eyebrow">Skill Authenticity Score</div>
+                                <div class="sg-auth-ring-wrap">
+                                    <svg class="sg-auth-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                                        <circle class="sg-ring-track" cx="60" cy="60" r="48"/>
+                                        <circle class="sg-ring-progress sg-auth-fill" id="sg-auth-ring"
+                                            cx="60" cy="60" r="48"
+                                            transform="rotate(-90 60 60)"
+                                            stroke-dasharray="301.59"
+                                            stroke-dashoffset="301.59"/>
+                                    </svg>
+                                    <div class="sg-auth-inner">
+                                        <span class="sg-auth-num" id="sg-auth-score">0</span>
+                                        <span class="sg-auth-lbl">/ 100</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sg-glass-card sg-evidence-card">
+                                <div class="sg-card-eyebrow">Evidence Signals</div>
+                                <div id="sg-evidence-badges" class="sg-evidence-badges"></div>
+                            </div>
+                        </div>
+
+                        <!-- S6: AI CAREER STRATEGIST -->
+                        <div class="sg-section-hd">
+                            <h3 class="sg-section-title" id="sg-strat-title">Path to Senior Engineer</h3>
+                            <span class="sg-section-pill">3-Phase Strategy</span>
+                        </div>
+                        <div class="sg-glass-card sg-strategy-card">
+                            <div id="sg-strategy-phases" class="sg-strategy-phases"></div>
+                        </div>
+
+                        <!-- ACTION ROW -->
+                        <div class="sg-action-row">
+                            <button class="sg-primary-btn sg-btn-xl" id="fix-roadmap-btn">
+                                <i class="fas fa-route"></i> Generate Learning Plan
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Analysis Loading State -->
-                <div id="analysis-loading" class="loading-state card" style="display: none;">
-                    <div class="ai-pipeline-status">
-                        <h3 style="text-align: center; margin-bottom: 20px; color: #ff6b6b;">
-                            <i class="fas fa-brain"></i> Enterprise AI Processing
-                        </h3>
-                        
-                        <!-- Layer 1: Document AI -->
-                        <div class="pipeline-layer" id="layer-1-status">
-                            <div class="layer-icon"><i class="fas fa-file-alt"></i></div>
-                            <div class="layer-info">
-                                <div class="layer-name">Layer 1: Document AI</div>
-                                <div class="layer-provider">Google Document AI / Azure Form Recognizer</div>
-                            </div>
-                            <div class="layer-status pending">
-                                <i class="fas fa-circle"></i> Pending
-                            </div>
+                            <p class="sg-action-note">Personalized roadmap based on your intelligence profile</p>
                         </div>
 
-                        <!-- Layer 2: NLP Extraction -->
-                        <div class="pipeline-layer" id="layer-2-status">
-                            <div class="layer-icon"><i class="fas fa-search"></i></div>
-                            <div class="layer-info">
-                                <div class="layer-name">Layer 2: NLP Extraction</div>
-                                <div class="layer-provider">AWS Comprehend / Azure Text Analytics</div>
-                            </div>
-                            <div class="layer-status pending">
-                                <i class="fas fa-circle"></i> Pending
-                            </div>
-                        </div>
-
-                        <!-- Layer 3: LLM Inference -->
-                        <div class="pipeline-layer" id="layer-3-status">
-                            <div class="layer-icon"><i class="fas fa-brain"></i></div>
-                            <div class="layer-info">
-                                <div class="layer-name">Layer 3: LLM Inference</div>
-                                <div class="layer-provider">OpenAI GPT-4 / Claude Opus</div>
-                            </div>
-                            <div class="layer-status pending">
-                                <i class="fas fa-circle"></i> Pending
-                            </div>
-                        </div>
-
-                        <!-- Layer 4: Market Intelligence -->
-                        <div class="pipeline-layer" id="layer-4-status">
-                            <div class="layer-icon"><i class="fas fa-chart-line"></i></div>
-                            <div class="layer-info">
-                                <div class="layer-name">Layer 4: Market Intelligence</div>
-                                <div class="layer-provider">LinkedIn Skills API / O*NET</div>
-                            </div>
-                            <div class="layer-status pending">
-                                <i class="fas fa-circle"></i> Pending
-                            </div>
-                        </div>
-
-                        <!-- Layer 5: Confidence Scoring -->
-                        <div class="pipeline-layer" id="layer-5-status">
-                            <div class="layer-icon"><i class="fas fa-check-circle"></i></div>
-                            <div class="layer-info">
-                                <div class="layer-name">Layer 5: Confidence Scoring</div>
-                                <div class="layer-provider">Rules-based Multi-factor Analysis</div>
-                            </div>
-                            <div class="layer-status pending">
-                                <i class="fas fa-circle"></i> Pending
-                            </div>
-                        </div>
-
-                        <!-- Layer 6: Arbitration -->
-                        <div class="pipeline-layer" id="layer-6-status">
-                            <div class="layer-icon"><i class="fas fa-balance-scale"></i></div>
-                            <div class="layer-info">
-                                <div class="layer-name">Layer 6: Arbitration</div>
-                                <div class="layer-provider">Independent LLM Validation</div>
-                            </div>
-                            <div class="layer-status pending">
-                                <i class="fas fa-circle"></i> Pending
-                            </div>
-                        </div>
-
-                        <!-- Processing Stats -->
-                        <div class="processing-stats" style="margin-top: 30px; text-align: center; opacity: 0.8;">
-                            <div style="font-size: 14px; margin-bottom: 10px;">
-                                <span id="processing-time">Elapsed: 0s</span> â€¢ 
-                                <span id="processing-cost">Est. Cost: $0.00</span>
-                            </div>
-                            <div style="font-size: 12px; color: #ff6b6b;">
-                                <i class="fas fa-info-circle"></i> Real AI services processing your resume...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Results Section -->
-                <div id="results-section" style="display: none;">
-                    <!-- Hidden elements for tracking (used by JS) -->
-                    <span id="strong-skills-count" style="display: none;">0</span>
-                    <span id="weak-skills-count" style="display: none;">0</span>
-                    <span id="missing-skills-count" style="display: none;">0</span>
-                    
-                    <!-- Skill Gap Summary (AI-driven, populated by JS) -->
-                    <div class="skill-gap-summary card">
-                        <!-- AI-generated coverage score and insights will be injected here -->
+                        <!-- Legacy compat (hidden, referenced by some JS paths) -->
+                        <div class="skill-gap-summary" style="display:none;"></div>
+                        <div class="skill-categories" style="display:none;"></div>
                     </div>
 
-                    <!-- Skill Categories (AI-driven priority sections) -->
-                    <div class="skill-categories">
-                        <!-- AI-analyzed skills with expandable context will be injected here -->
-                    </div>
-
-                    <!-- Action Button -->
-                    <div class="action-section">
-                        <button class="btn btn-xl btn-primary" id="fix-roadmap-btn">
-                            <i class="fas fa-route"></i> Generate Learning Plan
-                        </button>
-                        <p class="action-note">AI will create a personalized, step-by-step roadmap based on skill priorities and market relevance</p>
-                    </div>
-                </div>
+                </div><!-- /#sg-skill-gap-content -->
             </section>
 
             <!-- 7. PROJECTS WORKSPACE -->
@@ -1553,6 +1730,8 @@
     <!-- Coder's DNA Telemetry Tracker -->
     <script src="coders-dna-tracker.js"></script>
     <script src="app.js?v=10"></script>
+    <!-- Career Intelligence Engine (6-Layer Resume Analysis) -->
+    <script src="career-intelligence.js?v=1"></script>
 </body>
 </html>
 
