@@ -8,7 +8,7 @@ class ProjectWorkspace {
         this.container = document.getElementById(containerId);
         this.currentProject = null;
         this.currentTab = 'files';
-        this.apiBase = apiBase || 'http://localhost:5000/api/workspace';
+        this.apiBase = apiBase || '/api/workspace';
         this.projectId = null;
     }
 

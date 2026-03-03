@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkillForge</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="coding-arena-styles.css">
+    <link rel="stylesheet" href="styles.css?v=10">
+    <link rel="stylesheet" href="coding-arena-styles.css?v=10">
     <link rel="stylesheet" href="coders-dna.css">
     <link rel="stylesheet" href="projects-workspace.css">
     <link rel="stylesheet" href="video-library.css">
@@ -151,7 +151,7 @@
                 </div>
             </section>
 
-            <!-- 4. ONBOARDING FLOW (Role → Level → Commitment) -->
+            <!-- 4. ONBOARDING FLOW (Role â†’ Level â†’ Commitment) -->
             <section id="onboarding-page" class="page-view hidden">
                 <div class="onboarding-container">
                     <div class="logo-area" id="onboarding-logo" style="cursor: pointer; margin-bottom: 20px;">
@@ -250,7 +250,7 @@
                     </div>
                     <div class="level-info">
                         <span id="level-module-count">0 modules</span>
-                        <span class="divider">•</span>
+                        <span class="divider">â€¢</span>
                         <span id="level-completion-count">0 completed</span>
                     </div>
                 </div>
@@ -396,7 +396,7 @@
                         <!-- Processing Stats -->
                         <div class="processing-stats" style="margin-top: 30px; text-align: center; opacity: 0.8;">
                             <div style="font-size: 14px; margin-bottom: 10px;">
-                                <span id="processing-time">Elapsed: 0s</span> • 
+                                <span id="processing-time">Elapsed: 0s</span> â€¢ 
                                 <span id="processing-cost">Est. Cost: $0.00</span>
                             </div>
                             <div style="font-size: 12px; color: #ff6b6b;">
@@ -782,7 +782,7 @@
                                 <h4>Execution Result</h4>
                             </div>
                             <div id="exec-status" class="exec-status waiting">
-                                <span class="status-icon">⏱️</span>
+                                <span class="status-icon">â±ï¸</span>
                                 <span>Run your code to see results</span>
                             </div>
                             <div id="output-console" class="output-console"></div>
@@ -1148,6 +1148,63 @@
                     </div>
                 </div>
             </section>
+
+            <!-- AUTH PAGE -->
+            <section id="auth-page" class="page-view hidden">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="auth-logo">
+                            <span class="logo-icon">SF</span>
+                            <span class="logo-text">SkillForge</span>
+                        </div>
+                        <div class="auth-tabs">
+                            <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</button>
+                            <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</button>
+                        </div>
+
+                        <!-- Login Form -->
+                        <div id="auth-login-form">
+                            <h2 class="auth-title">Welcome Back</h2>
+                            <p class="auth-subtitle">Login to continue your learning journey</p>
+                            <div class="auth-field">
+                                <label>Email</label>
+                                <input type="email" id="auth-email" placeholder="you@example.com" />
+                            </div>
+                            <div class="auth-field">
+                                <label>Password</label>
+                                <input type="password" id="auth-password" placeholder="Your password" />
+                            </div>
+                            <button class="btn btn-primary btn-full" id="auth-login-btn" onclick="handleLogin()">Login</button>
+                            <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthTab('register')">Register</a></p>
+                        </div>
+
+                        <!-- Register Form -->
+                        <div id="auth-register-form" style="display:none">
+                            <h2 class="auth-title">Create Account</h2>
+                            <p class="auth-subtitle">Join SkillForge and start your career journey</p>
+                            <div class="auth-field">
+                                <label>Full Name</label>
+                                <input type="text" id="auth-reg-name" placeholder="Your full name" />
+                            </div>
+                            <div class="auth-field">
+                                <label>Email</label>
+                                <input type="email" id="auth-reg-email" placeholder="you@example.com" />
+                            </div>
+                            <div class="auth-field">
+                                <label>Password</label>
+                                <input type="password" id="auth-reg-password" placeholder="Choose a password" />
+                            </div>
+                            <button class="btn btn-primary btn-full" id="auth-register-btn" onclick="handleRegister()">Create Account</button>
+                            <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthTab('login')">Login</a></p>
+                        </div>
+
+                        <div class="auth-back">
+                            <button class="btn btn-text" onclick="navigateTo('landing-page')">&larr; Back to Home</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </main>
 
         <!-- Modals -->
@@ -1308,7 +1365,7 @@
                     
                     <div class="execution-status">
                         <div class="status-indicator waiting">
-                            <i>⏱️</i>
+                            <i>â±ï¸</i>
                             <span>Waiting to run...</span>
                         </div>
                     </div>
@@ -1371,7 +1428,7 @@
                                     <li><strong>Explain Mode:</strong> Break down concepts and patterns</li>
                                 </ul>
                                 <div class="ai-note">
-                                    💡 I focus on teaching patterns and problem-solving skills, not giving away answers!
+                                    ðŸ’¡ I focus on teaching patterns and problem-solving skills, not giving away answers!
                                 </div>
                             </div>
                             <div class="ai-messages" id="ai-chat-messages">
@@ -1482,19 +1539,22 @@
     <!-- ========================= -->
     
     <!-- Load Auth Helper FIRST (before other scripts) -->
-    <script src="auth-helper.js?v=4"></script>
+    <script src="auth-helper.js?v=10"></script>
     
     <!-- Quantum Intelligence Visualization Engine -->
-    <script src="quantum-intelligence-viz.js?v=4"></script>
+    <script src="quantum-intelligence-viz.js?v=10"></script>
     
     <!-- Main application scripts -->
-    <script src="enhanced-flows.js?v=4"></script>
-    <script src="mock-interview.js?v=4"></script>
-    <script src="projects-workspace.js?v=4"></script>
-    <script src="video-library.js?v=4"></script>
-    <script src="coding-arena-functional.js?v=4"></script>
+    <script src="enhanced-flows.js?v=10"></script>
+    <script src="mock-interview.js?v=10"></script>
+    <script src="projects-workspace.js?v=11"></script>
+    <script src="video-library.js?v=10"></script>
+    <script src="coding-arena-functional.js?v=10"></script>
     <!-- Coder's DNA Telemetry Tracker -->
     <script src="coders-dna-tracker.js"></script>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=10"></script>
 </body>
 </html>
+
+
+

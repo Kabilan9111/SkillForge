@@ -1,398 +1,247 @@
-const { ProjectAIReview, ProjectCommit, ProjectFile } = require('../../models/ProjectWorkspace');
-const FileManager = require('./fileManager');
-
 /**
- * 6-Layer AI Review Engine
- * Production-grade code analysis system
+ * ================================================
+ * AI REVIEW ENGINE � Auto-Triggered Code Analysis
+ * ================================================
+ * Triggers automatically after every commit.
+ * Uses real static analysis (codeAnalyzer.js).
+ * Falls back to OpenAI if API key is configured.
+ * All results stored in projects_ai_reviews table.
  */
+'use strict';
+
+const db           = require('../../config/database');
+const codeAnalyzer = require('./codeAnalyzer');
+
+// --- LLM: only active when a real key is configured --------------------------
+const LLM_KEY  = (process.env.OPENAI_API_KEY || '').trim();
+const LLM_REAL = LLM_KEY.length > 20 && !LLM_KEY.includes('your-') && !LLM_KEY.includes('placeholder');
+const LLM_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+
 class AIReviewEngine {
-    /**
-     * Analyze commit with 6-layer pipeline
-     */
-    async analyzeCommit(commitHash) {
-        const startTime = Date.now();
-        
+
+  /**
+   * Main entry point � called after commit is saved.
+   * Runs asynchronously � does NOT block the commit response.
+   */
+  async runReview(projectId, commitHash) {
+    const startMs = Date.now();
+    try {
+      // Mark in_progress so frontend can poll
+      await db.run(
+        `INSERT OR REPLACE INTO projects_ai_reviews
+           (project_id, commit_hash, overall_score, review_data, model_version, status, created_at)
+         VALUES (?, ?, 0, '{}', 'pending', 'in_progress', datetime('now'))`,
+        [projectId, commitHash]
+      );
+
+      // Load files for this commit
+      let files = await db.all(
+        `SELECT file_path, file_name, file_type, file_size, file_content
+         FROM projects_files WHERE project_id = ? AND commit_hash = ?`,
+        [projectId, commitHash]
+      );
+      if (files.length === 0) {
+        files = await db.all(
+          `SELECT file_path, file_name, file_type, file_size, file_content
+           FROM projects_files WHERE project_id = ?`,
+          [projectId]
+        );
+      }
+
+      // Run real static analysis
+      const staticResult = codeAnalyzer.analyze(files);
+
+      // Optionally enhance with LLM
+      let finalResult = staticResult;
+      if (LLM_REAL && files.length > 0) {
         try {
-            const commit = await ProjectCommit.getByHash(commitHash);
-            if (!commit) throw new Error('Commit not found');
-
-            const files = await ProjectFile.getByCommit(commit.id);
-            
-            // Layer 1: Syntax & Lint Analysis
-            const syntaxScore = await this.layer1_syntaxAnalysis(files);
-            
-            // Layer 2: Architecture Pattern Analysis
-            const architectureScore = await this.layer2_architectureAnalysis(files);
-            
-            // Layer 3: Performance & Scalability
-            const performanceScore = await this.layer3_performanceAnalysis(files);
-            
-            // Layer 4: Security Surface Analysis
-            const securityScore = await this.layer4_securityAnalysis(files);
-            
-            // Layer 5: Maintainability & Documentation
-            const maintainabilityScore = await this.layer5_maintainabilityAnalysis(files);
-            
-            // Layer 6: Industry Benchmark Comparison
-            const industryBenchmarkScore = await this.layer6_benchmarkComparison(files);
-            
-            // Calculate overall scores
-            const overallRating = this.calculateOverallRating({
-                syntaxScore,
-                architectureScore,
-                performanceScore,
-                securityScore,
-                maintainabilityScore,
-                industryBenchmarkScore
-            });
-            
-            const developerLevel = this.classifyDeveloperLevel(overallRating);
-            
-            // Get previous commit for comparison
-            let improvementPercentage = 0;
-            let regressionDetected = false;
-            let technicalDebtDelta = 0;
-            
-            if (commit.parent_commit_hash) {
-                const comparison = await this.compareWithPrevious(
-                    commit.parent_commit_hash,
-                    { syntaxScore, architectureScore, performanceScore, securityScore, maintainabilityScore, industryBenchmarkScore }
-                );
-                improvementPercentage = comparison.improvementPercentage;
-                regressionDetected = comparison.regressionDetected;
-                technicalDebtDelta = comparison.technicalDebtDelta;
-            }
-            
-            // Generate detailed findings
-            const findings = await this.generateFindings(files, {
-                syntaxScore,
-                architectureScore,
-                performanceScore,
-                securityScore,
-                maintainabilityScore,
-                industryBenchmarkScore
-            });
-            
-            const processingTime = Date.now() - startTime;
-            
-            // Save review
-            const reviewData = {
-                projectId: commit.project_id,
-                commitId: commit.id,
-                overallRating,
-                developerLevel,
-                syntaxScore,
-                architectureScore,
-                performanceScore,
-                securityScore,
-                maintainabilityScore,
-                industryBenchmarkScore,
-                codeStructureScore: (architectureScore + maintainabilityScore) / 2,
-                scalabilityScore: performanceScore,
-                improvementPercentage,
-                regressionDetected,
-                technicalDebtDelta,
-                positiveAspects: findings.positiveAspects,
-                weaknesses: findings.weaknesses,
-                recommendations: findings.recommendations,
-                securityIssues: findings.securityIssues,
-                codeSmells: findings.codeSmells,
-                duplications: findings.duplications,
-                unusedFiles: findings.unusedFiles,
-                aiModelUsed: 'Internal Analysis Engine',
-                processingTimeMs: processingTime,
-                tokensUsed: 0,
-                analysisCost: 0
-            };
-            
-            await ProjectAIReview.create(reviewData);
-            
-            return reviewData;
-            
-        } catch (error) {
-            console.error('AI Review failed:', error);
-            throw error;
+          finalResult = await this._enhanceWithLLM(staticResult, files);
+        } catch (e) {
+          console.warn('[AIReview] LLM failed, using static analysis:', e.message);
         }
-    }
+      }
 
-    /**
-     * Layer 1: Syntax & Lint Analysis
-     */
-    async layer1_syntaxAnalysis(files) {
-        let score = 100;
-        const issues = [];
-        
-        for (const file of files) {
-            if (file.is_binary) continue;
-            
-            try {
-                const content = await FileManager.getFileContent(
-                    file.project_id,
-                    file.commit_hash || '',
-                    file.file_path
-                );
-                
-                // Check for common syntax issues
-                if (content.includes('console.log(')) score -= 2;
-                if (content.includes('debugger')) score -= 5;
-                if (content.includes('TODO') || content.includes('FIXME')) score -= 1;
-                if (!content.trim()) score -= 10; // Empty file
-                
-                // Check naming conventions
-                const lines = content.split('\n');
-                lines.forEach(line => {
-                    if (line.match(/var \w+/)) score -= 1; // Using var instead of let/const
-                    if (line.length > 120) score -= 0.5; // Long lines
-                });
-                
-            } catch (err) {
-                score -= 5;
-            }
-        }
-        
-        return Math.max(0, Math.min(100, score));
-    }
+      // Attach metadata
+      finalResult.commitHash   = commitHash;
+      finalResult.projectId    = projectId;
+      finalResult.analyzedAt   = new Date().toISOString();
+      finalResult.processingMs = Date.now() - startMs;
+      finalResult.modelVersion = LLM_REAL ? LLM_MODEL : 'static-analyzer-v1';
 
-    /**
-     * Layer 2: Architecture Pattern Analysis
-     */
-    async layer2_architectureAnalysis(files) {
-        let score = 70; // Base score
-        
-        const hasStructure = files.some(f => f.file_path.includes('/'));
-        if (hasStructure) score += 10;
-        
-        const hasConfig = files.some(f => f.file_name.includes('config'));
-        if (hasConfig) score += 5;
-        
-        const hasModules = files.length > 3;
-        if (hasModules) score += 10;
-        
-        const hasTests = files.some(f => f.file_name.includes('test') || f.file_name.includes('spec'));
-        if (hasTests) score += 5;
-        
-        return Math.min(100, score);
-    }
+      // Persist
+      const pri = finalResult.productionReadiness
+        ? finalResult.productionReadiness.productionReadinessIndex
+        : (finalResult.overallScore || 0);
+      const secScore   = finalResult.security?.securityScore ?? 0;
+      const perfScore  = finalResult.performance?.performanceScore ?? 0;
+      const maintScore = finalResult.maintainability?.maintainabilityScore ?? 0;
+      const topIssues  = finalResult.productionReadiness?.topBlockingIssues || [];
 
-    /**
-     * Layer 3: Performance & Scalability Analysis
-     */
-    async layer3_performanceAnalysis(files) {
-        let score = 80; // Base score
-        
-        for (const file of files) {
-            if (file.is_binary) continue;
-            
-            // Large files might indicate performance issues
-            if (file.file_size > 100000) score -= 5;
-            if (file.lines_of_code > 500) score -= 3;
-        }
-        
-        return Math.max(0, Math.min(100, score));
-    }
+      await db.run(
+        `UPDATE projects_ai_reviews
+         SET overall_score   = ?,
+             review_data     = ?,
+             model_version   = ?,
+             status          = 'complete',
+             code_quality    = ?,
+             security        = ?,
+             performance     = ?,
+             maintainability = ?,
+             suggestions     = ?
+         WHERE project_id = ? AND commit_hash = ?`,
+        [
+          pri,
+          JSON.stringify(finalResult),
+          finalResult.modelVersion,
+          String(finalResult.architecture?.architectureScore ?? 0),
+          String(secScore),
+          String(perfScore),
+          String(maintScore),
+          JSON.stringify(topIssues),
+          projectId, commitHash
+        ]
+      );
+      finalResult.overallScore = pri;
 
-    /**
-     * Layer 4: Security Surface Analysis
-     */
-    async layer4_securityAnalysis(files) {
-        let score = 100;
-        
-        for (const file of files) {
-            if (file.is_binary) continue;
-            
-            try {
-                const content = await FileManager.getFileContent(
-                    file.project_id,
-                    file.commit_hash || '',
-                    file.file_path
-                );
-                
-                // Check for security anti-patterns
-                if (content.includes('eval(')) score -= 10;
-                if (content.includes('innerHTML')) score -= 5;
-                if (content.match(/password.*=.*['"][^'"]+['"]/)) score -= 15; // Hardcoded passwords
-                if (content.includes('TODO: security')) score -= 5;
-                
-            } catch (err) {
-                // Ignore
-            }
-        }
-        
-        return Math.max(0, score);
-    }
+      console.log(`[AIReview] PRI=${pri}/100 hash=${commitHash} ms=${finalResult.processingMs} deploy=${finalResult.productionReadiness?.deploymentCategory || 'N/A'}`);
+      return finalResult;
 
-    /**
-     * Layer 5: Maintainability & Documentation Analysis
-     */
-    async layer5_maintainabilityAnalysis(files) {
-        let score = 70;
-        let totalLines = 0;
-        let commentLines = 0;
-        
-        for (const file of files) {
-            if (file.is_binary) continue;
-            
-            try {
-                const content = await FileManager.getFileContent(
-                    file.project_id,
-                    file.commit_hash || '',
-                    file.file_path
-                );
-                
-                const lines = content.split('\n');
-                totalLines += lines.length;
-                
-                lines.forEach(line => {
-                    if (line.trim().startsWith('//') || line.trim().startsWith('*') || line.trim().startsWith('/*')) {
-                        commentLines++;
-                    }
-                });
-                
-            } catch (err) {
-                // Ignore
-            }
-        }
-        
-        const commentRatio = totalLines > 0 ? (commentLines / totalLines) * 100 : 0;
-        if (commentRatio > 10) score += 15;
-        else if (commentRatio > 5) score += 10;
-        
-        const hasReadme = files.some(f => f.file_name.toLowerCase() === 'readme.md');
-        if (hasReadme) score += 15;
-        
-        return Math.min(100, score);
+    } catch (err) {
+      console.error('[AIReview] Failed for commit', commitHash, ':', err.message);
+      await db.run(
+        `UPDATE projects_ai_reviews SET status = 'failed' WHERE commit_hash = ?`,
+        [commitHash]
+      ).catch(() => {});
+      throw err;
     }
+  }
 
-    /**
-     * Layer 6: Industry Benchmark Comparison
-     */
-    async layer6_benchmarkComparison(files) {
-        let score = 75; // Industry average
-        
-        const fileCount = files.length;
-        if (fileCount < 3) score -= 10;
-        if (fileCount > 20) score += 10;
-        
-        const avgFileSize = files.reduce((sum, f) => sum + f.file_size, 0) / files.length;
-        if (avgFileSize < 10000) score += 5; // Small, focused files
-        if (avgFileSize > 50000) score -= 5; // Large files
-        
-        return Math.min(100, score);
-    }
+  // --- LLM Enhancement -----------------------------------------------------
+  async _enhanceWithLLM(staticResult, files) {
+    const codeSnippet = this._buildCodeSnippet(files, 8000);
+    const pri = staticResult.productionReadiness?.productionReadinessIndex ?? staticResult.overallScore ?? 0;
+    const prompt = [
+      'You are a principal software engineer performing an enterprise-grade code audit.',
+      'No motivational language. Be direct, evidence-based, and file-specific.',
+      '',
+      'STATIC ANALYSIS CONTEXT:',
+      `  Production Readiness Index : ${pri}/100`,
+      `  Deployment Category        : ${staticResult.productionReadiness?.deploymentCategory || 'Unknown'}`,
+      `  Files                      : ${staticResult.details?.fileCount || 0}`,
+      `  Total Lines                : ${(staticResult.details?.totalLines || 0).toLocaleString()}`,
+      `  Languages                  : ${(staticResult.details?.languages || []).map(l=>l.lang).join(', ')}`,
+      `  Security Score             : ${staticResult.security?.securityScore ?? 0}/100`,
+      `  Critical Issues            : ${staticResult.security?.criticalIssues?.length ?? 0}`,
+      `  Architecture Score         : ${staticResult.architecture?.architectureScore ?? 0}/100`,
+      `  Maintainability Score      : ${staticResult.maintainability?.maintainabilityScore ?? 0}/100`,
+      '',
+      'CODE SAMPLE (first 8KB):',
+      codeSnippet,
+      '',
+      'Return ONLY valid JSON (no markdown fences, no comments) with this EXACT structure:',
+      '{',
+      '  "security": {',
+      '    "securityScore":number,',
+      '    "criticalIssues":[{"file":string,"line":number,"issue":string}],',
+      '    "highIssues":[{"file":string,"line":number,"issue":string}],',
+      '    "mediumIssues":[{"file":string,"issue":string}],',
+      '    "securitySummary":string',
+      '  },',
+      '  "architecture": {',
+      '    "architectureScore":number,',
+      '    "modularityLevel":"High|Medium|Low",',
+      '    "couplingRisk":number,',
+      '    "architecturalWeaknesses":[string],',
+      '    "refactorRecommendations":[string]',
+      '  },',
+      '  "maintainability": {',
+      '    "maintainabilityScore":number,',
+      '    "largeFunctionCount":number,',
+      '    "duplicationRisk":"Low|Medium|High",',
+      '    "codeSmellIndicators":[string],',
+      '    "readabilityAssessment":string',
+      '  },',
+      '  "performance": {',
+      '    "performanceScore":number,',
+      '    "scalingRiskLevel":"Low|Medium|High",',
+      '    "bottleneckIndicators":[string],',
+      '    "estimatedRiskAtScale":{"10k":string,"100k":string}',
+      '  },',
+      '  "reliability": {',
+      '    "reliabilityScore":number,',
+      '    "testCoverageEstimate":string,',
+      '    "errorHandlingQuality":string,',
+      '    "loggingQuality":string,',
+      '    "reliabilityConcerns":[string]',
+      '  },',
+      '  "productionReadiness": {',
+      '    "productionReadinessIndex":number,',
+      '    "deploymentCategory":"Prototype|Pre-Production|Production-Ready|High Risk",',
+      '    "topBlockingIssues":[string],',
+      '    "executiveSummary":string',
+      '  },',
+      '  "technicalDebtScore":number,',
+      '  "refactorEffortEstimate":"Low|Medium|High",',
+      '  "systemComplexityIndex":number',
+      '}'
+    ].join('\n');
 
-    /**
-     * Calculate overall rating (0-10)
-     */
-    calculateOverallRating(scores) {
-        const avg = (
-            scores.syntaxScore +
-            scores.architectureScore +
-            scores.performanceScore +
-            scores.securityScore +
-            scores.maintainabilityScore +
-            scores.industryBenchmarkScore
-        ) / 6;
-        
-        return (avg / 10).toFixed(1);
-    }
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${LLM_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: LLM_MODEL, temperature: 0.1, max_tokens: 1800,
+        messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!resp.ok) throw new Error(`OpenAI ${resp.status}`);
+    const raw = (await resp.json()).choices?.[0]?.message?.content || '';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON in LLM response');
+    const llm = JSON.parse(match[0]);
+    // Merge: LLM overrides static analysis but preserves metadata
+    return {
+      ...staticResult,
+      security:          { ...staticResult.security,          ...llm.security },
+      architecture:      { ...staticResult.architecture,      ...llm.architecture },
+      maintainability:   { ...staticResult.maintainability,   ...llm.maintainability },
+      performance:       { ...staticResult.performance,       ...llm.performance },
+      reliability:       { ...staticResult.reliability,       ...llm.reliability },
+      productionReadiness: { ...staticResult.productionReadiness, ...llm.productionReadiness },
+      technicalDebtScore:    llm.technicalDebtScore    ?? staticResult.technicalDebtScore,
+      refactorEffortEstimate: llm.refactorEffortEstimate ?? staticResult.refactorEffortEstimate,
+      systemComplexityIndex:  llm.systemComplexityIndex  ?? staticResult.systemComplexityIndex,
+      details: staticResult.details
+    };
+  }
 
-    /**
-     * Classify developer level based on score
-     */
-    classifyDeveloperLevel(rating) {
-        if (rating >= 9.0) return 'Senior';
-        if (rating >= 7.5) return 'Advanced';
-        if (rating >= 6.0) return 'Intermediate';
-        return 'Beginner';
+  _buildCodeSnippet(files, maxChars) {
+    const codeExts = new Set(['js','jsx','ts','tsx','py','java','cs','rb','go','php','cpp','c','rs']);
+    let total = 0;
+    const parts = [];
+    const sorted = [...files]
+      .filter(f => codeExts.has((f.file_type||'').toLowerCase()) && f.file_content && !f.file_content.startsWith('[binary'))
+      .sort((a,b) => (a.file_size||0)-(b.file_size||0));
+    for (const f of sorted) {
+      if (total >= maxChars) break;
+      const excerpt = (f.file_content||'').substring(0, Math.min(1500, maxChars - total));
+      parts.push(`// FILE: ${f.file_path}\n${excerpt}`);
+      total += excerpt.length;
     }
+    return parts.join('\n\n') || '// No analyzable code files';
+  }
 
-    /**
-     * Compare with previous commit
-     */
-    async compareWithPrevious(parentHash, currentScores) {
-        try {
-            const parentCommit = await ProjectCommit.getByHash(parentHash);
-            const parentReview = await ProjectAIReview.getByCommit(parentCommit.id);
-            
-            if (!parentReview) {
-                return { improvementPercentage: 0, regressionDetected: false, technicalDebtDelta: 0 };
-            }
-            
-            const avgCurrent = (
-                currentScores.syntaxScore +
-                currentScores.architectureScore +
-                currentScores.performanceScore +
-                currentScores.securityScore +
-                currentScores.maintainabilityScore +
-                currentScores.industryBenchmarkScore
-            ) / 6;
-            
-            const avgPrevious = (
-                parentReview.syntax_score +
-                parentReview.architecture_score +
-                parentReview.performance_score +
-                parentReview.security_score +
-                parentReview.maintainability_score +
-                parentReview.industry_benchmark_score
-            ) / 6;
-            
-            const delta = avgCurrent - avgPrevious;
-            const improvementPercentage = ((delta / avgPrevious) * 100).toFixed(2);
-            const regressionDetected = delta < -5; // Regression if > 5 point drop
-            const technicalDebtDelta = -delta; // Negative improvement = positive debt
-            
-            return {
-                improvementPercentage: parseFloat(improvementPercentage),
-                regressionDetected,
-                technicalDebtDelta
-            };
-            
-        } catch (err) {
-            return { improvementPercentage: 0, regressionDetected: false, technicalDebtDelta: 0 };
-        }
-    }
+  async getLatestForProject(projectId) {
+    return db.get(
+      `SELECT * FROM projects_ai_reviews WHERE project_id = ? ORDER BY created_at DESC LIMIT 1`,
+      [projectId]
+    );
+  }
 
-    /**
-     * Generate detailed findings
-     */
-    async generateFindings(files, scores) {
-        const positiveAspects = [];
-        const weaknesses = [];
-        const recommendations = [];
-        const securityIssues = [];
-        const codeSmells = [];
-        const duplications = [];
-        const unusedFiles = [];
-        
-        // Positive aspects
-        if (scores.syntaxScore >= 90) positiveAspects.push('Excellent code syntax and formatting');
-        if (scores.architectureScore >= 85) positiveAspects.push('Well-structured architecture');
-        if (scores.securityScore >= 90) positiveAspects.push('Good security practices');
-        if (scores.maintainabilityScore >= 85) positiveAspects.push('Highly maintainable code');
-        
-        // Weaknesses
-        if (scores.syntaxScore < 70) weaknesses.push('Syntax and formatting issues detected');
-        if (scores.architectureScore < 60) weaknesses.push('Architecture needs improvement');
-        if (scores.performanceScore < 70) weaknesses.push('Performance optimization needed');
-        if (scores.securityScore < 80) weaknesses.push('Security vulnerabilities present');
-        if (scores.maintainabilityScore < 65) weaknesses.push('Low code maintainability');
-        
-        // Recommendations
-        if (scores.syntaxScore < 85) recommendations.push('Use a linter (ESLint/Pylint) to maintain code quality');
-        if (scores.architectureScore < 75) recommendations.push('Consider applying design patterns');
-        if (scores.maintainabilityScore < 75) recommendations.push('Add more documentation and comments');
-        if (!files.some(f => f.file_name.includes('test'))) recommendations.push('Add unit tests');
-        
-        return {
-            positiveAspects,
-            weaknesses,
-            recommendations,
-            securityIssues,
-            codeSmells,
-            duplications,
-            unusedFiles
-        };
-    }
+  async getByCommitHash(commitHash) {
+    return db.get(
+      `SELECT * FROM projects_ai_reviews WHERE commit_hash = ?`,
+      [commitHash]
+    );
+  }
 }
 
 module.exports = new AIReviewEngine();

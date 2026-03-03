@@ -7,7 +7,7 @@
 const DNADashboard = (function () {
   'use strict';
 
-  const API      = 'http://localhost:5000/api/coders-dna';
+  const API      = '/api/coders-dna';
   let radarChart = null;
   let trendChart = null;
 
@@ -908,7 +908,7 @@ const DNADashboard = (function () {
     if (btn)   { btn.disabled = true; btn.textContent = 'Signing in…'; }
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

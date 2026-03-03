@@ -36,7 +36,12 @@ class ProjectWorkspace {
      */
     static async getUserProjects(userId) {
         const rows = await db.all(
-            `SELECT * FROM projects_workspace WHERE user_id = ? ORDER BY updated_at DESC`,
+            `SELECT pw.*,
+               (SELECT COUNT(*) FROM projects_commits pc WHERE pc.project_id = pw.id) AS total_commits,
+               (SELECT COUNT(DISTINCT pf.file_path) FROM projects_files pf WHERE pf.project_id = pw.id) AS total_files,
+               (SELECT MAX(pc2.created_at) FROM projects_commits pc2 WHERE pc2.project_id = pw.id) AS last_commit_at
+             FROM projects_workspace pw
+             WHERE pw.user_id = ? ORDER BY pw.updated_at DESC`,
             [userId]
         );
         rows.forEach(row => {

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "SkillForge Frontend Dashboard",
   "scripts": {
-    "start": "npx serve . -l 5500",
-    "open": "start http://localhost:5500/roadmap-dashboard"
+    "start": "cd ../backend && node server.js",
+    "open": "start http://localhost:5500"
   },
   "keywords": [
     "frontend",

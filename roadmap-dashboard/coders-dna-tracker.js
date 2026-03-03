@@ -9,7 +9,7 @@
 const CodersDNATracker = (function () {
   'use strict';
 
-  const API_BASE = 'http://localhost:5000/api/coders-dna';
+  const API_BASE = '/api/coders-dna';
 
   // ─── SESSION STATE ──────────────────────────────────────────────────────
   let dnaSession = {

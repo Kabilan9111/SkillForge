@@ -6,18 +6,10 @@ const auth = require('../middleware/auth');
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
-const upload = multer({
-    storage,
-    limits: {
-        fileSize: 10 * 1024 * 1024  // 10MB per file
-    }
-});
+const upload = multer({ storage });
 
 // Multer error handler middleware
 function handleMulterError(err, req, res, next) {
-    if (err && err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ success: false, error: 'File too large (max 10MB per file)' });
-    }
     if (err) {
         return res.status(400).json({ success: false, error: err.message || 'Upload error' });
     }
@@ -88,5 +80,11 @@ router.get('/commits/:hash1/compare/:hash2', ProjectWorkspaceController.compareC
 
 // Get project trends
 router.get('/projects/:id/trends', ProjectWorkspaceController.getProjectTrends);
+
+// Get aggregated project stats
+router.get('/projects/:id/stats', ProjectWorkspaceController.getProjectStats);
+
+// Get 90-day commit activity
+router.get('/projects/:id/activity', ProjectWorkspaceController.getProjectActivity);
 
 module.exports = router;

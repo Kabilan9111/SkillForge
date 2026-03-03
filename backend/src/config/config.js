@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const config = {
-  port: process.env.PORT || 5000,
+  port: process.env.PORT || 3000,
   env: process.env.NODE_ENV || 'development',
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-secret-key-change-in-production',
@@ -9,9 +9,6 @@ const config = {
   },
   db: {
     path: process.env.DB_PATH || './database.sqlite'
-  },
-  cors: {
-    origin: process.env.CORS_ORIGIN || '*' // Allow all origins in development (file:// URLs included)
   }
 };
 

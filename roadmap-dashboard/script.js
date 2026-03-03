@@ -1,5 +1,5 @@
 // --- API CONFIGURATION ---
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 let authToken = localStorage.getItem('authToken') || null;
 let currentUserLevel = localStorage.getItem('userLevel') || 'beginner';
 let currentCommitment = localStorage.getItem('userCommitment') || null;

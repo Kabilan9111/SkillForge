@@ -4,11 +4,25 @@ const initializeDatabase = async () => {
   try {
     await db.connect();
 
-    console.log('Ensuring database tables exist (safe – preserves data)...');
+    console.log('Dropping existing tables...');
+    
+    // Drop tables in reverse order of dependencies
+    await db.run(`DROP TABLE IF EXISTS video_progress`);
+    await db.run(`DROP TABLE IF EXISTS video_notes`);
+    await db.run(`DROP TABLE IF EXISTS videos`);
+    await db.run(`DROP TABLE IF EXISTS user_progress`);
+    await db.run(`DROP TABLE IF EXISTS module_prerequisites`);
+    await db.run(`DROP TABLE IF EXISTS modules`);
+    await db.run(`DROP TABLE IF EXISTS user_tracks`);
+    await db.run(`DROP TABLE IF EXISTS tracks`);
+    await db.run(`DROP TABLE IF EXISTS users`);
+    await db.run(`DROP TABLE IF EXISTS institutions`);
+
+    console.log('Creating database tables...');
 
     // Create institutions table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS institutions (
+      CREATE TABLE institutions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         type TEXT NOT NULL CHECK(type IN ('school', 'college', 'university')),
@@ -19,7 +33,7 @@ const initializeDatabase = async () => {
 
     // Create users table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         institution_id INTEGER NOT NULL,
         email TEXT UNIQUE NOT NULL,
@@ -34,7 +48,7 @@ const initializeDatabase = async () => {
 
     // Create tracks table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS tracks (
+      CREATE TABLE tracks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         slug TEXT UNIQUE NOT NULL,
@@ -46,7 +60,7 @@ const initializeDatabase = async () => {
 
     // Create user_tracks table (many-to-many with active status)
     await db.run(`
-      CREATE TABLE IF NOT EXISTS user_tracks (
+      CREATE TABLE user_tracks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         track_id INTEGER NOT NULL,
@@ -60,7 +74,7 @@ const initializeDatabase = async () => {
 
     // Create modules table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS modules (
+      CREATE TABLE modules (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         track_id INTEGER NOT NULL,
         level TEXT NOT NULL CHECK(level IN ('beginner', 'intermediate', 'advanced')),
@@ -75,7 +89,7 @@ const initializeDatabase = async () => {
 
     // Create module_prerequisites table (self-referencing many-to-many)
     await db.run(`
-      CREATE TABLE IF NOT EXISTS module_prerequisites (
+      CREATE TABLE module_prerequisites (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         module_id INTEGER NOT NULL,
         prerequisite_id INTEGER NOT NULL,
@@ -87,7 +101,7 @@ const initializeDatabase = async () => {
 
     // Create user_progress table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS user_progress (
+      CREATE TABLE user_progress (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         track_id INTEGER NOT NULL,
@@ -103,7 +117,7 @@ const initializeDatabase = async () => {
 
     // Create videos table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS videos (
+      CREATE TABLE videos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT,
@@ -123,7 +137,7 @@ const initializeDatabase = async () => {
 
     // Create video_progress table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS video_progress (
+      CREATE TABLE video_progress (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         video_id INTEGER NOT NULL,
@@ -140,7 +154,7 @@ const initializeDatabase = async () => {
 
     // Create video_notes table
     await db.run(`
-      CREATE TABLE IF NOT EXISTS video_notes (
+      CREATE TABLE video_notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         video_id INTEGER NOT NULL,
         content TEXT NOT NULL,
@@ -149,72 +163,6 @@ const initializeDatabase = async () => {
         updated_at TEXT,
         FOREIGN KEY (video_id) REFERENCES videos(id),
         UNIQUE(video_id)
-      )
-    `);
-
-    // Create projects_workspace table
-    await db.run(`
-      CREATE TABLE IF NOT EXISTS projects_workspace (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        description TEXT,
-        tech_stack TEXT,
-        visibility TEXT DEFAULT 'private' CHECK(visibility IN ('private', 'public')),
-        status TEXT DEFAULT 'active' CHECK(status IN ('active', 'archived')),
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    `);
-
-    // Create projects_files table
-    await db.run(`
-      CREATE TABLE IF NOT EXISTS projects_files (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        project_id INTEGER NOT NULL,
-        commit_hash TEXT,
-        file_path TEXT NOT NULL,
-        file_name TEXT NOT NULL,
-        file_type TEXT,
-        file_size INTEGER,
-        file_content TEXT,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (project_id) REFERENCES projects_workspace(id)
-      )
-    `);
-
-    // Create projects_commits table
-    await db.run(`
-      CREATE TABLE IF NOT EXISTS projects_commits (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        project_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        commit_hash TEXT UNIQUE NOT NULL,
-        message TEXT NOT NULL,
-        files_count INTEGER DEFAULT 0,
-        total_lines INTEGER DEFAULT 0,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (project_id) REFERENCES projects_workspace(id),
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    `);
-
-    // Create projects_ai_reviews table
-    await db.run(`
-      CREATE TABLE IF NOT EXISTS projects_ai_reviews (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        commit_hash TEXT UNIQUE NOT NULL,
-        overall_score INTEGER DEFAULT 0,
-        code_quality TEXT,
-        best_practices TEXT,
-        performance TEXT,
-        security TEXT,
-        maintainability TEXT,
-        documentation TEXT,
-        suggestions TEXT,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (commit_hash) REFERENCES projects_commits(commit_hash)
       )
     `);
 

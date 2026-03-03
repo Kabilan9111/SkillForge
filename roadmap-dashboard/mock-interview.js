@@ -18,7 +18,7 @@ const MockInterview = (function() {
         WARNING_TIME: 60, // Yellow warning at 1 minute
         CRITICAL_TIME: 30, // Red alert at 30 seconds
         STORAGE_KEY: 'mockInterviewSession',
-        API_BASE_URL: 'http://localhost:5000/api'
+        API_BASE_URL: '/api'
     };
 
     // ==================== STATE MANAGEMENT ====================
