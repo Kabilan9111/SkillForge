@@ -319,16 +319,33 @@
             return;
         }
 
+        const projectContributors = window.selectedContributors ? window.selectedContributors.map(u => ({
+            userId: u.id,
+            name: u.name,
+            email: u.email,
+            avatarUrl: u.avatarUrl,
+            status: "pending"
+        })) : [];
+
         try {
             const r = await fetch(`${API_BASE_URL}/workspace/projects`, {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ name, description, techStack, projectType })
+                body: JSON.stringify({ name, description, techStack, projectType, contributors: projectContributors })
             });
             const d = await r.json().catch(() => ({}));
             if (!r.ok) throw new Error(d.error || d.message || `HTTP ${r.status}`);
 
             closeCreateProjectModal();
+            
+            // Clear selected contributors for next time
+            if (window.selectedContributors) {
+                window.selectedContributors = [];
+            }
+            if (window.renderSelectedContributors) {
+                window.renderSelectedContributors();
+            }
+
             showNotification(`Project "${name}" created successfully!`, 'success');
             await showProjectsGrid();
         } catch (err) {
@@ -2045,3 +2062,124 @@
 
     console.log('[ProjectsWorkspace] Module loaded');
 })();
+
+// --- CONTRIBUTORS INVITATION SYSTEM ---
+window.selectedContributors = [];
+let searchTimeout = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('new-project-contributors-input');
+    const dropdown = document.getElementById('contributors-dropdown');
+    
+    if (input) {
+        input.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const val = e.target.value.trim();
+            if (val.length < 2) {
+                dropdown.style.display = 'none';
+                return;
+            }
+            searchTimeout = setTimeout(() => window.fetchUsersForContrib(val), 300);
+        });
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target !== input && dropdown && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+});
+
+window.fetchUsersForContrib = async function(query) {
+    const dropdown = document.getElementById('contributors-dropdown');
+    try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+            headers: window.getAuthHeaders ? window.getAuthHeaders() : { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!res.ok) throw new Error('Search failed');
+        const data = await res.json();
+        window.renderContributorsDropdown(data.users || []);
+    } catch(err) {
+        console.error('Failed to search users:', err);
+    }
+};
+
+window.renderContributorsDropdown = function(users) {
+    const dropdown = document.getElementById('contributors-dropdown');
+    dropdown.innerHTML = '';
+    
+    const sessionUserStr = localStorage.getItem('user');
+    const sessionUser = sessionUserStr ? JSON.parse(sessionUserStr) : null;
+    
+    // Filter out already selected and self
+    const filtered = users.filter(u => 
+        (sessionUser ? u.id !== sessionUser.id : true) && 
+        !window.selectedContributors.find(sc => sc.id === u.id)
+    );
+    
+    if (filtered.length === 0) {
+        dropdown.innerHTML = '<div style="padding: 8px 12px; color: #8b949e; font-size: 13px;">No matching users found</div>';
+        dropdown.style.display = 'block';
+        return;
+    }
+    
+    filtered.forEach(u => {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding: 8px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid #30363d; margin: 0;';
+        
+        let initial = Array.from(u.name || 'U')[0].toUpperCase();
+        let avatarHtml = u.avatarUrl 
+            ? `<div class="gh-avatar" style="width: 24px; height: 24px; border-radius: 50%; background-image: url('${u.avatarUrl.replace(/'/g, "\\'")}'); background-size: cover; border: 1px solid #484f58; color: transparent; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">${initial}</div>`
+            : `<div class="gh-avatar" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid #484f58; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0;">${initial}</div>`;
+            
+        item.innerHTML = `
+            ${avatarHtml}
+            <div style="display: flex; flex-direction: column; min-width: 0;">
+                <span style="font-size: 13px; color: #c9d1d9; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${window.escapeHtml ? window.escapeHtml(u.name) : u.name}</span>
+                <span style="font-size: 11px; color: #8b949e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${window.escapeHtml ? window.escapeHtml(u.email) : u.email}</span>
+            </div>
+        `;
+        
+        item.addEventListener('mouseenter', () => item.style.background = '#21262d');
+        item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+        
+        item.addEventListener('click', () => {
+            window.selectedContributors.push(u);
+            window.renderSelectedContributors();
+            dropdown.style.display = 'none';
+            const input = document.getElementById('new-project-contributors-input');
+            if (input) input.value = '';
+        });
+        
+        dropdown.appendChild(item);
+    });
+    
+    dropdown.style.display = 'block';
+};
+
+window.renderSelectedContributors = function() {
+    const list = document.getElementById('selected-contributors-list');
+    if (!list) return;
+    
+    list.innerHTML = window.selectedContributors.map(u => {
+        let initial = Array.from(u.name || 'U')[0].toUpperCase();
+        let avatarHtml = u.avatarUrl 
+            ? `<div style="width: 16px; height: 16px; border-radius: 50%; background-image: url('${u.avatarUrl.replace(/'/g, "\\'")}'); background-size: cover; border: 1px solid #484f58;"></div>`
+            : `<div style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #484f58; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #c9d1d9;">${initial}</div>`;
+            
+        return `
+            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px 4px 4px; background: #21262d; border: 1px solid #30363d; border-radius: 12px; font-size: 12px; user-select: none;">
+                ${avatarHtml}
+                <span style="color: #c9d1d9;">${window.escapeHtml ? window.escapeHtml(u.name) : u.name} <span style="color:#8b949e; font-style:italic; font-size: 11px;">(Pending)</span></span>
+                <i class="fas fa-times" style="color: #8b949e; cursor: pointer; margin-left: 4px;" onclick="window.removeContributor('${u.id}')"></i>
+            </div>
+        `;
+    }).join('');
+};
+
+window.removeContributor = function(id) {
+    window.selectedContributors = window.selectedContributors.filter(u => String(u.id) !== String(id));
+    window.renderSelectedContributors();
+};
+

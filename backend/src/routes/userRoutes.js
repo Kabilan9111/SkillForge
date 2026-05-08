@@ -9,5 +9,6 @@ router.use(auth);
 router.get('/me', UserController.getCurrentUser);
 router.get('/profile', UserController.getUserProfile);
 router.get('/tracks', UserController.getUserTracksWithProgress);
+router.get('/search', UserController.searchUsers);
 
 module.exports = router;

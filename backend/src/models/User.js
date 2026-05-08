@@ -40,6 +40,17 @@ class User {
     const sql = `UPDATE users SET last_login = datetime('now') WHERE id = ?`;
     await db.run(sql, [userId]);
   }
+  static async search(query, limit = 5) {
+    const sql = `
+      SELECT id, full_name, email, role, avatar_url
+      FROM users
+      WHERE full_name LIKE ? OR email LIKE ?
+      LIMIT ?
+    `;
+    const searchStr = `%${query}%`;
+    return await db.all(sql, [searchStr, searchStr, limit]);
+  }
 }
 
 module.exports = User;
+

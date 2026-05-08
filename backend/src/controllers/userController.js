@@ -44,6 +44,29 @@ class UserController {
       next(error);
     }
   }
+
+  static async searchUsers(req, res, next) {
+    try {
+      const query = req.query.q || '';
+      if (!query || query.length < 2) {
+        return res.json({ users: [] });
+      }
+      
+      const users = await User.search(query, 5);
+      
+      const formattedUsers = users.map(u => ({
+        id: u.id,
+        name: u.full_name,
+        email: u.email,
+        role: u.role,
+        avatarUrl: u.avatar_url || null
+      }));
+      
+      res.json({ users: formattedUsers });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = UserController;

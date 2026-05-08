@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -151,8 +151,14 @@
           <label class="form-label">Tech Stack (comma-separated)</label>
           <input type="text" id="new-project-tech" class="form-input" placeholder="React, Node.js, PostgreSQL, Docker" />
         </div>
-        <div class="form-group">
-          <label class="form-label">Project Type</label>
+        <div class="form-group" style="position: relative;">
+            <label class="form-label">Add Contributors</label>
+            <div id="selected-contributors-list" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;"></div>
+            <input type="text" id="new-project-contributors-input" class="form-input" placeholder="Search by name or email..." autocomplete="off" />
+            <div id="contributors-dropdown" class="gh-dropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: #161b22; border: 1px solid #30363d; border-radius: 6px; z-index: 100; max-height: 200px; overflow-y: auto; margin-top: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Project Type</label>
           <select id="new-project-type" class="form-input form-select">
             <option value="fullstack">Full Stack</option>
             <option value="frontend">Frontend</option>
