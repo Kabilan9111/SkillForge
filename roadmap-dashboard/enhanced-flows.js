@@ -797,9 +797,11 @@ async function analyzeResume() {
         const authToken = AuthHelper.getToken();
 
         if (!authToken) {
-            console.warn('âš ï¸ No authentication token - attempting unauthenticated request');
-            // Show warning but continue (for development/testing)
-            showFeedback('Warning: No authentication token found', 'warning');
+            showFeedback('Authentication required. Please log in to analyze your resume.', 'error');
+            document.getElementById('sg-loading')?.classList.add('hidden');
+            document.getElementById('upload-section')?.classList.remove('hidden');
+            document.getElementById('analysis-section')?.classList.add('hidden');
+            return;
         }
 
         // Animate layers sequentially
@@ -1583,10 +1585,10 @@ function renderSkillGapResults(analysis) {
     const resultsSection = document.getElementById('results-section');
     if (!resultsSection) return;
 
-    // Secure Data Extraction (clamp 0-100, remove undef, fix Objects)
+    // -- SECURE DATA EXTRACTION --
     const sgClamp = (v) => Math.min(100, Math.max(0, Number(v) || 0));
     const sgNormConf = (v) => { const n = Number(v); if(!n) return 0; return sgClamp(n < 1.5 ? Math.round(n * 100) : n); };
-    const sgSkillName = (s) => (typeof s === 'string' ? s : (s && (s.skill || s.name))) || '';
+    const sgSkillName = (s) => (typeof s === 'string' ? s : (s && (s.skill || s.name))) || 'Unknown Skill';
     
     // Core Metrics
     const coverage = analysis.coverageScore || {};
@@ -1594,172 +1596,212 @@ function renderSkillGapResults(analysis) {
     const roleLevel = (coverage.readinessLevel || 'Software Engineer').replace(/undefined|\[object Object\]/g, 'Engineer').trim();
     
     const toObj = s => typeof s === 'string' ? { skill: s, confidence: 0.7 } : (s || {});
-    const strongObjs  = (analysis.strongSkills  || []).map(toObj).filter(s => sgSkillName(s));
-    const weakObjs    = (analysis.weakSkills    || []).map(toObj).filter(s => sgSkillName(s));
-    const missingObjs = (analysis.missingSkills || []).map(toObj).filter(s => sgSkillName(s));
-    const allCount = strongObjs.length + weakObjs.length + missingObjs.length || 1;
+    // Filter out empty arrays or invalid objects
+    const strongObjs  = (analysis.strongSkills  || []).map(toObj).filter(s => sgSkillName(s) !== 'Unknown Skill');
+    const weakObjs    = (analysis.weakSkills    || []).map(toObj).filter(s => sgSkillName(s) !== 'Unknown Skill');
+    const missingObjs = (analysis.missingSkills || []).map(toObj).filter(s => sgSkillName(s) !== 'Unknown Skill');
 
-    // KPI Calculations
-    const roleAlignScore = Math.round((strongObjs.length / allCount) * 100);
-    const gapSeverity = Math.min(100, missingObjs.length * 15);
+    // KPI Metrics
+    const readinessScore = dciScore;
+    const roleAlign = Math.round(((strongObjs.length + (weakObjs.length * 0.5)) / (strongObjs.length + weakObjs.length + missingObjs.length || 1)) * 100);
+    const riskLevel = missingObjs.length > 5 ? 'High' : missingObjs.length > 2 ? 'Moderate' : 'Low';
     
-    // Ring Calc - Large Size
-    const r = 80;
+    // Ring Calculation (Radius 85px)
+    const r = 85;
     const c = 2 * Math.PI * r;
     const offset = c - (dciScore / 100) * c;
 
-    // Matrix Data via simple derivation if helpers unavailable
-    const sysScore = 65; 
-    const codeScore = 70; 
-    const innovScore = 60;
-    const secScore = 50;
+    // --- EXEC STRATEGY PANEL DATA ---
+    const primaryBlockers = missingObjs.slice(0, 3).map(s => sgSkillName(s)).join(', ') || 'None identified';
+    const timeToAlign = missingObjs.length > 5 ? '8-12 months' : missingObjs.length > 2 ? '3-6 months' : '1-2 months';
+    const marketComp = dciScore > 80 ? 'Highly Competitive' : dciScore > 60 ? 'Market Standard' : 'Emerging';
+
+    // --- MATRIX DATA DERIVATION ---
+    // Use fallback derivation if external helpers aren't available just in case
+    const safeDerive = (fn, fallback) => (typeof fn === 'function' ? fn : () => fallback);
     
+    const sysScore = safeDerive(window.sgDeriveArch, 65)(strongObjs, weakObjs, missingObjs);
+    const codeScore = safeDerive(window.sgDeriveCodeQ, 72)(strongObjs, weakObjs);
+    const innovScore = safeDerive(window.sgDeriveInnov, 55)(strongObjs, weakObjs);
+    const secScore = safeDerive(window.sgDeriveSec, 45)(strongObjs);
+
     const matrixRows = [
-        { label: 'System Design & Arch', required: 90, current: sysScore },
+        { label: 'System Architecture', required: 90, current: sysScore },
         { label: 'Production Engineering', required: 85, current: codeScore },
-        { label: 'Modern Stack Innovation', required: 80, current: innovScore },
-        { label: 'Security & Compliance', required: 75, current: secScore }
+        { label: 'Cloud & Infrastructure', required: 80, current: innovScore },
+        { label: 'Security Hygiene', required: 75, current: secScore }
     ];
 
-    // Heatmap Data
+    // --- HEATMAP DATA ---
     const heatData = [
-        ...strongObjs.map(s => ({ name: sgSkillName(s), score: sgClamp(sgNormConf(s.confidence) || 85), type: 'strong' })),
-        ...weakObjs.map(s => ({ name: sgSkillName(s), score: sgClamp(sgNormConf(s.confidence) || 45), type: 'weak' })),
-        ...missingObjs.map(s => ({ name: sgSkillName(s), score: 15, type: 'missing' }))
-    ].sort((a,b) => b.score - a.score).slice(0, 8);
+        ...strongObjs.map(s => ({ name: sgSkillName(s), score: sgClamp(sgNormConf(s.confidence) || 88), type: 'strong' })),
+        ...weakObjs.map(s => ({ name: sgSkillName(s), score: sgClamp(sgNormConf(s.confidence) || 48), type: 'weak' })),
+        ...missingObjs.map(s => ({ name: sgSkillName(s), score: 20, type: 'missing' }))
+    ].sort((a,b) => b.score - a.score).slice(0, 10);
 
+
+    // --- TEMPLATE CONSTRUCTION ---
     const html = `
         <div class="sg-ent-container">
             
-            <!-- SECTION 1: EXECUTIVE GAP HEADER (Horizontal) -->
-            <div class="sg-ent-section sg-ent-hero-row">
-                <div class="sg-ent-hero-left">
-                    <div class="sg-ent-brand">
-                        <i class="fas fa-layer-group"></i> Skill Gap Intelligence
-                    </div>
-                    <h2 class="sg-ent-title">Capability Alignment Analysis</h2>
-                    <p class="sg-ent-sub">Target Role: <strong style="color:#fff">${roleLevel}</strong></p>
+            <!-- TASK 1: HERO SECTION - RESTRUCTURED -->
+            <div class="sg-ent-hero-v2">
+                <div class="sg-ent-hero-info">
+                    <h2 class="sg-ent-hero-title">Capability Alignment Analysis</h2>
+                    <p class="sg-ent-hero-sub">Strategic Capability vs Target Role: <strong style="color:#fff">${roleLevel}</strong></p>
                     
-                    <div class="sg-ent-kpi-row">
-                        <div class="sg-ent-kpi-card">
-                            <div class="sg-ent-kpi-val">${dciScore}%</div>
-                            <div class="sg-ent-kpi-label">Readiness Score</div>
+                    <div class="sg-ent-kpi-chips">
+                        <div class="sg-ent-chip">
+                            <span class="sg-ent-chip-label">Readiness Score</span>
+                            <span class="sg-ent-chip-val">${readinessScore}%</span>
                         </div>
-                        <div class="sg-ent-kpi-card">
-                            <div class="sg-ent-kpi-val" style="color: #43e97b;">${roleAlignScore}%</div>
-                            <div class="sg-ent-kpi-label">Role Alignment</div>
+                        <div class="sg-ent-chip">
+                            <span class="sg-ent-chip-label">Role Alignment</span>
+                            <span class="sg-ent-chip-val" style="color:#43e97b">${roleAlign}%</span>
                         </div>
-                        <div class="sg-ent-kpi-card">
-                            <div class="sg-ent-kpi-val" style="color: #ff3b30;">${gapSeverity > 60 ? 'High' : 'Med'}</div>
-                            <div class="sg-ent-kpi-label">Risk Severity</div>
+                        <div class="sg-ent-chip">
+                            <span class="sg-ent-chip-label">Risk Level</span>
+                            <span class="sg-ent-chip-val" style="color:${riskLevel === 'High' ? '#ff5252' : '#ffab40'}">${riskLevel}</span>
                         </div>
                     </div>
                 </div>
-                <div class="sg-ent-hero-right">
-                    <svg width="180" height="180" style="transform: rotate(-90deg);">
-                        <circle cx="90" cy="90" r="${r}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12"></circle>
-                        <circle cx="90" cy="90" r="${r}" fill="none" stroke="#4facfe" stroke-width="12" 
-                                style="stroke-dasharray: ${c}; stroke-dashoffset: ${offset}; transition: stroke-dashoffset 1s ease;"></circle>
+                
+                <div class="sg-ent-hero-chart">
+                     <svg width="200" height="200" style="transform: rotate(-90deg);">
+                        <!-- Track -->
+                        <circle cx="100" cy="100" r="${r}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="10"></circle>
+                        <!-- Progress -->
+                        <circle cx="100" cy="100" r="${r}" fill="none" stroke="#29b6f6" stroke-width="10" 
+                                stroke-linecap="round"
+                                style="stroke-dasharray: ${c}; stroke-dashoffset: ${c}; animation: sgRingAnim 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;">
+                            <animate attributeName="stroke-dashoffset" to="${offset}" dur="1.5s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" />
+                        </circle>
                     </svg>
-                    <div class="sg-ent-ring-center">
-                        <div style="font-size:2.5rem;font-weight:700;color:#fff;">${dciScore}</div>
-                        <div style="font-size:0.75rem;opacity:0.6;color:#ccc;">INDEX</div>
+                    <div class="sg-ent-chart-center">
+                        <div class="sg-ent-index-score">${dciScore}</div>
+                        <div class="sg-ent-index-label">GAP RISK INDEX</div>
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION 2: ROLE COMPARISON GRID (2-Col Matrix) -->
-            <div class="sg-ent-section">
-                <h3 class="sg-ent-section-title">Role Capability Comparison</h3>
-                <div class="sg-ent-comp-grid-header">
-                    <div>TARGET REQUIREMENT</div>
-                    <div>CURRENT CAPABILITY</div>
+            <!-- TASK 2: EXECUTIVE INSIGHT STRIP -->
+            <div class="sg-ent-insight-strip">
+                <div class="sg-ent-insight-item">
+                    <span class="sg-ent-insight-label">Primary Blockers:</span>
+                    <span class="sg-ent-insight-val" style="color:#ff8a80; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px;" title="${primaryBlockers}">${primaryBlockers}</span>
                 </div>
-                <div class="sg-ent-comp-list">
-                    ${matrixRows.map(row => `
-                        <div class="sg-ent-comp-row">
-                            <div class="sg-ent-comp-label">${row.label}</div>
-                            <div class="sg-ent-comp-bars">
-                                <!-- Target -->
-                                <div class="sg-ent-bar-group">
-                                    <div class="sg-ent-bg-bar"><div class="sg-ent-fill-bar target" style="width:${row.required}%"></div></div>
-                                    <span class="sg-ent-bar-val">${row.required}</span>
-                                </div>
-                                <!-- Current -->
-                                <div class="sg-ent-bar-group">
-                                    <div class="sg-ent-bg-bar"><div class="sg-ent-fill-bar ${row.current >= row.required ? 'good' : 'gap'}" style="width:${row.current}%"></div></div>
-                                    <span class="sg-ent-bar-val">${row.current}</span>
-                                </div>
-                            </div>
-                            <div class="sg-ent-comp-delta ${row.current - row.required >= 0 ? 'pos' : 'neg'}">
-                                ${row.current - row.required}
-                            </div>
-                        </div>
-                    `).join('')}
+                <div class="sg-ent-insight-item">
+                    <span class="sg-ent-insight-label">Time to Alignment:</span>
+                    <span class="sg-ent-insight-val">${timeToAlign}</span>
+                </div>
+                <div class="sg-ent-insight-item">
+                    <span class="sg-ent-insight-label">Market Competitiveness:</span>
+                    <span class="sg-ent-insight-val" style="color:#69f0ae">${marketComp}</span>
                 </div>
             </div>
 
-            <!-- SECTION 3: CRITICAL GAPS (Data Grid) -->
+            <!-- TASK 3: REFINED MATRIX -->
             <div class="sg-ent-section">
-                <h3 class="sg-ent-section-title">Critical Skill Deficiencies</h3>
-                <div class="sg-ent-card-grid">
-                    ${missingObjs.slice(0, 6).map(m => `
-                        <div class="sg-ent-glass-card error">
-                            <div class="sg-ent-card-header">
-                                <span class="sg-ent-skill-name">${sgSkillName(m)}</span>
-                                <span class="sg-ent-badge red">CRITICAL</span>
+                <h3 class="sg-ent-section-header">Technical Capability Matrix</h3>
+                <div class="sg-ent-matrix-table">
+                    <div class="sg-ent-matrix-head">
+                        <div>DOMAIN AREA</div>
+                        <div>REQUIRED</div>
+                        <div style="padding-left:20px;">CURRENT STATE</div>
+                        <div style="text-align:right">DELTA</div>
+                    </div>
+                    ${matrixRows.map(row => {
+                        const delta = row.current - row.required;
+                        const dClass = delta >= 0 ? 'pos' : 'neg';
+                        const dSign = delta > 0 ? '+' : '';
+                        return `
+                        <div class="sg-ent-matrix-row">
+                            <div class="sg-ent-matrix-label">${row.label}</div>
+                            <div class="sg-ent-matrix-val">${row.required}</div>
+                            <div class="sg-ent-matrix-track-cell">
+                                <div class="sg-ent-matrix-track">
+                                    <div class="sg-ent-matrix-fill ${dClass}" style="width: 0%; animation: sgFillAnim 1s ease 0.3s forwards" data-width="${row.current}%"></div>
+                                </div>
+                                <span class="sg-ent-matrix-current">${row.current}</span>
+                            </div>
+                            <div class="sg-ent-matrix-delta ${dClass}">${dSign}${delta}</div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <!-- TASK 4: CRITICAL CARDS (REDUCED AGGRESSION) -->
+            <div class="sg-ent-section">
+                <h3 class="sg-ent-section-header">Critical Gaps</h3>
+                <div class="sg-ent-card-grid-v2">
+                    ${missingObjs.slice(0, 3).map((m, i) => `
+                        <div class="sg-ent-card-v2" style="animation-delay: ${i * 0.1}s">
+                            <div class="sg-ent-card-accent"></div>
+                            <div class="sg-ent-card-top">
+                                <span class="sg-ent-card-title">${sgSkillName(m)}</span>
+                                <span class="sg-ent-badge-mini">CRITICAL</span>
                             </div>
                             <div class="sg-ent-card-body">
-                                <div class="sg-ent-metric">Gap Impact: <strong>High</strong></div>
-                                <div class="sg-ent-rec">Action: Prioritize evidence acquisition immediately to unlock role eligibility.</div>
+                                <div class="sg-ent-metric-row">Gap Impact: <span style="color:#fff">High</span></div>
+                                <p class="sg-ent-rec-text">Acquire verification within 30 days to clear separation threshold.</p>
                             </div>
                         </div>
                     `).join('')}
-                    ${missingObjs.length === 0 ? '<div style="padding:20px;color:#666;">No critical gaps detected.</div>' : ''}
+                    ${missingObjs.length === 0 ? '<div class="sg-ent-empty-state">No critical gaps. System aligned.</div>' : ''}
                 </div>
             </div>
 
-            <!-- SECTION 4: STRATEGIC ROADMAP (Timeline) -->
+            <!-- TASK 5: STRATEGIC ROADMAP (POLISHED) -->
             <div class="sg-ent-section">
-                <h3 class="sg-ent-section-title">Strategic Improvement Roadmap</h3>
-                <div class="sg-ent-timeline">
-                    <div class="sg-ent-timeline-item">
-                        <div class="sg-ent-time-marker">PHASE 1</div>
-                        <div class="sg-ent-time-content">
-                            <h4>Blocking Gaps Resolution</h4>
-                            <p>Immediate focus on validitating ${missingObjs.slice(0,3).map(s=>sgSkillName(s)).join(', ') || 'foundation skills'} to pass automated screening filters.</p>
+                <h3 class="sg-ent-section-header">Strategic Roadmap</h3>
+                <div class="sg-ent-roadmap-v2">
+                    <div class="sg-ent-phase">
+                        <div class="sg-ent-phase-marker">01</div>
+                        <div class="sg-ent-phase-content">
+                            <div class="sg-ent-phase-title">BLOCKING GAPS</div>
+                            <div class="sg-ent-phase-desc">Validate ${missingObjs.slice(0,2).map(s=>sgSkillName(s)).join(', ')} to pass initial screening.</div>
                         </div>
                     </div>
-                    <div class="sg-ent-timeline-item">
-                        <div class="sg-ent-time-marker">PHASE 2</div>
-                        <div class="sg-ent-time-content">
-                            <h4>Competitive Tech Depth</h4>
-                            <p>Enhance ${weakObjs.slice(0,3).map(s=>sgSkillName(s)).join(', ') || 'core competencies'} to match senior-level expectations.</p>
+                    <div class="sg-ent-phase-line"></div>
+                     <div class="sg-ent-phase">
+                        <div class="sg-ent-phase-marker">02</div>
+                        <div class="sg-ent-phase-content">
+                            <div class="sg-ent-phase-title">COMPETITIVE DEPTH</div>
+                            <div class="sg-ent-phase-desc">Enhance ${weakObjs.slice(0,2).map(s=>sgSkillName(s)).join(', ')} to senior standard.</div>
                         </div>
                     </div>
-                    <div class="sg-ent-timeline-item">
-                        <div class="sg-ent-time-marker">PHASE 3</div>
-                        <div class="sg-ent-time-content">
-                            <h4>Differentiation & Leadership</h4>
-                            <p>Leverage strong skills (${strongObjs.slice(0,2).map(s=>sgSkillName(s)).join(', ') || 'strengths'}) like System Design for distinct market positioning.</p>
+                    <div class="sg-ent-phase-line"></div>
+                     <div class="sg-ent-phase">
+                        <div class="sg-ent-phase-marker">03</div>
+                        <div class="sg-ent-phase-content">
+                            <div class="sg-ent-phase-title">MARKET LEADER</div>
+                            <div class="sg-ent-phase-desc">Leverage ${strongObjs.slice(0,2).map(s=>sgSkillName(s)).join(', ')} for elite positioning.</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION 5: HEATMAP (Compact) -->
-            <div class="sg-ent-section">
-                <h3 class="sg-ent-section-title">Verified Skill Heatmap</h3>
-                <div class="sg-ent-heatmap-container">
-                    ${heatData.map(h => `
-                        <div class="sg-ent-heat-item">
-                            <div class="sg-ent-heat-label">${h.name}</div>
-                            <div class="sg-ent-heat-track">
-                                <div class="sg-ent-heat-fill ${h.score > 75 ? 'green' : h.score > 40 ? 'amber' : 'red'}" style="width:${h.score}%"></div>
+            <!-- TASK 6: HEATMAP INTELLIGENCE -->
+             <div class="sg-ent-section">
+                <h3 class="sg-ent-section-header">Skill Proficiency Heatmap</h3>
+                <div class="sg-ent-heat-grid">
+                    ${heatData.map(h => {
+                         const delta = h.score - 75;
+                         const dStr = delta > 0 ? `+${delta}` : `${delta}`;
+                         return `
+                        <div class="sg-ent-heat-unit">
+                            <div class="sg-ent-heat-meta">
+                                <span>${h.name}</span>
+                                <span class="sg-ent-heat-badge">${dStr}</span>
                             </div>
-                            <div class="sg-ent-heat-score">${h.score}</div>
+                            <div class="sg-ent-heat-track-bg">
+                                <div class="sg-ent-heat-fill-bar ${h.type}" style="width:0%; animation: sgFillAnim 1s ease 0.5s forwards" data-width="${h.score}%"></div>
+                                <div class="sg-ent-heat-req-marker" style="left:75%"></div>
+                            </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
 
@@ -1768,13 +1810,22 @@ function renderSkillGapResults(analysis) {
 
     resultsSection.innerHTML = html;
     
-    // Animate reveal
+    // Animate widths manually after injection to ensure transition plays
+    requestAnimationFrame(() => {
+        const fills = resultsSection.querySelectorAll('.sg-ent-matrix-fill, .sg-ent-heat-fill-bar');
+        fills.forEach(f => {
+            f.style.width = f.getAttribute('data-width');
+        });
+    });
+
     resultsSection.style.display = 'block';
     resultsSection.style.opacity = '0';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-        resultsSection.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+    requestAnimationFrame(() => {
+        resultsSection.style.transition = 'opacity 0.8s ease';
         resultsSection.style.opacity = '1';
-    }));
+    });
+    
+    // Smooth scroll to top of section
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 

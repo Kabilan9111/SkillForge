@@ -1,0 +1,21 @@
+# ──────────────────────────────────────────────────────────────
+# SkillForge AI Engine — MINIMAL LOCAL requirements
+# Zero external services: no OpenAI, no PostgreSQL, no PyTorch
+# Install: pip install -r requirements-local.txt
+# ──────────────────────────────────────────────────────────────
+
+# Web framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.12
+
+# PDF extraction — pure Python, no compilation, works on Python 3.14
+pdfminer.six
+
+# DOCX extraction
+python-docx==1.1.0
+
+# Config / env
+python-dotenv==1.0.1
+pydantic==2.9.2
+pydantic-settings==2.5.2

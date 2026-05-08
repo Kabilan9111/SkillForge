@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — SkillForge</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    /* ======================================================
+       LOGIN PAGE — SkillForge
+       Dark theme, consistent with the main application
+    ====================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:       #0a0e1a;
+      --bg-card:       #0f1629;
+      --bg-input:      #131c34;
+      --border:        #1e2d4a;
+      --border-focus:  #3b82f6;
+      --accent:        #3b82f6;
+      --accent-hover:  #2563eb;
+      --accent-glow:   rgba(59,130,246,0.25);
+      --text-primary:  #e2e8f0;
+      --text-secondary:#94a3b8;
+      --text-muted:    #475569;
+      --success:       #22c55e;
+      --error:         #ef4444;
+      --warning:       #f59e0b;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,130,246,0.06) 0%, var(--bg-deep) 70%);
+    }
+
+    /* ── Card ────────────────────────────────────── */
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    /* ── Logo ────────────────────────────────────── */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      text-decoration: none;
+    }
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    /* ── Headings ────────────────────────────────── */
+    .header-block { margin-bottom: 1.75rem; }
+    .header-block h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+      margin-bottom: 0.375rem;
+    }
+    .header-block p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* ── Alert messages ──────────────────────────── */
+    .alert {
+      display: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid transparent;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .alert.visible { display: flex; }
+    .alert-error   { background: rgba(239,68,68,0.1);  border-color: rgba(239,68,68,0.3);  color: #fca5a5; }
+    .alert-warning { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+    .alert-success { background: rgba(34,197,94,0.1);  border-color: rgba(34,197,94,0.3);  color: #86efac; }
+
+    /* ── Form ────────────────────────────────────── */
+    .form-group {
+      margin-bottom: 1.125rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.01em;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-icon {
+      position: absolute;
+      left: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 0.875rem 0.75rem 2.5rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.9375rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .form-input:focus + .input-icon,
+    .input-wrap:focus-within .input-icon { color: var(--accent); }
+
+    /* password toggle */
+    .toggle-pass {
+      position: absolute;
+      right: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      padding: 0.25rem;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .toggle-pass:hover { color: var(--text-secondary); }
+
+    /* ── Submit button ───────────────────────────── */
+    .btn-login {
+      width: 100%;
+      padding: 0.8125rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      letter-spacing: 0.01em;
+    }
+    .btn-login:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .btn-login:active:not(:disabled) { transform: scale(0.99); }
+    .btn-login:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    /* ── Spinner ─────────────────────────────────── */
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .btn-login.loading .spinner { display: inline-block; }
+    .btn-login.loading .btn-label { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Demo credentials hint ───────────────────── */
+    .demo-hint {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(59,130,246,0.06);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 10px;
+    }
+    .demo-hint-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.625rem;
+    }
+    .demo-hint table {
+      width: 100%;
+      font-size: 0.8125rem;
+      border-collapse: collapse;
+    }
+    .demo-hint td {
+      padding: 0.1875rem 0;
+      color: var(--text-secondary);
+    }
+    .demo-hint td:first-child {
+      color: var(--text-muted);
+      width: 72px;
+    }
+    .demo-hint .demo-val {
+      color: var(--text-primary);
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+      font-size: 0.8rem;
+    }
+    .btn-autofill {
+      margin-top: 0.625rem;
+      background: none;
+      border: 1px solid rgba(59,130,246,0.35);
+      border-radius: 6px;
+      color: var(--accent);
+      font-size: 0.8125rem;
+      padding: 0.375rem 0.75rem;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s;
+    }
+    .btn-autofill:hover { background: rgba(59,130,246,0.1); }
+
+    /* ── Footer ──────────────────────────────────── */
+    .card-footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+    .card-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .card-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="login-card" id="login-card">
+
+    <!-- Logo -->
+    <a class="logo" href="/">
+      <div class="logo-mark">SF</div>
+      <span class="logo-text">SkillForge</span>
+    </a>
+
+    <!-- Heading -->
+    <div class="header-block">
+      <h1>Welcome back</h1>
+      <p id="page-subtitle">Sign in to your account to continue</p>
+    </div>
+
+    <!-- Alert banner -->
+    <div class="alert" id="alert-banner" role="alert">
+      <i class="fas fa-exclamation-circle" id="alert-icon"></i>
+      <span id="alert-text"></span>
+    </div>
+
+    <!-- Form -->
+    <form id="login-form" novalidate>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <div class="input-wrap">
+          <input
+            id="email"
+            name="email"
+            type="email"
+            class="form-input"
+            placeholder="you@example.com"
+            autocomplete="username"
+            required
+          />
+          <i class="fas fa-envelope input-icon"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="input-wrap">
+          <input
+            id="password"
+            name="password"
+            type="password"
+            class="form-input"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          />
+          <i class="fas fa-lock input-icon"></i>
+          <button type="button" class="toggle-pass" id="toggle-pass" title="Show / hide password">
+            <i class="fas fa-eye" id="toggle-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-login">
+        <div class="spinner"></div>
+        <span class="btn-label"><i class="fas fa-sign-in-alt"></i> Sign in</span>
+      </button>
+
+    </form>
+
+    <!-- Demo credentials auto-fill -->
+    <div class="demo-hint">
+      <div class="demo-hint-header">
+        <i class="fas fa-flask"></i> Demo / Development Account
+      </div>
+      <table>
+        <tr>
+          <td>Email</td>
+          <td class="demo-val">admin@skillforge.dev</td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td class="demo-val">SkillForge@2026</td>
+        </tr>
+      </table>
+      <button class="btn-autofill" id="btn-autofill">
+        <i class="fas fa-bolt"></i> Fill demo credentials
+      </button>
+    </div>
+
+    <div class="card-footer">
+      &copy; 2026 SkillForge &mdash; AI-Powered Career Development
+    </div>
+
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ─── Resolve API base (works on Live Server :5500 AND Express :3000) ──
+    var API_BASE = (function() {
+      var port = parseInt(window.location.port, 10);
+      // If served by Live Server or any non-backend port, point at the backend
+      if (port !== 3000) {
+        return 'http://localhost:3000';
+      }
+      return ''; // same origin when served by Express
+    })();
+
+    // ─── If already authenticated, redirect home ─────────────────────────
+    (function checkAlreadyLoggedIn() {
+      try {
+        var stored = localStorage.getItem('authToken') || localStorage.getItem('token');
+        if (!stored || stored === 'undefined' || stored === 'null') return;
+        var parts = stored.split('.');
+        if (parts.length !== 3) return;
+        var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        if (payload && payload.exp && (payload.exp * 1000) > Date.now()) {
+          window.location.replace('/');
+        }
+      } catch (_) { /* ignore */ }
+    })();
+
+    // ─── Show reason banner from URL params ─────────────────────────────
+    (function handleReasonParam() {
+      var params = new URLSearchParams(window.location.search);
+      var reason = params.get('reason');
+      var subtitle = document.getElementById('page-subtitle');
+      if (reason === 'session_expired') {
+        showAlert('warning', 'Your session has expired. Please sign in again.');
+        subtitle.textContent = 'Your session has expired. Please sign in to continue.';
+      } else if (reason === 'not_authenticated') {
+        showAlert('warning', 'Authentication required. Please sign in to access SkillForge.');
+      } else if (reason === 'token_invalid') {
+        showAlert('error', 'Your login token is invalid. Please sign in again.');
+      }
+    })();
+
+    // ─── Alert helper ────────────────────────────────────────────────────
+    function showAlert(type, message) {
+      var banner = document.getElementById('alert-banner');
+      var text   = document.getElementById('alert-text');
+      var icon   = document.getElementById('alert-icon');
+      banner.className = 'alert visible alert-' + type;
+      text.textContent = message;
+      icon.className = type === 'success'
+        ? 'fas fa-check-circle'
+        : type === 'warning'
+          ? 'fas fa-exclamation-triangle'
+          : 'fas fa-times-circle';
+    }
+
+    function hideAlert() {
+      document.getElementById('alert-banner').className = 'alert';
+    }
+
+    // ─── Password visibility toggle ──────────────────────────────────────
+    document.getElementById('toggle-pass').addEventListener('click', function () {
+      var input = document.getElementById('password');
+      var icon  = document.getElementById('toggle-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+      }
+    });
+
+    // ─── Demo autofill ───────────────────────────────────────────────────
+    document.getElementById('btn-autofill').addEventListener('click', function () {
+      document.getElementById('email').value    = 'admin@skillforge.dev';
+      document.getElementById('password').value = 'SkillForge@2026';
+      hideAlert();
+    });
+
+    // ─── Main login function ─────────────────────────────────────────────
+    async function login(email, password) {
+      var btn = document.getElementById('btn-login');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      hideAlert();
+
+      try {
+        var res = await fetch(API_BASE + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password })
+        });
+
+        var data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || data.message || 'Login failed. Please check your credentials.');
+        }
+
+        if (!data.token) {
+          throw new Error('Server did not return an authentication token.');
+        }
+
+        // Store token (both keys for compatibility with existing code)
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('token', data.token);
+
+        // Persist basic user info
+        if (data.user) {
+          localStorage.setItem('userData', JSON.stringify(data.user));
+          if (data.user.email) localStorage.setItem('userEmail', data.user.email);
+        }
+
+        showAlert('success', 'Login successful! Redirecting…');
+
+        // Small delay so the success message is visible
+        setTimeout(function () {
+          var redirect = new URLSearchParams(window.location.search).get('next');
+          // Always redirect through the backend origin, not Live Server origin
+          var backendOrigin = (API_BASE || window.location.origin);
+          if (redirect) {
+            window.location.href = backendOrigin + redirect;
+          } else {
+            window.location.href = backendOrigin + '/';
+          }
+        }, 600);
+
+      } catch (err) {
+        showAlert('error', err.message || 'Login failed. Please try again.');
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    }
+
+    // ─── Form submit ─────────────────────────────────────────────────────
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email    = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value;
+
+      if (!email) {
+        showAlert('error', 'Please enter your email address.');
+        document.getElementById('email').focus();
+        return;
+      }
+      if (!password) {
+        showAlert('error', 'Please enter your password.');
+        document.getElementById('password').focus();
+        return;
+      }
+
+      login(email, password);
+    });
+
+    // Focus email on load
+    document.getElementById('email').focus();
+
+  })();
+  </script>
+
+</body>
+</html>

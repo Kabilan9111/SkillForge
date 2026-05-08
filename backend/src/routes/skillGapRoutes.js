@@ -115,18 +115,19 @@ const SKILL_REQUIREMENTS = {
 /**
  * POST /api/skill-gap/analyze
  * Elite six-stage skill analysis pipeline
+ * Requires: Authorization: Bearer <token>
  */
-router.post('/analyze', auth.optional, upload.single('resume'), async (req, res) => {
+router.post('/analyze', auth, upload.single('resume'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({
                 success: false,
-                error: 'No file uploaded'
+                error: 'No resume file uploaded. Please attach a PDF or DOCX file.'
             });
         }
 
         const { level, trackName } = req.body;
-        const userId = req.user?.id || 'dev-user'; // Use dev-user if not authenticated
+        const userId = req.user.id;
         const filePath = req.file.path;
         const fileType = path.extname(req.file.originalname).toLowerCase();
 
@@ -200,9 +201,13 @@ router.post('/analyze', auth.optional, upload.single('resume'), async (req, res)
             console.log('   📋 Sample skills:', extractedSkills.slice(0, 10).join(', '));
 
             if (extractedSkills.length === 0) {
-                console.warn('⚠️  WARNING: No skills extracted from resume!');
-                console.warn('   This may indicate: (1) Resume has no recognizable tech skills, or');
-                console.warn('                      (2) Extraction patterns need updating');
+                console.error('❌ PIPELINE HALTED: No skills extracted from resume');
+                return res.status(422).json({
+                    success: false,
+                    error: 'Resume parsing failed. No technical skills could be extracted from the uploaded file.',
+                    action: 'Please upload a resume that clearly lists programming languages, frameworks, tools, and technologies.',
+                    hint: 'Ensure the file is not image-only (scanned PDF) and contains readable text.',
+                });
             }
         } catch (error) {
             console.error('❌ Skills extraction failed:', error.message);
@@ -269,7 +274,7 @@ router.post('/analyze', auth.optional, upload.single('resume'), async (req, res)
             console.log('   ✓ Strong skills:', (result.intelligence?.strongAreas || []).length);
             console.log('   ✓ Weakness areas:', (result.intelligence?.weaknessAreas || []).length);
             console.log('   ✓ Critical gaps:', (result.intelligence?.criticalGaps || []).length);
-            console.log('   ✓ DCI Score:', result.advancedMetrics?.dci || 'N/A');
+            console.log('   ✓ DCI Score:', result.advancedMetrics?.developerCapabilityIndex || 'N/A');
             console.log('   ✓ Engineering Maturity:', result.advancedMetrics?.engineeringMaturity || 'N/A');
 
             // ⚠️ WARNING: Check if results are empty
@@ -346,9 +351,9 @@ router.post('/analyze', auth.optional, upload.single('resume'), async (req, res)
                     },
 
                     // Overall metrics with DCI
-                    overallScore: result.advancedMetrics?.dci || result.intelligence?.overallCapability || 75,
-                    dciScore: result.advancedMetrics?.dci || 75,
-                    engineeringMaturity: result.advancedMetrics?.engineeringMaturity || 70,
+                    overallScore: result.advancedMetrics?.developerCapabilityIndex || result.intelligence?.overallCapability || 75,
+                    dciScore: result.advancedMetrics?.developerCapabilityIndex || 75,
+                    engineeringMaturity: result.advancedMetrics?.engineeringMaturityScore || 70,
 
                     // Skills breakdown (from intelligence synthesis)
                     strongSkills: result.intelligence?.strongAreas || [],
@@ -374,7 +379,7 @@ router.post('/analyze', auth.optional, upload.single('resume'), async (req, res)
 
                     // Coverage score with dynamic time-to-ready
                     coverageScore: {
-                        overall: result.intelligence?.overallCapability || result.advancedMetrics?.dci || 75,
+                        overall: result.intelligence?.overallCapability || result.advancedMetrics?.developerCapabilityIndex || 75,
                         strong: (result.intelligence?.strongAreas || []).length,
                         needsImprovement: (result.intelligence?.weaknessAreas || []).length,
                         notDemonstrated: (result.intelligence?.criticalGaps || []).length,
@@ -400,15 +405,15 @@ router.post('/analyze', auth.optional, upload.single('resume'), async (req, res)
                     weakSkills: (result.intelligence?.weaknessAreas || []).length,
                     missingSkills: (result.intelligence?.criticalGaps || []).length,
                     avgConfidence: result.intelligence?.overallCapability / 100 || 0.75,
-                    dciScore: result.advancedMetrics?.dci || 75,
-                    engineeringMaturity: result.advancedMetrics?.engineeringMaturity || 70
+                    dciScore: result.advancedMetrics?.developerCapabilityIndex || 75,
+                    engineeringMaturity: result.advancedMetrics?.engineeringMaturityScore || 70
                 }
             };
 
             console.log('✅ 6-Layer Analysis Complete!');
-            console.log('DCI Score:', result.advancedMetrics?.dci || 'N/A');
-            console.log('Engineering Maturity:', result.advancedMetrics?.engineeringMaturity || 'N/A');
-            console.log('Overall Rating:', result.advancedMetrics?.rating || 'N/A');
+            console.log('DCI Score:', result.advancedMetrics?.developerCapabilityIndex || 'N/A');
+            console.log('Engineering Maturity:', result.advancedMetrics?.engineeringMaturityScore || 'N/A');
+            console.log('Overall Rating:', result.advancedMetrics?.overallRating || 'N/A');
             console.log('Strong Areas:', (result.intelligence?.strongAreas || []).length);
             console.log('Weak Areas:', (result.intelligence?.weaknessAreas || []).length);
             console.log('Critical Gaps:', (result.intelligence?.criticalGaps || []).length);
@@ -814,8 +819,9 @@ router.post('/intelligence', auth, upload.single('resume'), async (req, res) => 
 // ═══════════════════════════════════════════════════════════════════════════
 // POST /api/skill-gap/career-intelligence
 // 🎯 Enterprise 6-Layer Resume Intelligence Engine
+// Requires: Authorization: Bearer <token>
 // ═══════════════════════════════════════════════════════════════════════════
-router.post('/career-intelligence', auth.optional, upload.single('resume'), async (req, res) => {
+router.post('/career-intelligence', auth, upload.single('resume'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, error: 'No resume file uploaded' });

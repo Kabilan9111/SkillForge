@@ -10,6 +10,28 @@
     <link rel="stylesheet" href="projects-workspace.css">
     <link rel="stylesheet" href="video-library.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Auth Guard: runs before any content renders -->
+  <script>
+  (function(){
+    var t = localStorage.getItem('authToken') || localStorage.getItem('token');
+    if (!t || t === 'undefined' || t === 'null') {
+      window.location.replace('/login.html?reason=not_authenticated');
+      return;
+    }
+    try {
+      var p = JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      if (!p || !p.exp || (p.exp * 1000) < Date.now()) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
+        window.location.replace('/login.html?reason=session_expired');
+      }
+    } catch(e) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
+      window.location.replace('/login.html?reason=token_invalid');
+    }
+  })();
+  </script>
 </head>
 <body class="theme-dark"> 
     <div class="app-layout">
@@ -1266,7 +1288,20 @@
             <section id="profile-page" class="page-view hidden">
                 <div class="profile-header card">
                     <div class="profile-info">
-                        <div class="avatar-circle" id="profile-avatar">U</div>
+                        <div class="avatar-upload-container" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-right: 20px;">
+                            <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload-input').click()" style="cursor: pointer; position: relative; overflow: hidden; background-size: cover; background-position: center;">
+                                <span id="profile-avatar-initials">U</span>
+                                <div class="avatar-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;">
+                                    <i class="fas fa-camera" style="color: white; font-size: 20px;"></i>
+                                </div>
+                            </div>
+                            <div class="avatar-actions" style="display: flex; gap: 8px; font-size: 12px;">
+                                <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="document.getElementById('avatar-upload-input').click()">Change Photo</button>
+                                <button type="button" class="btn btn-outline" id="remove-avatar-btn" style="padding: 4px 8px; font-size: 11px; display: none;" onclick="removeProfileAvatar()">Remove</button>
+                            </div>
+                            <input type="file" id="avatar-upload-input" accept=".jpg,.jpeg,.png" style="display: none;" onchange="handleAvatarUpload(event)">
+                            <div id="avatar-error-msg" style="color: #ff4444; font-size: 11px; display: none;">Image must be less than 2MB</div>
+                        </div>
                         <div>
                             <h2 id="profile-name">User Name</h2>
                             <p class="text-muted" id="profile-role">Aspiring Developer</p>
@@ -1714,23 +1749,25 @@
     <!-- ========================= -->
     <!-- JAVASCRIPT FILES -->
     <!-- ========================= -->
-    
-    <!-- Load Auth Helper FIRST (before other scripts) -->
-    <script src="auth-helper.js?v=10"></script>
-    
-    <!-- Quantum Intelligence Visualization Engine -->
+
+    <!-- 1. API config + auth (must come FIRST) -->
+    <script src="app.js?v=11"></script>
+    <script src="auth-helper.js?v=11"></script>
+    <script src="api-request.js?v=1"></script>
+
+    <!-- 2. Visualisation engines -->
     <script src="quantum-intelligence-viz.js?v=10"></script>
-    
-    <!-- Main application scripts -->
+
+    <!-- 3. Feature modules -->
     <script src="enhanced-flows.js?v=10"></script>
     <script src="mock-interview.js?v=10"></script>
     <script src="projects-workspace.js?v=11"></script>
     <script src="video-library.js?v=10"></script>
     <script src="coding-arena-functional.js?v=10"></script>
-    <!-- Coder's DNA Telemetry Tracker -->
     <script src="coders-dna-tracker.js"></script>
-    <script src="app.js?v=10"></script>
-    <!-- Career Intelligence Engine (6-Layer Resume Analysis) -->
+
+    <!-- 4. AI Engine client + Career Intelligence panel -->
+    <script src="ai-engine-client.js?v=1"></script>
     <script src="career-intelligence.js?v=1"></script>
 </body>
 </html>

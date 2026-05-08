@@ -189,18 +189,15 @@ const AuthHelper = {
             console.warn('⚠️ 401 Unauthorized — clearing token and redirecting to login');
             this.removeToken();
 
-            // If we are on the DNA dashboard (separate page), redirect to main app
+            // If we are on the DNA dashboard (separate page), redirect to login
             if (window.location.pathname.includes('dna-dashboard')) {
-                window.location.href = 'index.html?reason=session_expired';
+                window.location.href = 'login.html?reason=session_expired';
                 return true;
             }
 
-            // Inside the SPA — surface the error, don't infinite-loop
-            const errorData = await response.clone().json().catch(() => ({}));
-            const message = errorData.error || 'Session expired. Please log in again.';
-            if (typeof showFeedback === 'function') {
-                showFeedback(message, 'warning');
-            }
+            // Inside the SPA — clear tokens and redirect to login
+            this.removeToken();
+            window.location.replace('/login.html?reason=session_expired');
             return true;
         }
         return false;

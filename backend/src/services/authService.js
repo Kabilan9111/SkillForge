@@ -2,8 +2,40 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 
+// ─── Permanent demo account (from .env, never removed) ────────────────────────
+const DEMO_EMAIL    = process.env.DEMO_EMAIL    || 'admin@skillforge.dev';
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'SkillForge@2026';
+
 class AuthService {
   static async login(email, password) {
+    // ── Demo account shortcut ────────────────────────────────────────────────
+    // Works without a database row — survives fresh DB resets and demos.
+    if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+      const token = jwt.sign(
+        {
+          userId:        0,
+          institutionId: 1,
+          role:          'admin',
+          email:         DEMO_EMAIL,
+          demo:          true,
+        },
+        config.jwt.secret,
+        { expiresIn: config.jwt.expiresIn }
+      );
+      return {
+        user: {
+          id:               0,
+          email:            DEMO_EMAIL,
+          full_name:        'SkillForge Admin',
+          role:             'admin',
+          institution_id:   1,
+          institution_name: 'SkillForge Demo Institution',
+          demo:             true,
+        },
+        token,
+      };
+    }
+
     // Find user by email
     const user = await User.findByEmail(email);
 

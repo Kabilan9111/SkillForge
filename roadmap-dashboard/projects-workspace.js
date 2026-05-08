@@ -379,33 +379,72 @@
         
         dom.projectsGrid.innerHTML = state.projects.map(project => {
             const techStack = Array.isArray(project.tech_stack) ? project.tech_stack : [];
-            const totalCommits = project.total_commits || 0;
-            const totalFiles   = project.total_files   || 0;
             const lastActivity = project.last_commit_at
                 ? formatTimeAgo(new Date(project.last_commit_at).getTime())
                 : formatTimeAgo(new Date(project.created_at || project.createdAt).getTime());
+            
+            const iconColors = ["#2ea043", "#58a6ff", "#db6d28", "#8957e5"];
+            const pId = project.id ? String(project.id).charCodeAt(0) : 0;
+            const iconColor = iconColors[pId % iconColors.length] || "#8b949e";
+            
+            // Extract or fallback contributors
+            let contributors = project.contributors || [];
+            if (contributors.length === 0) {
+                const sessionUserStr = localStorage.getItem('user');
+                let sessionUser = sessionUserStr ? JSON.parse(sessionUserStr) : { name: 'User' };
+                // Keep minimal structure
+                contributors = [sessionUser];
+            }
+            
+            // Reusable logic
+            const renderAvatar = (user) => {
+                const name = user.name || 'Unknown';
+                let initials = 'U';
+                const parts = name.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                    initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                } else if (parts.length === 1 && parts[0]) {
+                    initials = parts[0][0].toUpperCase();
+                }
+                
+                if (user.avatarUrl) {
+                    return `<div class="gh-avatar" title="${escapeHtml(name)}" style="background-image: url('${escapeHtml(user.avatarUrl)}'); background-size: cover; background-position: center; border: 1px solid #484f58; color: transparent;">${escapeHtml(initials)}</div>`;
+                }
+                return `<div class="gh-avatar" title="${escapeHtml(name)}" style="border: 1px solid #484f58;">${escapeHtml(initials)}</div>`;
+            };
+
+            const maxAvatars = 3;
+            const visibleContributors = contributors.slice(0, maxAvatars);
+            const extraCount = contributors.length - maxAvatars;
 
             return `
-                <div class="project-card" onclick="window.ProjectsWorkspace.openProject('${project.id}')">
-                    <div class="project-card-header">
-                        <div>
-                            <h3 class="project-card-title">${escapeHtml(project.name)}</h3>
-                            <p class="project-card-desc">${escapeHtml(project.description || '')}</p>
+                <div class="gh-project-row" onclick="window.ProjectsWorkspace.openProject('${project.id}')">
+                    <div class="gh-project-left">
+                        <div class="gh-project-icon" style="background-color: ${iconColor};">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="gh-project-info">
+                            <div class="gh-project-name">${escapeHtml(project.name)}</div>
+                            <div class="gh-project-desc">${escapeHtml(project.description || 'No description provided')}</div>
+                            <div class="gh-project-tags">
+                                ${techStack.slice(0, 4).map((tech, i) => 
+                                    `<span class="gh-project-tag" style="background-color: ${iconColors[(pId + i + 1) % iconColors.length]}1A; color: ${iconColors[(pId + i + 1) % iconColors.length]}; border-color: ${iconColors[(pId + i + 1) % iconColors.length]}40;">${escapeHtml(tech)}</span>`
+                                ).join('')}
+                            </div>
                         </div>
                     </div>
-                    <div class="project-card-meta">
-                        ${techStack.slice(0, 3).map(tech =>
-                            `<span class="project-tech-badge">${escapeHtml(tech)}</span>`
-                        ).join('')}
-                        ${techStack.length > 3 ? `<span class="project-tech-badge">+${techStack.length - 3} more</span>` : ''}
+                    <div class="gh-project-middle">
+                        ${lastActivity}
                     </div>
-                    <div class="project-card-footer">
-                        <div class="project-stats">
-                            <span><i class="fas fa-code-branch"></i> ${totalCommits} commits</span>
-                            <span><i class="fas fa-file-code"></i> ${totalFiles} files</span>
-                            <span><i class="fas fa-clock"></i> ${lastActivity}</span>
+                    <div class="gh-project-right">
+                        <div class="gh-project-avatars">
+                            ${visibleContributors.map(renderAvatar).join('')}
+                            ${extraCount > 0 ? `<div class="gh-avatar" title="${extraCount} more contributors" style="border: 1px solid #484f58;">+${extraCount}</div>` : ''}
                         </div>
-                        <span class="project-status-badge ${project.status || 'planning'}">${formatStatus(project.status || 'planning')}</span>
+                        <span class="gh-project-badge">${project.status === 'public' ? 'Public' : 'Private'}</span>
+                        <div class="gh-project-menu">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
                     </div>
                 </div>
             `;

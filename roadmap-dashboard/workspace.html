@@ -9,6 +9,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="projects-workspace.css" />
+  <!-- Auth Guard: runs before any content renders -->
+  <script>
+  (function(){
+    var t = localStorage.getItem('authToken') || localStorage.getItem('token');
+    if (!t || t === 'undefined' || t === 'null') {
+      window.location.replace('/login.html?reason=not_authenticated');
+      return;
+    }
+    try {
+      var p = JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      if (!p || !p.exp || (p.exp * 1000) < Date.now()) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
+        window.location.replace('/login.html?reason=session_expired');
+      }
+    } catch(e) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
+      window.location.replace('/login.html?reason=token_invalid');
+    }
+  })();
+  </script>
 </head>
 <body>
 
@@ -183,6 +205,8 @@
     </div>
   </div>
 
+  <script src="api-request.js?v=1"></script>
+  <script src="auth-helper.js"></script>
   <script src="projects-workspace.js?v=4"></script>
   <script>
     // The module's init() handles ?project= param and renderProjectsGrid automatically.

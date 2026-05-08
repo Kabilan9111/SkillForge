@@ -1,5 +1,9 @@
 // --- API CONFIGURATION ---
-const API_BASE_URL = '/api';
+// When served from Live Server (port 5500) or any non-3000 port, route API
+// calls explicitly through the Express backend so CORS + auth work correctly.
+const API_BASE_URL = (window.location.port && window.location.port !== '3000')
+    ? 'http://localhost:3000/api'
+    : '/api';
 let authToken = localStorage.getItem('authToken') || null;
 let currentUserLevel = localStorage.getItem('userLevel') || 'beginner';
 let currentCommitment = localStorage.getItem('userCommitment') || null;
@@ -1053,3 +1057,92 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// --- Profile Avatar Upload System ---
+function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate size (2MB)
+    const errEl = document.getElementById('avatar-error-msg');
+    if (file.size > 2 * 1024 * 1024) {
+        errEl.innerText = 'Image must be < 2MB';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+    
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Url = e.target.result;
+        updateProfileAvatarUI(base64Url);
+        
+        // Persist to user object
+        const userStr = localStorage.getItem('user');
+        let user = userStr ? JSON.parse(userStr) : {};
+        user.avatarUrl = base64Url;
+        localStorage.setItem('user', JSON.stringify(user));
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeProfileAvatar() {
+    updateProfileAvatarUI(null);
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        let user = JSON.parse(userStr);
+        delete user.avatarUrl;
+        localStorage.setItem('user', JSON.stringify(user));
+    }
+}
+
+function updateProfileAvatarUI(url) {
+    const avatarEl = document.getElementById('profile-avatar');
+    const initialsEl = document.getElementById('profile-avatar-initials');
+    const removeBtn = document.getElementById('remove-avatar-btn');
+    
+    if (url) {
+        avatarEl.style.backgroundImage = 'url(' + url + ')';
+        if (initialsEl) initialsEl.style.display = 'none';
+        if (removeBtn) removeBtn.style.display = 'inline-block';
+    } else {
+        avatarEl.style.backgroundImage = 'none';
+        if (initialsEl) initialsEl.style.display = 'inline-block';
+        if (removeBtn) removeBtn.style.display = 'none';
+    }
+}
+
+// Hover effect for avatar
+document.addEventListener('DOMContentLoaded', () => {
+    const avatarEl = document.getElementById('profile-avatar');
+    if (avatarEl) {
+        avatarEl.addEventListener('mouseenter', () => {
+            const overlay = avatarEl.querySelector('.avatar-overlay');
+            if (overlay) overlay.style.opacity = '1';
+        });
+        avatarEl.addEventListener('mouseleave', () => {
+            const overlay = avatarEl.querySelector('.avatar-overlay');
+            if (overlay) overlay.style.opacity = '0';
+        });
+    }
+    
+    // Initial load sync
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user.avatarUrl) {
+            updateProfileAvatarUI(user.avatarUrl);
+        } else if (user.name) {
+            const initialsEl = document.getElementById('profile-avatar-initials');
+            if (initialsEl) {
+                const parts = user.name.trim().split(/\s+/);
+                let initials = 'U';
+                if (parts.length >= 2) initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                else if (parts.length === 1 && parts[0]) initials = parts[0][0].toUpperCase();
+                initialsEl.innerText = initials;
+            }
+        }
+    }
+});
+

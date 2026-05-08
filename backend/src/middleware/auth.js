@@ -14,6 +14,22 @@ const auth = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, config.jwt.secret);
 
+    // ── Demo token: skip DB lookup, synthesise user object ──────────────────
+    if (decoded.demo === true) {
+      req.user = {
+        id:               0,
+        email:            decoded.email,
+        full_name:        'SkillForge Admin',
+        role:             'admin',
+        institution_id:   decoded.institutionId || 1,
+        institution_name: 'SkillForge Demo Institution',
+        demo:             true,
+      };
+      req.userId        = 0;
+      req.institutionId = decoded.institutionId || 1;
+      return next();
+    }
+
     // Get user from database
     const user = await User.findById(decoded.userId);
 
@@ -61,6 +77,19 @@ auth.optional = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, config.jwt.secret);
+
+    // Demo token shortcut
+    if (decoded.demo === true) {
+      req.user = {
+        id: 0, email: decoded.email, full_name: 'SkillForge Admin',
+        role: 'admin', institution_id: decoded.institutionId || 1,
+        institution_name: 'SkillForge Demo Institution', demo: true,
+      };
+      req.userId = 0;
+      req.institutionId = decoded.institutionId || 1;
+      return next();
+    }
+
     const user = await User.findById(decoded.userId);
 
     if (user) {

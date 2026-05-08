@@ -1,5 +1,8 @@
 // --- API CONFIGURATION ---
-const API_BASE_URL = '/api';
+// --- API CONFIGURATION ---
+const API_BASE_URL = (window.location.port && window.location.port !== '3000')
+    ? 'http://localhost:3000/api'
+    : '/api';
 let authToken = localStorage.getItem('authToken') || null;
 let currentUserLevel = localStorage.getItem('userLevel') || 'beginner';
 let currentCommitment = localStorage.getItem('userCommitment') || null;

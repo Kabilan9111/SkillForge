@@ -1,6 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 // Absolute base path
 const BASE_PATH = __dirname;
@@ -14,8 +15,28 @@ const routes = require(path.join(BASE_PATH, 'src/routes'));
 const errorHandler = require(path.join(BASE_PATH, 'src/middleware/errorHandler'));
 const initializeDatabase = require(path.join(BASE_PATH, 'src/scripts/initDatabase'));
 const CodersDNA = require(path.join(BASE_PATH, 'src/models/CodersDNA'));
+const logger = require(path.join(BASE_PATH, 'src/middleware/logger'));
+const cors = require('cors');
 
 const app = express();
+
+// =====================
+// CORS — allow Live Server (5500) and any localhost port during development
+// =====================
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (Postman, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // Allow any localhost / 127.0.0.1 origin regardless of port
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('CORS: origin not allowed — ' + origin));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // =====================
 // Body parsing
@@ -28,13 +49,48 @@ app.use(express.urlencoded({ extended: true }));
 // =====================
 app.use(express.static(FRONTEND_PATH));
 
-// Request logging (development only)
-if (config.env === 'development') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.originalUrl}`);
-    next();
-  });
-}
+// =====================
+// Structured request logging (all environments)
+// =====================
+app.use(logger.requestLogger);
+
+// =====================
+// AI Engine Proxy (Python FastAPI on port 8001)
+// All /api/ai/* requests are forwarded to the SkillForge AI Engine
+// =====================
+const AI_ENGINE_URL = process.env.AI_ENGINE_URL || 'http://localhost:8001';
+app.use(
+  '/api/ai',
+  createProxyMiddleware({
+    target: AI_ENGINE_URL,
+    changeOrigin: true,
+    // Express strips the mount prefix (/api/ai) before passing req.url to the proxy,
+    // so pathRewrite sees only the remainder (e.g. "/pipeline/analyze").
+    // We prepend /api/ to reach the AI engine's /api/* routes.
+    pathRewrite: { '^/': '/api/' },
+    on: {
+      error: (err, req, res) => {
+        console.warn('[AI Proxy] AI Engine unavailable:', err.message);
+        res.status(503).json({
+          error: 'AI Engine unavailable',
+          message: 'The Python AI Engine (port 8001) is not running. Start it with: python main.py',
+          ai_engine_url: AI_ENGINE_URL,
+        });
+      },
+    },
+  })
+);
+
+// AI Engine health passthrough
+app.get('/api/ai-engine/status', async (req, res) => {
+  const axios = require('axios');
+  try {
+    const { data } = await axios.get(`${AI_ENGINE_URL}/health`, { timeout: 3000 });
+    res.json({ online: true, ...data });
+  } catch {
+    res.json({ online: false, url: AI_ENGINE_URL, message: 'AI Engine not running' });
+  }
+});
 
 // =====================
 // API Routes (must come BEFORE SPA fallback)
@@ -58,6 +114,9 @@ app.use('/api', (req, res) => {
 // =====================
 
 // Named pages (clean URLs without .html extension)
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(FRONTEND_PATH, 'login.html'));
+});
 app.get('/workspace', (req, res) => {
   res.sendFile(path.join(FRONTEND_PATH, 'workspace.html'));
 });

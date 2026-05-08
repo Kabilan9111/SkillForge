@@ -2041,3 +2041,283 @@ body {
   color: #666;
   line-height: 1.4;
 }
+/* --- GITHUB STYLE PROJECT LIST --- */
+.projects-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    border: 1px solid #30363d !important;
+    border-radius: 6px !important;
+    background-color: #0d1117 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.gh-project-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 72px !important;
+    padding: 0 16px !important;
+    border-bottom: 1px solid #30363d !important;
+    background-color: transparent !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+    box-sizing: border-box !important;
+}
+
+.gh-project-row:last-child {
+    border-bottom: none !important;
+}
+
+.gh-project-row:hover {
+    background-color: #161b22 !important;
+}
+
+.gh-project-left {
+    flex: 0 0 60% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    overflow: hidden !important;
+}
+
+.gh-project-icon {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    flex-shrink: 0 !important;
+}
+
+.gh-project-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    overflow: hidden !important;
+}
+
+.gh-project-name {
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.gh-project-desc {
+    color: #8b949e !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.gh-project-tags {
+    display: flex !important;
+    gap: 8px !important;
+}
+
+.gh-project-tag {
+    padding: 2px 8px !important;
+    border-radius: 2em !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+.gh-project-middle {
+    flex: 0 0 20% !important;
+    color: #8b949e !important;
+    font-size: 13px !important;
+    text-align: left !important;
+}
+
+.gh-project-right {
+    flex: 0 0 20% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 16px !important;
+}
+
+.gh-project-avatars {
+    display: flex !important;
+}
+
+.gh-project-avatars img {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    border: 2px solid #0d1117 !important;
+    margin-left: -8px !important;
+    background-color: #30363d !important;
+}
+
+.gh-project-avatars img:first-child {
+    margin-left: 0 !important;
+}
+
+.gh-project-badge {
+    padding: 2px 7px !important;
+    border: 1px solid #30363d !important;
+    border-radius: 2em !important;
+    color: #8b949e !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    text-transform: capitalize !important;
+}
+
+.gh-project-menu {
+    color: #8b949e !important;
+    cursor: pointer !important;
+    padding: 4px !important;
+}
+
+.gh-project-menu:hover {
+    color: #c9d1d9 !important;
+}
+
+/* --- GITHUB STYLE PROJECT ROW PATCH --- */
+.projects-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    background: #0d1117;
+    overflow: hidden;
+}
+
+.gh-project-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+    padding: 16px;
+    background: transparent;
+    cursor: pointer;
+    min-height: 72px;
+}
+.gh-project-row:last-child {
+    border-bottom: none;
+}
+.gh-project-row:hover {
+    background: #161b22;
+}
+
+.gh-project-left {
+    flex: 3;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+.gh-project-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.gh-project-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.gh-project-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #c9d1d9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.gh-project-desc {
+    font-size: 13px;
+    color: #8b949e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.gh-project-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+}
+.gh-project-tag {
+    font-size: 11px;
+    padding: 0 6px;
+    height: 20px;
+    line-height: 18px;
+    border-radius: 10px;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.gh-project-middle {
+    flex: 1;
+    color: #8b949e;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.gh-project-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+}
+.gh-project-avatars {
+    display: flex;
+}
+.gh-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #30363d;
+    box-shadow: 0 0 0 2px #0d1117;
+    margin-left: -8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #c9d1d9;
+    border: 1px solid #484f58;
+}
+.gh-avatar:first-child {
+    margin-left: 0;
+}
+.gh-project-badge {
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: #8b949e;
+    font-weight: 500;
+}
+.gh-project-menu {
+    color: #8b949e;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+}
+.gh-project-menu:hover {
+    background: #30363d;
+}
+
