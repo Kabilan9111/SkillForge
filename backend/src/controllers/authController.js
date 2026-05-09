@@ -11,6 +11,13 @@ class AuthController {
 
       const result = await AuthService.login(email, password);
 
+      const ProjectInvite = require('../models/ProjectInvite');
+      try {
+        await ProjectInvite.processPendingInvitesForEmail(email, result.user.id);
+      } catch (err) {
+        console.error('Error processing invites on login:', err);
+      }
+
       res.json({
         message: 'Login successful',
         user: result.user,
@@ -32,6 +39,13 @@ class AuthController {
       }
 
       const result = await AuthService.register(institutionId, email, password, fullName);
+
+      const ProjectInvite = require('../models/ProjectInvite');
+      try {
+        await ProjectInvite.processPendingInvitesForEmail(email, result.user.id);
+      } catch (err) {
+        console.error('Error processing invites on register:', err);
+      }
 
       res.status(201).json({
         message: 'Registration successful',

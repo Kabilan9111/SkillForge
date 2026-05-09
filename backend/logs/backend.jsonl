@@ -259,3 +259,36 @@
 {"ts":"2026-05-08T14:33:29.586Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
 {"ts":"2026-05-08T14:33:29.589Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":12,"userId":null,"ip":"::1"}
 {"ts":"2026-05-08T14:33:29.676Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":4,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:15:54.928Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":200,"ms":20,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:16:05.978Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":47,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:19:25.613Z","level":"info","event":"http.request","method":"GET","path":"/projects/5","status":304,"ms":18,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:19:47.101Z","level":"info","event":"http.request","method":"GET","path":"/projects/5/files","status":200,"ms":21472,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:12.589Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":10,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:12.692Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:12.702Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:12.704Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":19,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:12.741Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:18.316Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:18.336Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:18.351Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:18.386Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:18.387Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:18.401Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:21.966Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:24.745Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":4,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:24.816Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:24.886Z","level":"info","event":"http.request","method":"GET","path":"/projects","status":304,"ms":119,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:24.891Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:24.900Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":104,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:24.912Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:20:30.639Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:21:03.267Z","level":"warn","event":"http.request","method":"GET","path":"/users/search","status":404,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:21:05.751Z","level":"info","event":"http.request","method":"POST","path":"/projects","status":201,"ms":20,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:21:05.791Z","level":"info","event":"http.request","method":"GET","path":"/projects","status":200,"ms":26,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:22:35.403Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:22:44.892Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:27:36.750Z","level":"info","event":"http.request","method":"GET","path":"/projects/1","status":200,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:27:36.846Z","level":"info","event":"http.request","method":"GET","path":"/projects/1/files","status":200,"ms":77,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:27:36.851Z","level":"info","event":"http.request","method":"GET","path":"/projects/1/commits","status":200,"ms":81,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:27:36.934Z","level":"info","event":"http.request","method":"GET","path":"/projects/1/stats","status":200,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-05-08T15:27:42.948Z","level":"info","event":"http.request","method":"GET","path":"/projects","status":304,"ms":21,"userId":null,"ip":"::1"}

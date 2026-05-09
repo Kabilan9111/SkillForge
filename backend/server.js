@@ -124,6 +124,25 @@ app.get('/dna-dashboard', (req, res) => {
   res.sendFile(path.join(FRONTEND_PATH, 'dna-dashboard.html'));
 });
 
+const ProjectInvite = require(path.join(BASE_PATH, 'src/models/ProjectInvite'));
+app.get('/invite/:token', async (req, res) => {
+    try {
+        const token = req.params.token;
+        const invite = await ProjectInvite.getInviteByToken(token);
+        if (!invite) return res.redirect('/login');
+        
+        // As a pure backend API, we handle the workflow by redirecting or providing endpoints
+        // Since we can't check localStorage, we redirect to a unified entry point or login
+        // Assuming a cookie 'token' might exist, but usually it's in localStorage.
+        // We'll redirect to workspace with an ?invite=... query param, but the instruction says:
+        // "If not logged in: redirect to signup"
+        // Since we can't check frontend state from backend GET, we redirect to login/signup.
+        res.redirect(`/login?invite_token=${token}`);
+    } catch (err) {
+        res.redirect('/login');
+    }
+});
+
 // Catch-all fallback → index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(FRONTEND_PATH, 'index.html'));

@@ -36,10 +36,32 @@ class ProjectWorkspaceController {
      */
     static async createProject(req, res) {
         try {
-            const { name, description, techStack } = req.body;
+            const { name, description, techStack, contributors } = req.body;
             const userId = req.user?.id || 1;
 
+            const ProjectInvite = require('../models/ProjectInvite');
+            await ProjectInvite.initTables();
+
             const projectId = await ProjectWorkspace.create(userId, name, description, techStack);
+
+            // Add owner as accepted contributor
+            await ProjectInvite.addContributor(projectId, userId, 'accepted');
+
+            // Handle invites
+            if (Array.isArray(contributors)) {
+                for (const c of contributors) {
+                    if (c.email) {
+                        await ProjectInvite.createInvite(
+                            c.email, projectId, userId, 
+                            req.user?.full_name || 'A user', 
+                            name
+                        );
+                    } else if (c.userId || c.id) {
+                        // existing user -> add to contributors directly
+                        await ProjectInvite.addContributor(projectId, c.userId || c.id, 'pending');
+                    }
+                }
+            }
 
             res.status(201).json({
                 success: true,
@@ -59,6 +81,20 @@ class ProjectWorkspaceController {
         try {
             const userId = req.user?.id || 1;
             const projects = await ProjectWorkspace.getUserProjects(userId);
+
+            const ProjectInvite = require('../models/ProjectInvite');
+            const db = require('../config/database');
+            for (let project of projects) {
+               const contributors = await ProjectInvite.getContributors(project.id);
+               const enrichedContributors = [];
+               for (let c of contributors) {
+                   if (c.status === 'accepted') {
+                      const u = await db.get('SELECT id, full_name as name, avatar_url as avatarUrl FROM users WHERE id = ?', [c.user_id]);
+                      if (u) enrichedContributors.push(u);
+                   }
+               }
+               project.contributors = enrichedContributors;
+            }
 
             res.json({
                 success: true,
@@ -81,6 +117,19 @@ class ProjectWorkspaceController {
             if (!project) {
                 return res.status(404).json({ success: false, error: 'Project not found' });
             }
+
+            const ProjectInvite = require('../models/ProjectInvite');
+            const contributors = await ProjectInvite.getContributors(id);
+            // try mapping with user data
+            const db = require('../config/database');
+            const enrichedContributors = [];
+            for (let c of contributors) {
+                if (c.status === 'accepted') {
+                   const u = await db.get('SELECT id, full_name as name, avatar_url as avatarUrl FROM users WHERE id = ?', [c.user_id]);
+                   if (u) enrichedContributors.push(u);
+                }
+            }
+            project.contributors = enrichedContributors;
 
             res.json({
                 success: true,

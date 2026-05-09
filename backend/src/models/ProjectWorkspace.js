@@ -41,8 +41,12 @@ class ProjectWorkspace {
                (SELECT COUNT(DISTINCT pf.file_path) FROM projects_files pf WHERE pf.project_id = pw.id) AS total_files,
                (SELECT MAX(pc2.created_at) FROM projects_commits pc2 WHERE pc2.project_id = pw.id) AS last_commit_at
              FROM projects_workspace pw
-             WHERE pw.user_id = ? ORDER BY pw.updated_at DESC`,
-            [userId]
+             WHERE pw.user_id = ? 
+             OR pw.id IN (
+                 SELECT project_id FROM project_contributors WHERE user_id = ? AND status = 'accepted'
+             )
+             ORDER BY pw.updated_at DESC`,
+            [userId, userId]
         );
         rows.forEach(row => {
             if (row.tech_stack) {

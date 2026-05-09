@@ -26,8 +26,11 @@ router.post('/projects', ProjectWorkspaceController.createProject);
 // Get user's projects
 router.get('/projects', ProjectWorkspaceController.getUserProjects);
 
-// Get project details
+// Get project details (legacy path)
 router.get('/projects/:id', ProjectWorkspaceController.getProject);
+
+// Get project details (new path)
+router.get('/:id', ProjectWorkspaceController.getProject);
 
 // ========================================
 // FILE ROUTES

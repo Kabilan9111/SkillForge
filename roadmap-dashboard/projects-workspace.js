@@ -50,10 +50,18 @@
     // ==================== BACKEND DATA LOADERS ====================
     async function loadProjects() {
         try {
-            const r = await fetch(`${API_BASE_URL}/workspace/projects`, { headers: getAuthHeaders() });
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            const d = await r.json();
-            state.projects = Array.isArray(d.projects) ? d.projects : (Array.isArray(d) ? d : []);
+            const savedProjectsStr = localStorage.getItem("skillforge_projects");
+            const savedProjects = JSON.parse(savedProjectsStr || "[]");
+            
+            const normalizedProjects = savedProjects.map(project => ({
+                contributors: [],
+                ownerAvatar: null,
+                visibility: "Private",
+                ...project
+            }));
+            
+            state.projects = normalizedProjects;
+            console.log("Loaded Projects:", savedProjects);
         } catch (e) {
             console.error('[Projects] loadProjects error:', e);
             state.projects = [];
@@ -321,6 +329,7 @@
 
         const projectContributors = window.selectedContributors ? window.selectedContributors.map(u => ({
             userId: u.id,
+            id: u.id,
             name: u.name,
             email: u.email,
             avatarUrl: u.avatarUrl,
@@ -328,17 +337,43 @@
         })) : [];
 
         try {
-            const r = await fetch(`${API_BASE_URL}/workspace/projects`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ name, description, techStack, projectType, contributors: projectContributors })
-            });
-            const d = await r.json().catch(() => ({}));
-            if (!r.ok) throw new Error(d.error || d.message || `HTTP ${r.status}`);
+            const sessionUserDataStr = localStorage.getItem('userData');
+            const sessionUserStr = localStorage.getItem('user');
+            let sessionUserData = sessionUserDataStr ? JSON.parse(sessionUserDataStr) : {};
+            let sessionUserLocal = sessionUserStr ? JSON.parse(sessionUserStr) : {};
+            let sessionAvatarUrl = sessionUserLocal.avatarUrl || sessionUserLocal.avatar_url || sessionUserData.avatar_url || sessionUserData.avatarUrl;
+            let currentUserName = sessionUserData.full_name || sessionUserData.fullName || sessionUserLocal.name || 'Unknown User';
+
+            const newProject = {
+                id: crypto.randomUUID(),
+                name: name,
+                title: name,
+                description: description,
+                techStack: techStack ? techStack.split(',').map(s => s.trim()) : [],
+                tech_stack: techStack ? techStack.split(',').map(s => s.trim()) : [],
+                projectType: projectType,
+                visibility: "Private",
+                status: "Private",
+                updatedAt: "Just now",
+                created_at: new Date().toISOString(),
+                last_commit_at: new Date().toISOString(),
+                contributors: projectContributors,
+                ownerAvatar: sessionAvatarUrl || null,
+                createdBy: currentUserName
+            };
+
+            const savedProjects = JSON.parse(localStorage.getItem("skillforge_projects") || "[]");
+            const updatedProjects = [newProject, ...savedProjects];
+            
+            state.projects = updatedProjects;
+            localStorage.setItem("skillforge_projects", JSON.stringify(updatedProjects));
+
+            console.log("New Project:", newProject);
+            console.log("Updated Projects:", updatedProjects);
+            console.log("Rendering Projects:", state.projects);
 
             closeCreateProjectModal();
             
-            // Clear selected contributors for next time
             if (window.selectedContributors) {
                 window.selectedContributors = [];
             }
@@ -357,6 +392,37 @@
     // ==================== PROJECTS GRID ====================
     function renderProjectsGrid() {
         console.log('[Projects] renderProjectsGrid() called');
+        
+        try {
+            const rawProjects = localStorage.getItem("skillforge_projects");
+            console.log("RAW STORAGE:", rawProjects);
+            
+            const parsedProjects = rawProjects ? JSON.parse(rawProjects) : [];
+            const normalizedProjects = parsedProjects.map(project => ({
+                id: project.id || Date.now(),
+                title: project.title || project.name || "Untitled Project",
+                name: project.title || project.name || "Untitled Project",
+                description: project.description || "",
+                techStack: project.techStack || project.tech_stack || [],
+                tech_stack: project.techStack || project.tech_stack || [],
+                visibility: project.visibility || "Private",
+                status: project.visibility || project.status || "Private",
+                contributors: Array.isArray(project.contributors) ? project.contributors : [],
+                ownerAvatar: project.ownerAvatar || null,
+                updatedAt: project.updatedAt || project.created_at || "Just now",
+                projectType: project.projectType || "Full Stack",
+                ...project
+            }));
+            
+            console.log("NORMALIZED PROJECTS:", normalizedProjects);
+            state.projects = normalizedProjects;
+        } catch (error) {
+            console.error("PROJECT LOAD ERROR:", error);
+            state.projects = [];
+        }
+        
+        console.log("FINAL PROJECT STATE:", state.projects);
+        console.log("PROJECT LENGTH:", state.projects.length);
         
         // Ensure DOM elements are cached (in case we navigated to this page)
         if (!dom.projectsGrid) {
@@ -394,7 +460,28 @@
         
         console.log('[Projects] Rendering', state.projects.length, 'projects');
         
-        dom.projectsGrid.innerHTML = state.projects.map(project => {
+        const tooltipStyles = `
+            <style>
+                .gh-avatar-container { position: relative; display: inline-flex; }
+                .gh-avatar-tooltip {
+                    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(4px);
+                    background: #24292f; color: #ffffff; padding: 5px 10px; border-radius: 6px;
+                    font-size: 11px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                    font-weight: 500; white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden;
+                    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s; z-index: 100;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin-bottom: 6px; border: 1px solid #484f58;
+                }
+                .gh-avatar-container:hover .gh-avatar-tooltip {
+                    opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+                }
+                .gh-avatar-tooltip::after {
+                    content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+                    border-width: 5px; border-style: solid; border-color: #484f58 transparent transparent transparent;
+                }
+            </style>
+        `;
+
+        dom.projectsGrid.innerHTML = tooltipStyles + state.projects.map(project => {
             const techStack = Array.isArray(project.tech_stack) ? project.tech_stack : [];
             const lastActivity = project.last_commit_at
                 ? formatTimeAgo(new Date(project.last_commit_at).getTime())
@@ -405,34 +492,80 @@
             const iconColor = iconColors[pId % iconColors.length] || "#8b949e";
             
             // Extract or fallback contributors
-            let contributors = project.contributors || [];
+            let contributors = Array.isArray(project.contributors) ? project.contributors : [];
+            
+            const sessionUserDataStr = localStorage.getItem('userData');
+            const sessionUserStr = localStorage.getItem('user');
+            let sessionUserData = sessionUserDataStr ? JSON.parse(sessionUserDataStr) : {};
+            let sessionUserLocal = sessionUserStr ? JSON.parse(sessionUserStr) : {};
+            
+            let sessionUserId = sessionUserData.id;
+            let sessionAvatarUrl = sessionUserLocal.avatarUrl || sessionUserLocal.avatar_url || sessionUserData.avatar_url || sessionUserData.avatarUrl;
+            
             if (contributors.length === 0) {
-                const sessionUserStr = localStorage.getItem('user');
-                let sessionUser = sessionUserStr ? JSON.parse(sessionUserStr) : { name: 'User' };
-                // Keep minimal structure
-                contributors = [sessionUser];
+                contributors = [{
+                    id: sessionUserId,
+                    name: sessionUserData.full_name || sessionUserData.fullName || sessionUserLocal.name || 'User',
+                    avatarUrl: sessionAvatarUrl
+                }];
+            } else {
+                contributors = contributors.map(c => {
+                    let avatar = c.avatarUrl || c.avatar_url;
+                    if (String(c.id) === String(sessionUserId) && sessionAvatarUrl && !avatar) {
+                        avatar = sessionAvatarUrl;
+                    }
+                    return { ...c, avatarUrl: avatar };
+                });
             }
             
             // Reusable logic
-            const renderAvatar = (user) => {
+            const renderAvatar = (user, index) => {
                 const name = user.name || 'Unknown';
                 let initials = 'U';
-                const parts = name.trim().split(/\s+/);
-                if (parts.length >= 2) {
-                    initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-                } else if (parts.length === 1 && parts[0]) {
-                    initials = parts[0][0].toUpperCase();
+                if (name && name !== 'Unknown') {
+                    initials = name.charAt(0).toUpperCase();
                 }
                 
-                if (user.avatarUrl) {
-                    return `<div class="gh-avatar" title="${escapeHtml(name)}" style="background-image: url('${escapeHtml(user.avatarUrl)}'); background-size: cover; background-position: center; border: 1px solid #484f58; color: transparent;">${escapeHtml(initials)}</div>`;
+                const colors = ["#2ea043", "#58a6ff", "#db6d28", "#8957e5", "#d2a8ff", "#f85149"];
+                const charCode = name.charCodeAt(0) || 0;
+                const bgColor = colors[charCode % colors.length];
+                
+                const avatar = user.avatarUrl || user.avatar_url;
+                
+                const zIndex = 10 - index;
+                const marginLeft = index === 0 ? '0' : '-10px';
+                
+                const baseStyle = `width: 30px; height: 30px; border-radius: 50%; border: 1px solid #0f172a; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; margin-left: ${marginLeft}; z-index: ${zIndex}; position: relative; transition: transform 0.2s ease, z-index 0s; box-shadow: 0 0 0 2px #0d1117; cursor: pointer;`;
+
+                const hoverScript = `onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.zIndex='20'" onmouseout="this.style.transform='none'; this.style.zIndex='${zIndex}'"`;
+
+                let innerHtml = '';
+                if (avatar) {
+                    innerHtml = `<div class="gh-avatar contributor-avatar" style="${baseStyle} background-image: url('${escapeHtml(avatar)}'); background-size: cover; background-position: center; color: transparent;" ${hoverScript}>${escapeHtml(initials)}</div>`;
+                } else {
+                    innerHtml = `<div class="gh-avatar contributor-avatar" style="${baseStyle} background-color: ${bgColor}; color: #ffffff;" ${hoverScript}>${escapeHtml(initials)}</div>`;
                 }
-                return `<div class="gh-avatar" title="${escapeHtml(name)}" style="border: 1px solid #484f58;">${escapeHtml(initials)}</div>`;
+                
+                return `
+                    <div class="gh-avatar-container">
+                        ${innerHtml}
+                        <div class="gh-avatar-tooltip">${escapeHtml(name)}</div>
+                    </div>
+                `;
             };
 
             const maxAvatars = 3;
             const visibleContributors = contributors.slice(0, maxAvatars);
             const extraCount = contributors.length - maxAvatars;
+
+            const extraCountHtml = extraCount > 0 ? `
+                <div class="gh-avatar-container">
+                    <div class="gh-avatar contributor-avatar" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid #0f172a; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; background-color: #1e293b; color: #cbd5e1; margin-left: -10px; z-index: 1; position: relative; transition: transform 0.2s ease, z-index 0s; box-shadow: 0 0 0 2px #0d1117; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.zIndex='20'" onmouseout="this.style.transform='none'; this.style.zIndex='1'">
+                        +${extraCount}
+                    </div>
+                    <div class="gh-avatar-tooltip">${extraCount} more contributors</div>
+                </div>
+            ` : '';
 
             return `
                 <div class="gh-project-row" onclick="window.ProjectsWorkspace.openProject('${project.id}')">
@@ -454,9 +587,9 @@
                         ${lastActivity}
                     </div>
                     <div class="gh-project-right">
-                        <div class="gh-project-avatars">
-                            ${visibleContributors.map(renderAvatar).join('')}
-                            ${extraCount > 0 ? `<div class="gh-avatar" title="${extraCount} more contributors" style="border: 1px solid #484f58;">+${extraCount}</div>` : ''}
+                        <div class="gh-project-avatars" style="display: flex; align-items: center;">
+                            ${visibleContributors.map((c, i) => renderAvatar(c, i)).join('')}
+                            ${extraCountHtml}
                         </div>
                         <span class="gh-project-badge">${project.status === 'public' ? 'Public' : 'Private'}</span>
                         <div class="gh-project-menu">
@@ -475,17 +608,32 @@
 
     // ==================== PROJECT DETAIL VIEW ====================
     async function openProject(projectId) {
+        console.log('[Projects] openProject called with ID:', projectId);
+        if (!projectId) return;
         if (!dom.projectsGrid || !dom.projectDetailView) return;
 
+        console.log('[Projects] Fetching project from:', `${API_BASE_URL}/workspace/${projectId}`);
         try {
-            const r = await fetch(`${API_BASE_URL}/workspace/projects/${projectId}`, { headers: getAuthHeaders() });
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const r = await fetch(`${API_BASE_URL}/workspace/${projectId}`, { headers: getAuthHeaders() });
+            if (!r.ok) {
+                console.error(`[Projects] Fetch failure reason: HTTP ${r.status}`);
+                throw new Error(`HTTP ${r.status}`);
+            }
             const d = await r.json();
+            console.log('[Projects] API response:', d);
             state.currentProject = d.project || d;
         } catch (e) {
             console.error('[Projects] openProject fetch error:', e);
-            showNotification('Failed to load project: ' + e.message, 'error');
-            return;
+            
+            // Fallback to local storage state for newly created projects that don't exist on backend yet
+            const localProject = state.projects.find(p => String(p.id) === String(projectId));
+            if (localProject) {
+                console.log('[Projects] Falling back to local state project data');
+                state.currentProject = localProject;
+            } else {
+                showNotification('Unable to load project', 'error');
+                return;
+            }
         }
 
         state.currentView = 'detail';
