@@ -1,357 +1,338 @@
 'use strict';
+const db = require('../../config/database');
+const projectParser = require('./projectParser');
+const staticAnalyzer = require('./staticAnalyzer');
 
-const crypto = require('crypto');
-const db     = require('../../config/database');
-
-// ─── helpers ────────────────────────────────────────────────────────────────
-const EXT_LANG = {
-  js:'JavaScript', jsx:'React/JSX', ts:'TypeScript', tsx:'React/TSX',
-  py:'Python', java:'Java', cs:'C#', rb:'Ruby', go:'Go', php:'PHP',
-  cpp:'C++', c:'C', rs:'Rust', swift:'Swift', kt:'Kotlin',
-  html:'HTML', css:'CSS', scss:'SCSS', sass:'SASS',
-  json:'JSON', yml:'YAML', yaml:'YAML', md:'Markdown',
-  sql:'SQL', sh:'Shell', bash:'Bash', dockerfile:'Docker',
-  xml:'XML', toml:'TOML', env:'Config',
-};
-const CODE_EXTS = new Set(['js','jsx','ts','tsx','py','java','cs','rb','go','php','cpp','c','rs','swift','kt']);
-
-function detectTech(files) {
-  const langs = {};
-  const techSet = new Set();
-  let totalLines = 0;
-
-  for (const f of files) {
-    const ext = (f.file_type || '').toLowerCase().replace('.', '');
-    const lang = EXT_LANG[ext];
-    if (lang) { langs[lang] = (langs[lang] || 0) + 1; }
-    const lines = f.file_content ? f.file_content.split('\n').length : 0;
-    totalLines += lines;
-
-    // tech detection from filenames
-    const name = (f.file_name || '').toLowerCase();
-    if (name === 'package.json') techSet.add('Node.js');
-    if (name === 'requirements.txt' || name === 'setup.py') techSet.add('Python');
-    if (name === 'dockerfile' || name.endsWith('dockerfile')) techSet.add('Docker');
-    if (name === 'docker-compose.yml' || name === 'docker-compose.yaml') techSet.add('Docker Compose');
-    if (name === 'angular.json') techSet.add('Angular');
-    if (name === 'vite.config.js' || name === 'vite.config.ts') techSet.add('Vite');
-    if (name === 'next.config.js' || name === 'next.config.ts') techSet.add('Next.js');
-    if (name === 'tailwind.config.js') techSet.add('TailwindCSS');
-
-    const content = f.file_content || '';
-    if (content.includes('react') || content.includes('useState')) techSet.add('React');
-    if (content.includes('express()') || content.includes("require('express')")) techSet.add('Express.js');
-    if (content.includes('mongoose') || content.includes('mongodb')) techSet.add('MongoDB');
-    if (content.includes('sequelize') || content.includes("'sqlite'") || content.includes('"sqlite"')) techSet.add('SQLite');
-    if (content.includes('postgresql') || content.includes('pg.Pool')) techSet.add('PostgreSQL');
-    if (content.includes('prisma')) techSet.add('Prisma');
-    if (content.includes('redux') || content.includes('createSlice')) techSet.add('Redux');
-    if (content.includes('jest') || content.includes('describe(') || content.includes("it('")) techSet.add('Jest');
-  }
-
-  return {
-    languages: Object.entries(langs).sort((a,b)=>b[1]-a[1]).map(([lang,count])=>({ lang, count })),
-    techStack: [...techSet],
-    totalFiles: files.length,
-    totalLines,
-  };
-}
-
-function scoreProject(files, tech) {
-  const total = files.length;
-  if (total === 0) return { architecture: 50, security: 60, performance: 55, maintainability: 55, overall: 55 };
-
-  let secScore = 80;
-  let archScore = 60;
-  let perfScore = 70;
-  let maintScore = 65;
-
-  for (const f of files) {
-    const c = f.file_content || '';
-    // security deductions
-    if (/api[_-]?key\s*=\s*['"][^'"]{8,}/i.test(c)) secScore -= 10;
-    if (/password\s*=\s*['"][^'"]{4,}/i.test(c)) secScore -= 8;
-    if (/eval\s*\(/.test(c)) secScore -= 5;
-    if (/innerHTML\s*=/.test(c)) secScore -= 3;
-    // perf deductions
-    if (/SELECT \*/i.test(c)) perfScore -= 3;
-    if (/for\s*\(.*\.length/i.test(c)) perfScore -= 2;
-    // arch bonuses
-    if (/index\.js|index\.ts/.test(f.file_name)) archScore += 2;
-    if (/\.test\.|\.spec\./.test(f.file_name)) maintScore += 3;
-    if (/README/i.test(f.file_name)) maintScore += 4;
-  }
-
-  // bonuses for diverse tech
-  if (tech.techStack.includes('Docker')) archScore += 5;
-  if (tech.techStack.includes('Jest')) maintScore += 8;
-  if (tech.techStack.includes('TypeScript')) maintScore += 5;
-  if (total > 10) archScore += 5;
-  if (total > 25) archScore += 5;
-
-  // clamp
-  const clamp = v => Math.max(10, Math.min(100, Math.round(v)));
-  secScore  = clamp(secScore);
-  archScore = clamp(archScore);
-  perfScore = clamp(perfScore);
-  maintScore = clamp(maintScore);
-  const overall = clamp((secScore*0.3 + archScore*0.25 + perfScore*0.2 + maintScore*0.25));
-
-  return { security: secScore, architecture: archScore, performance: perfScore, maintainability: maintScore, overall };
-}
-
-function generateSWOT(tech, scores) {
-  const strengths = [];
-  const weaknesses = [];
-  const opportunities = [];
-  const threats = [];
-
-  if (tech.techStack.includes('TypeScript')) strengths.push('TypeScript enforces type safety and reduces runtime errors');
-  if (tech.techStack.includes('React')) strengths.push('React component architecture enables reusable UI patterns');
-  if (tech.techStack.includes('Docker')) strengths.push('Docker containerization ensures deployment consistency');
-  if (tech.techStack.includes('Jest')) strengths.push('Test suite present — quality gate is established');
-  if (tech.totalFiles > 20) strengths.push('Substantial codebase with clear module separation');
-  if (scores.architecture > 70) strengths.push('Architecture score indicates well-structured codebase');
-
-  if (scores.security < 70) weaknesses.push('Security posture needs hardening — credentials/eval detected');
-  if (scores.maintainability < 65) weaknesses.push('Maintainability needs improvement — reduce code complexity');
-  if (!tech.techStack.includes('Jest') && !tech.techStack.includes('Docker')) weaknesses.push('No testing or containerization detected');
-  if (tech.totalLines < 200 && tech.totalFiles > 5) weaknesses.push('Low line-to-file ratio suggests thin implementations');
-
-  if (tech.techStack.includes('Node.js')) opportunities.push('Leverage Node.js ecosystem for serverless or microservice evolution');
-  if (tech.techStack.includes('React')) opportunities.push('React Native migration path available for mobile expansion');
-  opportunities.push('CI/CD pipeline integration would automate quality gates');
-  opportunities.push('Add OpenAPI/Swagger documentation to improve API discoverability');
-
-  if (scores.security < 60) threats.push('Security vulnerabilities could expose sensitive data');
-  threats.push('Technical debt accumulation risk if refactoring is deferred');
-  if (!tech.techStack.includes('Docker')) threats.push('Environment inconsistency risk without containerization');
-  threats.push('Scalability limits may surface under production load without load testing');
-
-  return { strengths, weaknesses, opportunities, threats };
-}
-
-function generateSuggestions(tech, scores, files) {
-  const suggestions = [];
-  if (scores.security < 75) suggestions.push({ priority: 'HIGH', category: 'Security', text: 'Move API keys and secrets to environment variables. Use dotenv and never commit .env files.' });
-  if (!tech.techStack.includes('Jest')) suggestions.push({ priority: 'HIGH', category: 'Testing', text: 'Add Jest unit tests. Target at least 60% coverage for business logic functions.' });
-  if (!tech.techStack.includes('Docker')) suggestions.push({ priority: 'MEDIUM', category: 'DevOps', text: 'Containerize the application with Docker for reproducible deployments.' });
-  if (scores.maintainability < 70) suggestions.push({ priority: 'MEDIUM', category: 'Code Quality', text: 'Break large functions into smaller, single-responsibility units. Aim for functions under 30 lines.' });
-  if (scores.performance < 70) suggestions.push({ priority: 'MEDIUM', category: 'Performance', text: 'Replace SELECT * with specific column selectors. Add database indices for frequently queried fields.' });
-  suggestions.push({ priority: 'LOW', category: 'Documentation', text: 'Expand README with setup instructions, API endpoints, and architecture diagram.' });
-  if (tech.techStack.includes('React') && !tech.techStack.includes('Redux')) suggestions.push({ priority: 'LOW', category: 'State Management', text: 'Consider React Query or Zustand for cleaner async state management as features grow.' });
-  return suggestions;
-}
-
-// ─── main engine ─────────────────────────────────────────────────────────────
 class AIReviewEngine {
 
   async ensureTables() {
     if (this._ready) return;
-    // Drop integer constraint — recreate with TEXT project_id
-    await db.run(`
-      CREATE TABLE IF NOT EXISTS workspace_ai_reviews (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        project_id TEXT NOT NULL,
-        commit_hash TEXT NOT NULL,
-        overall_score INTEGER DEFAULT 0,
-        review_data TEXT DEFAULT '{}',
-        model_version TEXT DEFAULT 'static-analyzer-v1',
-        status TEXT DEFAULT 'complete',
-        created_at TEXT DEFAULT (datetime('now')),
-        UNIQUE(project_id, commit_hash)
-      )
-    `);
-    await db.run(`
-      CREATE TABLE IF NOT EXISTS workspace_evaluation (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        project_id TEXT NOT NULL,
-        commit_hash TEXT NOT NULL,
-        code_quality INTEGER DEFAULT 0,
-        complexity INTEGER DEFAULT 0,
-        innovation INTEGER DEFAULT 0,
-        scalability INTEGER DEFAULT 0,
-        maturity INTEGER DEFAULT 0,
-        overall INTEGER DEFAULT 0,
-        eval_data TEXT DEFAULT '{}',
-        created_at TEXT DEFAULT (datetime('now')),
-        UNIQUE(project_id, commit_hash)
-      )
-    `);
+    await db.run(`CREATE TABLE IF NOT EXISTS workspace_ai_reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id TEXT NOT NULL,
+      commit_hash TEXT NOT NULL,
+      overall_score INTEGER DEFAULT 0,
+      review_data TEXT DEFAULT '{}',
+      model_version TEXT DEFAULT 'static-v3',
+      status TEXT DEFAULT 'complete',
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(project_id, commit_hash)
+    )`);
+    await db.run(`CREATE TABLE IF NOT EXISTS workspace_evaluation (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id TEXT NOT NULL,
+      commit_hash TEXT NOT NULL,
+      code_quality INTEGER DEFAULT 0,
+      complexity INTEGER DEFAULT 0,
+      innovation INTEGER DEFAULT 0,
+      scalability INTEGER DEFAULT 0,
+      maturity INTEGER DEFAULT 0,
+      overall INTEGER DEFAULT 0,
+      eval_data TEXT DEFAULT '{}',
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(project_id, commit_hash)
+    )`);
     this._ready = true;
   }
 
   async runReview(projectId, commitHash) {
     await this.ensureTables();
     try {
-      // Mark in_progress
       await db.run(
         `INSERT OR REPLACE INTO workspace_ai_reviews
-           (project_id, commit_hash, overall_score, review_data, model_version, status, created_at)
-         VALUES (?, ?, 0, '{}', 'in_progress', 'in_progress', datetime('now'))`,
+           (project_id,commit_hash,overall_score,review_data,model_version,status,created_at)
+         VALUES (?,?,0,'{}','in_progress','in_progress',datetime('now'))`,
         [projectId, commitHash]
       );
 
-      // Load files from workspace_files (UUID-keyed)
+      // Load files
       let files = await db.all(
-        `SELECT file_path, file_name, file_type, file_size, file_content
-         FROM workspace_files WHERE project_id = ? AND commit_hash = ?`,
-        [projectId, commitHash]
+        `SELECT file_path,file_name,file_type,file_size,file_content FROM workspace_files
+         WHERE project_id=? AND commit_hash=?`, [projectId, commitHash]
       );
-      if (files.length === 0) {
+      if (!files.length) {
         files = await db.all(
-          `SELECT file_path, file_name, file_type, file_size, file_content
-           FROM workspace_files WHERE project_id = ?`,
+          `SELECT file_path,file_name,file_type,file_size,file_content FROM workspace_files WHERE project_id=?`,
           [projectId]
         );
       }
 
-      const tech   = detectTech(files);
-      const scores = scoreProject(files, tech);
-      const swot   = generateSWOT(tech, scores);
-      const suggestions = generateSuggestions(tech, scores, files);
+      // Parse project structure + run static analysis
+      const parsed   = projectParser.parse(files);
+      const analyzed = staticAnalyzer.analyze(files, parsed);
+
+      const { projectType, techStack, techByCategory, structure, depCount } = parsed;
+      const { security, architecture, maintainability, performance, reliability } = analyzed;
+      const overall = analyzed.overallScore;
 
       const deployCategory =
-        scores.overall >= 80 ? 'Production-Ready' :
-        scores.overall >= 65 ? 'Pre-Production' :
-        scores.overall >= 45 ? 'Prototype' : 'High Risk';
+        overall >= 82 ? 'Production-Ready' :
+        overall >= 65 ? 'Pre-Production'   :
+        overall >= 45 ? 'Prototype'        : 'High Risk';
+
+      // SWOT
+      const swot = this._buildSWOT(techStack, architecture, security, structure, overall);
+
+      // Suggestions
+      const suggestions = this._buildSuggestions(techStack, security, architecture, maintainability, performance, reliability, structure);
+
+      // Executive summary
+      const executiveSummary = this._buildExecutiveSummary(projectType, techStack, structure, overall, deployCategory, security);
+
+      // Project overview
+      const projectOverview = this._buildProjectOverview(projectType, techStack, structure, parsed.depCount);
 
       const result = {
-        projectId,
-        commitHash,
+        projectId, commitHash,
         analyzedAt: new Date().toISOString(),
-        modelVersion: 'static-analyzer-v2',
-        overallScore: scores.overall,
+        modelVersion: 'static-analyzer-v3',
+        overallScore: overall,
         details: {
-          fileCount: tech.totalFiles,
-          totalLines: tech.totalLines,
-          languages: tech.languages,
+          fileCount: structure.totalFiles,
+          totalLines: structure.totalLines,
+          codeLines: structure.codeLines,
+          languages: structure.languages,
+          largeFiles: structure.largeFiles,
+          hasTests: structure.hasTests,
+          hasDocker: structure.hasDocker,
+          hasCI: structure.hasCI,
+          apiRouteCount: structure.apiRouteCount,
+          componentCount: structure.componentCount,
+          testFileCount: structure.testFileCount,
+          maxDepth: structure.maxDepth,
+          depCount,
         },
-        techStack: { detected: tech.techStack, primary: tech.languages[0]?.lang || 'Unknown' },
-        security: {
-          securityScore: scores.security,
-          criticalIssues: [],
-          securitySummary: scores.security >= 75
-            ? 'No critical security vulnerabilities detected in static scan.'
-            : 'Potential credential exposure or unsafe patterns detected. Review flagged files.',
-        },
-        architecture: {
-          architectureScore: scores.architecture,
-          modularityLevel: scores.architecture >= 75 ? 'High' : scores.architecture >= 55 ? 'Medium' : 'Low',
-          couplingRisk: Math.round(100 - scores.architecture),
-          architecturalWeaknesses: scores.architecture < 70 ? ['Insufficient module separation detected'] : [],
-          refactorRecommendations: ['Extract reusable utility functions into shared modules'],
-        },
-        maintainability: {
-          maintainabilityScore: scores.maintainability,
-          duplicationRisk: scores.maintainability >= 75 ? 'Low' : 'Medium',
-          readabilityAssessment: scores.maintainability >= 70 ? 'Code is generally readable with consistent patterns' : 'Readability could be improved with better naming and smaller functions',
-        },
-        performance: {
-          performanceScore: scores.performance,
-          scalingRiskLevel: scores.performance >= 75 ? 'Low' : scores.performance >= 55 ? 'Medium' : 'High',
-          bottleneckIndicators: scores.performance < 70 ? ['Potential N+1 query patterns detected'] : [],
-          estimatedRiskAtScale: { '10k': 'Moderate risk', '100k': 'High risk without optimisation' },
-        },
-        reliability: {
-          reliabilityScore: Math.round((scores.maintainability + scores.security) / 2),
-          testCoverageEstimate: tech.techStack.includes('Jest') ? 'Partial (tests present)' : 'None detected',
-          errorHandlingQuality: 'Needs improvement',
-          loggingQuality: 'Basic',
-        },
+        projectType,
+        projectOverview,
+        techStack: { detected: techStack, byCategory: techByCategory, primary: structure.languages[0]?.lang || 'Unknown' },
+        security,
+        architecture,
+        maintainability,
+        performance,
+        reliability,
         productionReadiness: {
-          productionReadinessIndex: scores.overall,
+          productionReadinessIndex: overall,
           deploymentCategory: deployCategory,
-          topBlockingIssues: swot.weaknesses.slice(0, 3),
-          executiveSummary: `${tech.totalFiles} files, ${tech.totalLines.toLocaleString()} lines analyzed. Tech stack: ${tech.techStack.slice(0,4).join(', ') || 'Undetected'}. Overall readiness: ${deployCategory}.`,
+          topBlockingIssues: [
+            ...security.criticalIssues.slice(0,2).map(i => i.message),
+            ...security.highIssues.slice(0,1).map(i => i.message),
+            ...architecture.weaknesses.slice(0,2),
+            ...reliability.issues.slice(0,1),
+          ].slice(0, 5),
+          executiveSummary,
         },
         swot,
         suggestions,
-        technicalDebtScore: Math.round(100 - scores.overall),
-        refactorEffortEstimate: scores.overall >= 75 ? 'Low' : scores.overall >= 55 ? 'Medium' : 'High',
-        systemComplexityIndex: Math.round((100 - scores.maintainability + (tech.totalFiles > 20 ? 10 : 0)) / 2),
+        technicalDebtScore: analyzed.technicalDebtScore,
+        refactorEffortEstimate: analyzed.refactorEffortEstimate,
+        systemComplexityIndex: analyzed.systemComplexityIndex,
+        totalIssuesFound: analyzed.totalIssuesFound,
       };
 
       await db.run(
         `UPDATE workspace_ai_reviews
-         SET overall_score = ?, review_data = ?, model_version = ?, status = 'complete'
-         WHERE project_id = ? AND commit_hash = ?`,
-        [scores.overall, JSON.stringify(result), 'static-analyzer-v2', projectId, commitHash]
+         SET overall_score=?,review_data=?,model_version='static-v3',status='complete'
+         WHERE project_id=? AND commit_hash=?`,
+        [overall, JSON.stringify(result), projectId, commitHash]
       );
 
-      // Generate and store evaluation
-      await this._runEvaluation(projectId, commitHash, scores, tech);
-
-      console.log(`[AIReview] done hash=${commitHash} score=${scores.overall} deploy=${deployCategory}`);
+      await this._runEvaluation(projectId, commitHash, analyzed, parsed);
+      console.log(`[AIReview] hash=${commitHash} score=${overall} deploy=${deployCategory} files=${files.length}`);
       return result;
     } catch (err) {
       console.error('[AIReview] Failed:', err.message);
-      await db.run(
-        `UPDATE workspace_ai_reviews SET status = 'failed' WHERE project_id = ? AND commit_hash = ?`,
-        [projectId, commitHash]
-      ).catch(() => {});
+      await db.run(`UPDATE workspace_ai_reviews SET status='failed' WHERE project_id=? AND commit_hash=?`, [projectId, commitHash]).catch(()=>{});
       throw err;
     }
   }
 
-  async _runEvaluation(projectId, commitHash, scores, tech) {
+  _buildSWOT(techStack, architecture, security, structure, overall) {
+    const names = techStack.map(t => t.name);
+    const strengths = [], weaknesses = [], opportunities = [], threats = [];
+
+    // Strengths
+    if (names.includes('TypeScript')) strengths.push('TypeScript enforces compile-time type safety, reducing runtime errors significantly');
+    if (names.includes('React') || names.includes('Next.js')) strengths.push('Modern component-based frontend architecture enables rapid UI development');
+    if (names.includes('Docker')) strengths.push('Docker containerization ensures environment consistency across development and production');
+    if (names.includes('Prisma ORM')) strengths.push('Prisma ORM provides type-safe database access and schema migration management');
+    if (structure.hasTests) strengths.push('Test suite is present — establishes a regression safety net');
+    if (structure.hasCI) strengths.push('CI/CD pipeline automates build and deployment validation');
+    if (architecture.architectureScore >= 70) strengths.push('Well-organized codebase with clear module separation');
+    if (names.includes('AI/LLM Integration')) strengths.push('AI integration positions the product for next-generation feature capabilities');
+    if (structure.apiRouteCount > 5) strengths.push(`${structure.apiRouteCount} API endpoints — comprehensive backend coverage`);
+    if (strengths.length === 0) strengths.push('Project demonstrates foundational engineering structure');
+
+    // Weaknesses
+    if (security.criticalIssues.length > 0) weaknesses.push(`${security.criticalIssues.length} critical security vulnerabilities require immediate attention`);
+    if (!structure.hasTests) weaknesses.push('Absence of test coverage creates regression risk during feature development');
+    if (!structure.hasDocker) weaknesses.push('No containerization — deployment consistency is not guaranteed');
+    if (structure.largeFiles.length > 0) weaknesses.push(`${structure.largeFiles.length} oversized files indicate monolithic code patterns`);
+    if (!names.includes('TypeScript') && structure.totalFiles > 10) weaknesses.push('JavaScript without TypeScript increases runtime error risk at scale');
+    if (architecture.architectureScore < 60) weaknesses.push('Module structure lacks clear separation of concerns');
+    if (weaknesses.length === 0) weaknesses.push('No critical structural weaknesses detected at this stage');
+
+    // Opportunities
+    if (!names.includes('Redis')) opportunities.push('Add Redis caching layer to reduce database load and improve response times');
+    if (!names.includes('AI/LLM Integration')) opportunities.push('AI feature integration could significantly differentiate the product');
+    if (!structure.hasCI) opportunities.push('CI/CD automation would accelerate safe feature delivery');
+    if (names.includes('React') || names.includes('Next.js')) opportunities.push('Progressive Web App (PWA) capabilities could extend reach to mobile users');
+    opportunities.push('API documentation with OpenAPI/Swagger would improve developer experience');
+    opportunities.push('Analytics and observability instrumentation would enable data-driven decisions');
+
+    // Threats
+    if (security.totalIssues > 0) threats.push(`${security.totalIssues} security findings represent potential attack surface`);
+    if (!structure.hasTests) threats.push('Without tests, each deployment carries regression risk');
+    threats.push('Technical debt accumulation could slow feature velocity over time');
+    if (overall < 70) threats.push('Current production readiness score suggests deployment risk');
+    if (depCount > 50) threats.push('Large dependency tree increases supply chain attack surface');
+
+    return { strengths, weaknesses, opportunities, threats };
+  }
+
+  _buildSuggestions(techStack, security, architecture, maintainability, performance, reliability, structure) {
+    const names = techStack.map(t => t.name);
+    const suggestions = [];
+
+    if (security.criticalIssues.length > 0)
+      suggestions.push({ priority: 'CRITICAL', category: 'Security', icon: '🔴', text: `Fix ${security.criticalIssues.length} critical security issue(s): ${security.criticalIssues[0]?.message}` });
+    if (security.highIssues.length > 0)
+      suggestions.push({ priority: 'HIGH', category: 'Security', icon: '🟠', text: `Resolve ${security.highIssues.length} high-severity security concern(s). Review flagged patterns.` });
+    if (!structure.hasTests)
+      suggestions.push({ priority: 'HIGH', category: 'Testing', icon: '🧪', text: 'Add Jest/Vitest unit tests. Target 60%+ coverage for business logic. Use Testing Library for UI components.' });
+    if (!structure.hasDocker)
+      suggestions.push({ priority: 'HIGH', category: 'DevOps', icon: '🐳', text: 'Add Dockerfile and docker-compose.yml. Containerization eliminates environment discrepancies.' });
+    if (!names.includes('TypeScript') && structure.totalFiles > 8)
+      suggestions.push({ priority: 'HIGH', category: 'Code Quality', icon: '📘', text: 'Migrate to TypeScript. Type safety prevents entire classes of runtime bugs at minimal migration cost.' });
+    if (architecture.weaknesses.length > 0)
+      suggestions.push({ priority: 'MEDIUM', category: 'Architecture', icon: '🏗️', text: architecture.weaknesses[0] });
+    if (structure.largeFiles.length > 0)
+      suggestions.push({ priority: 'MEDIUM', category: 'Maintainability', icon: '✂️', text: `Split ${structure.largeFiles[0]?.name} (${structure.largeFiles[0]?.lines} lines) into focused modules under 200 lines each.` });
+    if (!structure.hasCI)
+      suggestions.push({ priority: 'MEDIUM', category: 'DevOps', icon: '🔄', text: 'Set up GitHub Actions for automated testing, linting, and deployment on every pull request.' });
+    if (!names.includes('Redis') && structure.apiRouteCount > 5)
+      suggestions.push({ priority: 'MEDIUM', category: 'Performance', icon: '⚡', text: 'Add Redis caching for expensive queries. Even 5-minute TTL caches can reduce DB load by 80%.' });
+    if (performance.bottleneckIssues.length > 0)
+      suggestions.push({ priority: 'MEDIUM', category: 'Performance', icon: '🚀', text: performance.bottleneckIssues[0]?.issue || 'Optimize identified performance bottlenecks' });
+    if (!structure.hasReadme)
+      suggestions.push({ priority: 'LOW', category: 'Documentation', icon: '📖', text: 'Add a comprehensive README with setup instructions, architecture diagram, and API documentation.' });
+    if (!structure.hasDotEnv)
+      suggestions.push({ priority: 'LOW', category: 'Config', icon: '⚙️', text: 'Add .env.example to document all required environment variables for new developers.' });
+    suggestions.push({ priority: 'LOW', category: 'Observability', icon: '📊', text: 'Add structured logging (Winston/Pino) and error tracking (Sentry) for production visibility.' });
+
+    return suggestions;
+  }
+
+  _buildProjectOverview(projectType, techStack, structure, depCount) {
+    const names = techStack.map(t => t.name);
+    const primary = structure.languages[0]?.lang || 'Unknown';
+    const hasBackend = names.some(t => ['Express.js','Fastify','Django','Flask','FastAPI'].includes(t));
+    const hasFrontend = names.some(t => ['React','Vue.js','Angular','Next.js','Svelte'].includes(t));
+    const hasDB = names.some(t => t.toLowerCase().includes('database') || ['MongoDB + Mongoose','PostgreSQL','MySQL','SQLite','Prisma ORM'].includes(t));
+
+    let purpose = `A ${projectType.type.toLowerCase()} built primarily in ${primary}`;
+    if (hasFrontend && hasBackend) purpose += ', featuring both a user-facing frontend and a backend API layer';
+    if (hasDB) purpose += ' with persistent data storage';
+    purpose += '.';
+
+    const maturitySignals = [];
+    if (structure.hasTests) maturitySignals.push('automated testing');
+    if (structure.hasDocker) maturitySignals.push('containerization');
+    if (structure.hasCI) maturitySignals.push('CI/CD automation');
+    if (structure.hasReadme) maturitySignals.push('documentation');
+
+    return {
+      purpose,
+      projectIcon: projectType.icon,
+      projectTypeLabel: projectType.type,
+      primaryLanguage: primary,
+      totalTechnologies: techStack.length,
+      totalDependencies: depCount,
+      maturitySignals,
+      keyMetrics: {
+        files: structure.totalFiles,
+        lines: structure.totalLines,
+        components: structure.componentCount,
+        apiRoutes: structure.apiRouteCount,
+        testFiles: structure.testFileCount,
+      },
+      architectureStyle: hasBackend && hasFrontend ? 'Full-Stack' : hasFrontend ? 'Frontend SPA' : hasBackend ? 'Backend API' : 'Library/Utility',
+    };
+  }
+
+  _buildExecutiveSummary(projectType, techStack, structure, overall, deployCategory, security) {
+    const names = techStack.map(t => t.name);
+    const hasFrontend = names.some(t => ['React','Vue.js','Angular','Next.js'].includes(t));
+    const hasBackend = names.some(t => ['Express.js','Fastify','Django','Flask'].includes(t));
+    const tone = overall >= 80 ? 'strong' : overall >= 65 ? 'solid foundational' : overall >= 50 ? 'developing' : 'early-stage';
+
+    let summary = `This ${projectType.type.toLowerCase()} demonstrates ${tone} engineering practices`;
+    if (hasFrontend) summary += `, with a well-structured frontend component architecture`;
+    if (hasBackend) summary += ` and an API backend serving ${structure.apiRouteCount || 'multiple'} routes`;
+    summary += `. Analyzing ${structure.totalFiles} files across ${structure.totalLines.toLocaleString()} lines of code, `;
+    summary += `the codebase is assessed as <strong>${deployCategory}</strong> `;
+    summary += `with an overall engineering score of <strong>${overall}/100</strong>. `;
+
+    if (security.criticalIssues.length > 0) {
+      summary += `⚠️ ${security.criticalIssues.length} critical security issue(s) must be resolved before production deployment. `;
+    } else if (overall >= 75) {
+      summary += `Security posture is acceptable — no critical vulnerabilities detected. `;
+    }
+    if (!structure.hasTests) summary += `The absence of automated testing is the primary risk vector. `;
+    if (overall >= 75) {
+      summary += `With targeted improvements to testing and documentation, this project is approaching production readiness.`;
+    } else {
+      summary += `Focus areas: ${[!structure.hasTests && 'test coverage', security.criticalIssues.length > 0 && 'security hardening', !structure.hasDocker && 'containerization'].filter(Boolean).join(', ')}.`;
+    }
+
+    return summary;
+  }
+
+  async _runEvaluation(projectId, commitHash, analyzed, parsed) {
+    const { overallScore: qs, security, architecture, maintainability, performance, reliability } = analyzed;
+    const { techStack, structure } = parsed;
+    const names = techStack.map(t => t.name);
+
     const innovation = Math.min(100, Math.round(
-      (tech.techStack.length * 5) + (scores.architecture * 0.4) + (scores.performance * 0.2)
+      (names.length * 4) + (architecture.architectureScore * 0.3) + (names.includes('AI/LLM Integration') ? 15 : 0)
     ));
-    const scalability = Math.round((scores.performance * 0.5) + (scores.architecture * 0.3) + (tech.techStack.includes('Docker') ? 15 : 0));
-    const maturity = Math.round((scores.maintainability * 0.4) + (scores.security * 0.3) + (tech.techStack.includes('Jest') ? 15 : 0) + (tech.totalFiles > 15 ? 10 : 0));
-    const overall = Math.round((scores.overall * 0.4) + (innovation * 0.2) + (Math.min(100,scalability) * 0.2) + (Math.min(100,maturity) * 0.2));
+    const scalability = Math.min(100, Math.round(
+      performance.performanceScore * 0.4 + architecture.architectureScore * 0.3 +
+      (names.includes('Redis') ? 15 : 0) + (structure.hasDocker ? 10 : 0)
+    ));
+    const maturity = Math.min(100, Math.round(
+      maintainability.maintainabilityScore * 0.35 + security.securityScore * 0.25 +
+      (structure.hasTests ? 20 : 0) + (structure.hasDocker ? 10 : 0) + (structure.hasCI ? 10 : 0)
+    ));
+    const overall = Math.min(100, Math.round(
+      qs * 0.35 + innovation * 0.2 + scalability * 0.25 + maturity * 0.2
+    ));
 
     const evalData = {
-      scores: {
-        codeQuality: scores.overall,
-        complexity: Math.max(10, 100 - scores.maintainability),
-        innovation: Math.min(100, innovation),
-        scalability: Math.min(100, scalability),
-        maturity: Math.min(100, maturity),
-        overall: Math.min(100, overall),
-      },
+      scores: { codeQuality: qs, complexity: analyzed.systemComplexityIndex, innovation, scalability, maturity, overall },
       insights: {
-        topStrength: tech.techStack[0] ? `Strong use of ${tech.techStack[0]}` : 'Solid file organization',
-        primaryRisk: scores.security < 70 ? 'Security hardening required' : 'Scalability planning needed',
-        nextMilestone: scores.overall >= 75 ? 'Add CI/CD pipeline' : 'Improve test coverage first',
+        topStrength: architecture.strengths[0] || 'Structured codebase foundation',
+        primaryRisk: security.criticalIssues.length > 0 ? 'Critical security vulnerabilities' : !structure.hasTests ? 'Lack of automated testing' : 'Scalability planning needed',
+        nextMilestone: overall >= 80 ? 'Add CI/CD and monitoring for production readiness' : overall >= 60 ? 'Improve test coverage and add Docker' : 'Address critical issues and establish test coverage',
       },
+      breakdown: { securityWeight: 25, architectureWeight: 25, maintainabilityWeight: 20, performanceWeight: 15, reliabilityWeight: 15 },
     };
 
     await db.run(
       `INSERT OR REPLACE INTO workspace_evaluation
-         (project_id, commit_hash, code_quality, complexity, innovation, scalability, maturity, overall, eval_data, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-      [projectId, commitHash,
-       evalData.scores.codeQuality, evalData.scores.complexity,
-       evalData.scores.innovation, evalData.scores.scalability,
-       evalData.scores.maturity, evalData.scores.overall,
-       JSON.stringify(evalData)]
-    );
-  }
-
-  async getReview(projectId, commitHash) {
-    await this.ensureTables();
-    return db.get(
-      `SELECT * FROM workspace_ai_reviews WHERE project_id = ? AND commit_hash = ?`,
-      [projectId, commitHash]
+         (project_id,commit_hash,code_quality,complexity,innovation,scalability,maturity,overall,eval_data,created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))`,
+      [projectId, commitHash, qs, analyzed.systemComplexityIndex, innovation, scalability, maturity, overall, JSON.stringify(evalData)]
     );
   }
 
   async getLatestReview(projectId) {
     await this.ensureTables();
-    return db.get(
-      `SELECT * FROM workspace_ai_reviews WHERE project_id = ? ORDER BY created_at DESC LIMIT 1`,
-      [projectId]
-    );
+    return db.get(`SELECT * FROM workspace_ai_reviews WHERE project_id=? ORDER BY created_at DESC LIMIT 1`, [projectId]);
   }
 
   async getLatestEvaluation(projectId) {
     await this.ensureTables();
-    return db.get(
-      `SELECT * FROM workspace_evaluation WHERE project_id = ? ORDER BY created_at DESC LIMIT 1`,
-      [projectId]
-    );
+    return db.get(`SELECT * FROM workspace_evaluation WHERE project_id=? ORDER BY created_at DESC LIMIT 1`, [projectId]);
   }
 }
 

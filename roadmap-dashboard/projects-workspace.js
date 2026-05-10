@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ========================================
  * PROJECTS WORKSPACE - AI-Augmented Version Control
  * ========================================
@@ -25,7 +25,7 @@
         pendingChanges: new Map() // Track uncommitted changes
     };
 
-    // Backend is the single source of truth — no localStorage
+    // Backend is the single source of truth â€” no localStorage
     function loadState() {
         state.projects = [];
         state.commits = [];
@@ -855,7 +855,7 @@
             </div>
             <div class="file-content">
                 ${isBinary
-                    ? `<div style="padding:2rem;color:var(--text-muted);text-align:center"><i class="fas fa-file-archive fa-2x"></i><p style="margin-top:1rem">Binary file — preview not available</p></div>`
+                    ? `<div style="padding:2rem;color:var(--text-muted);text-align:center"><i class="fas fa-file-archive fa-2x"></i><p style="margin-top:1rem">Binary file â€” preview not available</p></div>`
                     : `<pre><code class="language-${language}">${escapeHtml(content)}</code></pre>`}
             </div>
         `;
@@ -1045,7 +1045,7 @@
             const modal = document.getElementById('commit-modal');
             if (modal) modal.classList.add('hidden');
 
-            showNotification('✅ Commit pushed! Running AI analysis...', 'success');
+            showNotification('âœ… Commit pushed! Running AI analysis...', 'success');
 
             console.log('[COMMIT] refreshing commits UI...');
             await loadProjectCommits();
@@ -1061,7 +1061,7 @@
             renderCommitsTimeline();
             switchProjectTab('commits');
 
-            // AI analysis + evolution refresh — server processes async
+            // AI analysis + evolution refresh â€” server processes async
             setTimeout(() => { renderAIReview(); renderEvolution(); }, 2000);
             setTimeout(() => { renderAIReview(); renderEvolution(); }, 6000);
 
@@ -1698,7 +1698,7 @@
                         </div>
                         <div class="ai-core-label">AI REVIEW ENGINE</div>
                         <div class="ai-core-state">STANDBY</div>
-                        <div class="ai-core-sublabel">No commits yet — commit your files to trigger analysis</div>
+                        <div class="ai-core-sublabel">No commits yet â€” commit your files to trigger analysis</div>
                     </div>
                 </div>`;
             return;
@@ -1723,7 +1723,7 @@
                     _renderAIReviewResult(review.commitHash || commits[0]?.hash, review, reviewData);
                     return;
                 }
-                // Analysis in progress — show spinner and retry
+                // Analysis in progress â€” show spinner and retry
                 if (ad.analysis && ad.analysis.status === 'in_progress') {
                     dom.aiReviewContainer.innerHTML = `
                         <div style="text-align:center;padding:3rem">
@@ -1807,115 +1807,95 @@
     }
 
     function _renderAIReviewResult(hash, review, reviewData) {
-        // Support both legacy flat format and new enterprise 6-layer format
-        const isEnterprise = !!(reviewData.productionReadiness || reviewData.security);
+        // Field aliasing â€” supports both legacy and new engine output
+        const d         = reviewData;
+        const sec       = d.security           || {};
+        const arch      = d.architecture       || {};
+        const maint     = d.maintainability    || {};
+        const perf      = d.performance        || {};
+        const rel       = d.reliability        || {};
+        const prod      = d.productionReadiness || {};
+        const swot      = d.swot               || {};
+        const suggs     = Array.isArray(d.suggestions) ? d.suggestions : [];
+        const overview  = d.projectOverview    || {};
+        const techData  = d.techStack          || {};
+        const techList  = Array.isArray(techData.detected) ? techData.detected : (Array.isArray(d.techStack) ? d.techStack : []);
+        const details   = d.details            || {};
 
-        if (!isEnterprise) {
-            // ── Legacy fallback render ─────────────────────────────────────────
-            const score      = reviewData.overallScore || review.overall_score || 0;
-            const scoreColor = score >= 80 ? '#10B981' : score >= 60 ? '#F59E0B' : '#D00000';
-            const circ       = +(2 * Math.PI * 54).toFixed(2);
-            const offset     = +(circ * (1 - score / 100)).toFixed(2);
-            const ts         = review.created_at ? new Date(review.created_at).getTime() : Date.now();
-            dom.aiReviewContainer.innerHTML = `
-                <div class="ai-ultra-dashboard">
-                    <header class="ultra-header">
-                        <div class="header-titles">
-                            <h1 class="eng-title">AI REVIEW ENGINE</h1>
-                            <div class="eng-sub">Commit: <code>${escapeHtml(hash)}</code> &nbsp;&bull;&nbsp; ${formatTimeAgo(ts)}</div>
-                        </div>
-                        <div class="rating-orb-container">
-                            <div class="rating-orb">
-                                <svg class="orb-svg" viewBox="0 0 120 120">
-                                    <circle class="orb-bg" cx="60" cy="60" r="54"/>
-                                    <circle class="orb-progress" cx="60" cy="60" r="54"
-                                        stroke="${scoreColor}"
-                                        style="stroke-dasharray:${circ};stroke-dashoffset:${offset}" />
-                                </svg>
-                                <div class="orb-value"><span class="val-num">${score}</span><span class="val-max">/100</span></div>
-                            </div>
-                        </div>
-                    </header>
-                </div>`;
-            return;
-        }
+        const pri         = prod.productionReadinessIndex || d.overallScore || review.overall_score || 0;
+        const deployCategory = prod.deploymentCategory || (pri >= 82 ? 'Production-Ready' : pri >= 65 ? 'Pre-Production' : pri >= 45 ? 'Prototype' : 'High Risk');
+        const debtScore   = d.technicalDebtScore    || Math.round(100 - pri);
+        const refactorEff = d.refactorEffortEstimate || (pri >= 75 ? 'Low' : pri >= 55 ? 'Medium' : 'High');
+        const complexity  = d.systemComplexityIndex  || 0;
+        const ts          = review.created_at ? new Date(review.created_at).getTime() : Date.now();
+        const modelVer    = review.model_version || 'static-analyzer-v3';
 
-        // ── Enterprise 6-Layer Dashboard ──────────────────────────────────────
-        const sec   = reviewData.security          || {};
-        const arch  = reviewData.architecture      || {};
-        const maint = reviewData.maintainability   || {};
-        const perf  = reviewData.performance       || {};
-        const rel   = reviewData.reliability       || {};
-        const prod  = reviewData.productionReadiness || {};
-
-        const pri          = prod.productionReadinessIndex || reviewData.overallScore || review.overall_score || 0;
-        const deployCategory = prod.deploymentCategory || 'Unknown';
-        const debtScore    = reviewData.technicalDebtScore    || 0;
-        const refactorEff  = reviewData.refactorEffortEstimate || 'N/A';
-        const complexity   = reviewData.systemComplexityIndex  || 0;
-        const ts           = review.created_at ? new Date(review.created_at).getTime() : Date.now();
-        const modelVer     = review.model_version || 'static-analyzer-v2';
-
-        const priColor  = pri >= 78 ? '#10B981' : pri >= 55 ? '#F59E0B' : '#ef4444';
+        const priColor  = pri >= 80 ? '#10B981' : pri >= 60 ? '#F59E0B' : '#ef4444';
         const circ      = +(2 * Math.PI * 54).toFixed(2);
         const offset    = +(circ * (1 - pri / 100)).toFixed(2);
+        const deployCls = { 'Production-Ready': 'deploy-green', 'Pre-Production': 'deploy-yellow', 'Prototype': 'deploy-orange', 'High Risk': 'deploy-red' }[deployCategory] || 'deploy-orange';
+        const riskColors = { 'Low': '#10B981', 'Medium': '#F59E0B', 'High': '#ef4444' };
 
-        const categoryClass = {
-            'Production-Ready': 'deploy-green',
-            'Pre-Production':   'deploy-yellow',
-            'Prototype':        'deploy-orange',
-            'High Risk':        'deploy-red'
-        }[deployCategory] || 'deploy-orange';
-
-        function scoreBar(score, total) {
+        const scoreBar = (score) => {
             const s = Number(score) || 0;
             const c = s >= 75 ? '#10B981' : s >= 55 ? '#F59E0B' : '#ef4444';
             return `<div class="ent-score-bar-wrap">
                 <div class="ent-score-bar" style="width:${s}%;background:${c}"></div>
                 <span class="ent-score-num" style="color:${c}">${s}</span>
             </div>`;
-        }
+        };
 
-        function issueList(items, colorClass) {
-            if (!Array.isArray(items) || items.length === 0)
-                return `<div class="ent-no-issues">None detected</div>`;
-            return items.slice(0, 4).map(item =>
-                `<div class="ent-issue-item ${colorClass}">
-                    <span class="ent-issue-label">${escapeHtml(item.file ? item.file.split('/').pop() : (item.file || ''))}</span>
-                    <span class="ent-issue-text">${escapeHtml(item.issue || '')}</span>
-                    ${item.line ? `<span class="ent-issue-line">L${item.line}</span>` : ''}
-                </div>`
-            ).join('');
-        }
+        const secIssueHtml = (items, cls) => {
+            if (!Array.isArray(items) || !items.length) return '<div class="ent-no-issues">None detected âœ“</div>';
+            return items.slice(0, 4).map(i => `<div class="ent-issue-item ${cls}">
+                <span class="ent-issue-label">${escapeHtml(i.file ? i.file.split('/').pop() : '')}</span>
+                <span class="ent-issue-text">${escapeHtml(i.message || i.issue || '')}</span>
+                ${i.line ? `<span class="ent-issue-line">L${i.line}</span>` : ''}
+            </div>`).join('');
+        };
 
-        function tagList(items) {
-            if (!Array.isArray(items) || items.length === 0) return '<span class="ent-tag dim">None</span>';
-            return items.slice(0, 5).map(s => `<span class="ent-tag">${escapeHtml(String(s))}</span>`).join('');
-        }
-
-        function metricPill(label, value, color) {
-            return `<div class="ent-pill" style="border-color:${color || '#444'}">
-                <span class="ent-pill-val" style="color:${color || '#aaa'}">${escapeHtml(String(value))}</span>
+        const pill = (label, value, color) =>
+            `<div class="ent-pill" style="border-color:${color||'#444'}">
+                <span class="ent-pill-val" style="color:${color||'#aaa'}">${escapeHtml(String(value))}</span>
                 <span class="ent-pill-lbl">${escapeHtml(label)}</span>
             </div>`;
-        }
 
-        const riskColors = { 'Low': '#10B981', 'Medium': '#F59E0B', 'High': '#ef4444', 'None': '#aaa' };
+        const tagList = (items) => {
+            if (!Array.isArray(items) || !items.length) return '<span class="ent-tag dim">None</span>';
+            return items.slice(0, 5).map(s => `<span class="ent-tag">${escapeHtml(String(s))}</span>`).join('');
+        };
+
+        const listItems = (items) => {
+            if (!Array.isArray(items) || !items.length) return '<li style="color:var(--text-muted)">None detected</li>';
+            return items.slice(0, 4).map(s => `<li>${escapeHtml(String(s))}</li>`).join('');
+        };
+
+        const swotItems = (arr, icon) => {
+            if (!Array.isArray(arr) || !arr.length) return `<li style="color:var(--text-muted)">Not assessed</li>`;
+            return arr.slice(0, 4).map(s => `<li><span class="swot-icon">${icon}</span> ${escapeHtml(String(s))}</li>`).join('');
+        };
+
+        const priorityColor = { 'CRITICAL': '#ef4444', 'HIGH': '#f97316', 'MEDIUM': '#F59E0B', 'LOW': '#10B981' };
 
         dom.aiReviewContainer.innerHTML = `
         <div class="ent-dashboard">
 
-            <!-- ── HEADER ── -->
+            <!-- â•â• HEADER â•â• -->
             <div class="ent-header">
                 <div class="ent-header-left">
-                    <div class="ent-engine-label">ENTERPRISE AI REVIEW ENGINE</div>
-                    <div class="ent-commit-ref">Commit <code>${escapeHtml(hash)}</code> &bull; ${formatTimeAgo(ts)} &bull; <span class="ent-model">${escapeHtml(modelVer)}</span></div>
+                    <div class="ent-engine-label">âš¡ ENTERPRISE AI REVIEW ENGINE</div>
+                    <div class="ent-commit-ref">
+                        Commit <code>${escapeHtml(hash)}</code> &bull; ${formatTimeAgo(ts)}
+                        &bull; <span class="ent-model">${escapeHtml(modelVer)}</span>
+                    </div>
                     <div class="ent-details-row">
-                        <span>${reviewData.details?.codeFileCount || 0} code files</span>
+                        <span>${details.fileCount || 0} files</span>
                         <span>&bull;</span>
-                        <span>${(reviewData.details?.totalLines || 0).toLocaleString()} lines</span>
+                        <span>${(details.totalLines || 0).toLocaleString()} lines</span>
                         <span>&bull;</span>
-                        <span>${(reviewData.details?.languages || []).map(l=>l.lang.toUpperCase()).slice(0,3).join(' / ') || 'N/A'}</span>
+                        <span>${(details.languages || []).map(l => l.lang).slice(0,3).join(' / ') || 'N/A'}</span>
+                        ${details.apiRouteCount > 0 ? `<span>&bull;</span><span>${details.apiRouteCount} API routes</span>` : ''}
+                        ${details.componentCount > 0 ? `<span>&bull;</span><span>${details.componentCount} components</span>` : ''}
                     </div>
                 </div>
                 <div class="ent-pri-orb-wrap">
@@ -1931,32 +1911,67 @@
                             <span class="ent-orb-sub">/100</span>
                         </div>
                     </div>
-                    <div class="ent-deploy-badge ${categoryClass}">${escapeHtml(deployCategory)}</div>
+                    <div class="ent-deploy-badge ${deployCls}">${escapeHtml(deployCategory)}</div>
                 </div>
             </div>
 
-            <!-- ── TOP BLOCKING ISSUES ── -->
+            <!-- â•â• PROJECT OVERVIEW â•â• -->
+            ${overview.purpose ? `
+            <div class="ent-overview-panel">
+                <div class="ent-section-title"><i class="fas fa-info-circle"></i> PROJECT OVERVIEW</div>
+                <div class="ent-overview-body">
+                    <div class="ent-overview-meta">
+                        <span class="ent-overview-type">${escapeHtml(overview.projectIcon || '')} ${escapeHtml(overview.projectTypeLabel || 'Software Project')}</span>
+                        <span class="ent-overview-arch">${escapeHtml(overview.architectureStyle || '')}</span>
+                    </div>
+                    <p class="ent-overview-purpose">${escapeHtml(overview.purpose)}</p>
+                    ${Array.isArray(overview.maturitySignals) && overview.maturitySignals.length > 0 ? `
+                    <div class="ent-maturity-signals">
+                        ${overview.maturitySignals.map(s => `<span class="ent-signal-tag">âœ“ ${escapeHtml(s)}</span>`).join('')}
+                    </div>` : ''}
+                </div>
+            </div>` : ''}
+
+            <!-- â•â• EXECUTIVE SUMMARY â•â• -->
+            ${prod.executiveSummary ? `
+            <div class="ent-exec-panel">
+                <div class="ent-section-title"><i class="fas fa-user-tie"></i> CTO EXECUTIVE SUMMARY</div>
+                <div class="ent-exec-text">${prod.executiveSummary}</div>
+            </div>` : ''}
+
+            <!-- â•â• BLOCKING ISSUES â•â• -->
             ${Array.isArray(prod.topBlockingIssues) && prod.topBlockingIssues.length > 0 ? `
             <div class="ent-blocking-issues">
-                <div class="ent-section-title">TOP BLOCKING ISSUES</div>
+                <div class="ent-section-title">ðŸš¨ TOP BLOCKING ISSUES</div>
                 <div class="ent-blocking-list">
                     ${prod.topBlockingIssues.map(issue => {
-                        const isRed = issue.includes('[CRITICAL') || issue.includes('[HIGH');
-                        const isYellow = issue.includes('[MEDIUM') || issue.includes('[ARCHITECTURE');
-                        const cls = isRed ? 'block-red' : isYellow ? 'block-yellow' : 'block-blue';
+                        const cls = (issue.toLowerCase().includes('critical') || issue.toLowerCase().includes('secret')) ? 'block-red'
+                            : issue.toLowerCase().includes('test') ? 'block-yellow' : 'block-blue';
                         return `<div class="ent-block-item ${cls}">${escapeHtml(issue)}</div>`;
                     }).join('')}
                 </div>
             </div>` : ''}
 
-            <!-- ── 6 PANELS GRID ── -->
+            <!-- â•â• TECH STACK â•â• -->
+            ${techList.length > 0 ? `
+            <div class="ent-tech-panel">
+                <div class="ent-section-title"><i class="fas fa-layer-group"></i> DETECTED TECH STACK (${techList.length} technologies)</div>
+                <div class="ent-tech-grid">
+                    ${techList.slice(0, 16).map(t => `
+                    <div class="ent-tech-tag">
+                        <span class="ent-tech-name">${escapeHtml(t.name)}</span>
+                        <span class="ent-tech-cat">${escapeHtml(t.category)}</span>
+                    </div>`).join('')}
+                </div>
+            </div>` : ''}
+
+            <!-- â•â• 6-PANEL ANALYSIS GRID â•â• -->
             <div class="ent-panels-grid">
 
                 <!-- SECURITY -->
                 <div class="ent-panel panel-security">
                     <div class="ent-panel-header">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>SECURITY</span>
+                        <i class="fas fa-shield-alt"></i><span>SECURITY</span>
                         ${scoreBar(sec.securityScore)}
                     </div>
                     <div class="ent-panel-body">
@@ -1965,17 +1980,11 @@
                             <div class="ent-cnt cnt-orange"><span>${(sec.highIssues||[]).length}</span><small>High</small></div>
                             <div class="ent-cnt cnt-yellow"><span>${(sec.mediumIssues||[]).length}</span><small>Medium</small></div>
                         </div>
-                        ${(sec.criticalIssues||[]).length > 0 ? `
-                        <div class="ent-sub-label">Critical</div>
-                        ${issueList(sec.criticalIssues, 'issue-red')}` : ''}
-                        ${(sec.highIssues||[]).length > 0 ? `
-                        <div class="ent-sub-label">High</div>
-                        ${issueList(sec.highIssues, 'issue-orange')}` : ''}
-                        ${(sec.mediumIssues||[]).length > 0 ? `
-                        <div class="ent-sub-label">Medium</div>
-                        ${issueList(sec.mediumIssues, 'issue-yellow')}` : ''}
-                        ${(sec.criticalIssues||[]).length === 0 && (sec.highIssues||[]).length === 0 && (sec.mediumIssues||[]).length === 0 ?
-                            `<div class="ent-no-issues">No vulnerabilities detected</div>` : ''}
+                        ${(sec.criticalIssues||[]).length > 0 ? `<div class="ent-sub-label">Critical</div>${secIssueHtml(sec.criticalIssues, 'issue-red')}` : ''}
+                        ${(sec.highIssues||[]).length > 0 ? `<div class="ent-sub-label">High</div>${secIssueHtml(sec.highIssues, 'issue-orange')}` : ''}
+                        ${(sec.mediumIssues||[]).length > 0 ? `<div class="ent-sub-label">Medium</div>${secIssueHtml(sec.mediumIssues, 'issue-yellow')}` : ''}
+                        ${!(sec.criticalIssues||[]).length && !(sec.highIssues||[]).length && !(sec.mediumIssues||[]).length
+                            ? '<div class="ent-no-issues">âœ“ No vulnerabilities detected</div>' : ''}
                         <div class="ent-summary-text">${escapeHtml(sec.securitySummary || '')}</div>
                     </div>
                 </div>
@@ -1983,63 +1992,50 @@
                 <!-- ARCHITECTURE -->
                 <div class="ent-panel panel-arch">
                     <div class="ent-panel-header">
-                        <i class="fas fa-sitemap"></i>
-                        <span>ARCHITECTURE</span>
+                        <i class="fas fa-sitemap"></i><span>ARCHITECTURE</span>
                         ${scoreBar(arch.architectureScore)}
                     </div>
                     <div class="ent-panel-body">
                         <div class="ent-metrics-row">
-                            ${metricPill('Modularity', arch.modularityLevel || 'N/A', riskColors[arch.modularityLevel] || '#aaa')}
-                            ${metricPill('Coupling Risk', arch.couplingRisk != null ? arch.couplingRisk : 'N/A',
-                                arch.couplingRisk >= 0.5 ? '#ef4444' : arch.couplingRisk >= 0.2 ? '#F59E0B' : '#10B981')}
+                            ${pill('Modularity', arch.modularityLevel || 'N/A', riskColors[arch.modularityLevel] || '#aaa')}
+                            ${pill('Depth', (details.maxDepth || 0) + ' lvls', '#aaa')}
                         </div>
-                        ${(arch.architecturalWeaknesses||[]).length > 0 ? `
-                        <div class="ent-sub-label">Weaknesses</div>
-                        ${tagList(arch.architecturalWeaknesses)}` : ''}
-                        ${(arch.refactorRecommendations||[]).length > 0 ? `
-                        <div class="ent-sub-label" style="margin-top:.75rem">Recommendations</div>
-                        <ul class="ent-rec-list">${(arch.refactorRecommendations||[]).slice(0,3).map(r=>`<li>${escapeHtml(r)}</li>`).join('')}</ul>` : ''}
+                        ${(arch.strengths||[]).length > 0 ? `<div class="ent-sub-label">Strengths</div><ul class="ent-rec-list">${listItems(arch.strengths)}</ul>` : ''}
+                        ${(arch.weaknesses||[]).length > 0 ? `<div class="ent-sub-label" style="margin-top:.5rem">Weaknesses</div><ul class="ent-rec-list">${listItems(arch.weaknesses)}</ul>` : ''}
                     </div>
                 </div>
 
                 <!-- MAINTAINABILITY -->
                 <div class="ent-panel panel-maint">
                     <div class="ent-panel-header">
-                        <i class="fas fa-tools"></i>
-                        <span>MAINTAINABILITY</span>
+                        <i class="fas fa-tools"></i><span>MAINTAINABILITY</span>
                         ${scoreBar(maint.maintainabilityScore)}
                     </div>
                     <div class="ent-panel-body">
                         <div class="ent-metrics-row">
-                            ${metricPill('Large Functions', maint.largeFunctionCount != null ? maint.largeFunctionCount : 'N/A',
-                                maint.largeFunctionCount >= 5 ? '#ef4444' : maint.largeFunctionCount >= 2 ? '#F59E0B' : '#10B981')}
-                            ${metricPill('Duplication', maint.duplicationRisk || 'N/A', riskColors[maint.duplicationRisk] || '#aaa')}
+                            ${pill('TypeScript', maint.hasTypeScript ? 'Yes âœ“' : 'No', maint.hasTypeScript ? '#10B981' : '#F59E0B')}
+                            ${pill('Duplication', maint.duplicationRisk || 'N/A', riskColors[maint.duplicationRisk] || '#aaa')}
                         </div>
-                        ${(maint.codeSmellIndicators||[]).length > 0 ? `
-                        <div class="ent-sub-label">Code Smells</div>
-                        ${tagList(maint.codeSmellIndicators)}` : ''}
-                        ${maint.readabilityAssessment ? `
-                        <div class="ent-readability">${escapeHtml(maint.readabilityAssessment)}</div>` : ''}
+                        <div class="ent-rel-row"><span class="ent-rel-key">Comment Ratio</span><span class="ent-rel-val">${maint.commentRatio || 0}%</span></div>
+                        <div class="ent-rel-row"><span class="ent-rel-key">Large Functions</span><span class="ent-rel-val">${maint.largeFunctionCount || 0}</span></div>
+                        ${maint.readabilityAssessment ? `<div class="ent-readability">${escapeHtml(maint.readabilityAssessment)}</div>` : ''}
                     </div>
                 </div>
 
                 <!-- PERFORMANCE -->
                 <div class="ent-panel panel-perf">
                     <div class="ent-panel-header">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>PERFORMANCE</span>
+                        <i class="fas fa-tachometer-alt"></i><span>PERFORMANCE</span>
                         ${scoreBar(perf.performanceScore)}
                     </div>
                     <div class="ent-panel-body">
                         <div class="ent-metrics-row">
-                            ${metricPill('Scaling Risk', perf.scalingRiskLevel || 'N/A', riskColors[perf.scalingRiskLevel] || '#aaa')}
-                            ${metricPill('Bottlenecks', (perf.bottleneckIndicators||[]).length,
-                                (perf.bottleneckIndicators||[]).length >= 4 ? '#ef4444' :
-                                (perf.bottleneckIndicators||[]).length >= 2 ? '#F59E0B' : '#10B981')}
+                            ${pill('Scaling Risk', perf.scalingRiskLevel || 'N/A', riskColors[perf.scalingRiskLevel] || '#aaa')}
                         </div>
-                        ${(perf.bottleneckIndicators||[]).length > 0 ? `
+                        ${(perf.strengths||[]).length > 0 ? `<div class="ent-sub-label">Strengths</div><ul class="ent-rec-list">${listItems(perf.strengths)}</ul>` : ''}
+                        ${(perf.bottleneckIssues||[]).length > 0 ? `
                         <div class="ent-sub-label">Bottlenecks</div>
-                        <ul class="ent-rec-list">${(perf.bottleneckIndicators||[]).slice(0,4).map(b=>`<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
+                        <ul class="ent-rec-list">${(perf.bottleneckIssues||[]).slice(0,3).map(b=>`<li>${escapeHtml(b.issue||String(b))}</li>`).join('')}</ul>` : ''}
                         ${perf.estimatedRiskAtScale ? `
                         <div class="ent-scale-grid">
                             <div class="ent-scale-cell"><span class="ent-scale-label">10K req/s</span><span class="ent-scale-val">${escapeHtml(perf.estimatedRiskAtScale['10k']||'N/A')}</span></div>
@@ -2051,59 +2047,97 @@
                 <!-- RELIABILITY -->
                 <div class="ent-panel panel-rel">
                     <div class="ent-panel-header">
-                        <i class="fas fa-heartbeat"></i>
-                        <span>RELIABILITY</span>
+                        <i class="fas fa-heartbeat"></i><span>RELIABILITY</span>
                         ${scoreBar(rel.reliabilityScore)}
                     </div>
                     <div class="ent-panel-body">
-                        <div class="ent-rel-row"><span class="ent-rel-key">Test Coverage</span><span class="ent-rel-val">${escapeHtml(rel.testCoverageEstimate||'N/A')}</span></div>
+                        <div class="ent-rel-row"><span class="ent-rel-key">Tests</span><span class="ent-rel-val" style="color:${rel.hasTests?'#10B981':'#ef4444'}">${rel.hasTests ? 'âœ“ Present' : 'âœ— Missing'}</span></div>
                         <div class="ent-rel-row"><span class="ent-rel-key">Error Handling</span><span class="ent-rel-val">${escapeHtml(rel.errorHandlingQuality||'N/A')}</span></div>
+                        <div class="ent-rel-row"><span class="ent-rel-key">Input Validation</span><span class="ent-rel-val" style="color:${rel.hasInputValidation?'#10B981':'#F59E0B'}">${rel.hasInputValidation ? 'âœ“ Detected' : 'âš  Not detected'}</span></div>
+                        <div class="ent-rel-row"><span class="ent-rel-key">Error Middleware</span><span class="ent-rel-val" style="color:${rel.hasErrorMiddleware?'#10B981':'#F59E0B'}">${rel.hasErrorMiddleware ? 'âœ“ Present' : 'âš  Missing'}</span></div>
                         <div class="ent-rel-row"><span class="ent-rel-key">Logging</span><span class="ent-rel-val">${escapeHtml(rel.loggingQuality||'N/A')}</span></div>
-                        ${(rel.reliabilityConcerns||[]).length > 0 ? `
-                        <div class="ent-sub-label" style="margin-top:.75rem">Concerns</div>
-                        <ul class="ent-rec-list">${(rel.reliabilityConcerns||[]).slice(0,3).map(c=>`<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
+                        ${(rel.issues||[]).length > 0 ? `<div class="ent-sub-label" style="margin-top:.5rem">Issues</div><ul class="ent-rec-list">${listItems(rel.issues)}</ul>` : ''}
                     </div>
                 </div>
 
-                <!-- EXECUTIVE SUMMARY (spans) -->
+                <!-- DEBT & COMPLEXITY -->
                 <div class="ent-panel panel-exec">
                     <div class="ent-panel-header">
-                        <i class="fas fa-file-alt"></i>
-                        <span>EXECUTIVE SUMMARY</span>
+                        <i class="fas fa-chart-pie"></i><span>CODE HEALTH</span>
                     </div>
                     <div class="ent-panel-body">
-                        <pre class="ent-exec-text">${escapeHtml(prod.executiveSummary||'No summary available.')}</pre>
+                        <div class="ent-bonus-grid">
+                            <div class="ent-bonus-card">
+                                <div class="ent-bonus-label">TECH DEBT</div>
+                                <div class="ent-bonus-val" style="color:${debtScore>=50?'#ef4444':debtScore>=25?'#F59E0B':'#10B981'}">${debtScore}/100</div>
+                                <div class="ent-bonus-sub">${debtScore>=50?'High â€” prioritize reduction':debtScore>=25?'Moderate â€” schedule refactor':'Low â€” healthy'}</div>
+                            </div>
+                            <div class="ent-bonus-card">
+                                <div class="ent-bonus-label">REFACTOR EFFORT</div>
+                                <div class="ent-bonus-val" style="color:${refactorEff==='High'?'#ef4444':refactorEff==='Medium'?'#F59E0B':'#10B981'}">${escapeHtml(refactorEff)}</div>
+                                <div class="ent-bonus-sub">${refactorEff==='High'?'Major overhaul needed':refactorEff==='Medium'?'1â€“2 sprint cycle':'Targeted fixes'}</div>
+                            </div>
+                            <div class="ent-bonus-card">
+                                <div class="ent-bonus-label">COMPLEXITY INDEX</div>
+                                <div class="ent-bonus-val" style="color:${complexity>=70?'#ef4444':complexity>=40?'#F59E0B':'#10B981'}">${complexity}/100</div>
+                                <div class="ent-bonus-sub">${complexity>=70?'High â€” hard to extend':complexity>=40?'Moderate':'Low â€” clean'}</div>
+                            </div>
+                            <div class="ent-bonus-card">
+                                <div class="ent-bonus-label">TOTAL ISSUES</div>
+                                <div class="ent-bonus-val" style="color:${d.totalIssuesFound>10?'#ef4444':d.totalIssuesFound>4?'#F59E0B':'#10B981'}">${d.totalIssuesFound || 0}</div>
+                                <div class="ent-bonus-sub">Across all analysis layers</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-            </div>
+            </div><!-- end panels-grid -->
 
-            <!-- ── BONUS METRICS FOOTER ── -->
-            <div class="ent-bonus-footer">
-                <div class="ent-bonus-card">
-                    <div class="ent-bonus-label">TECHNICAL DEBT SCORE</div>
-                    <div class="ent-bonus-val" style="color:${debtScore>=50?'#ef4444':debtScore>=25?'#F59E0B':'#10B981'}">${debtScore}/100</div>
-                    <div class="ent-bonus-sub">${debtScore >= 50 ? 'High — prioritize debt reduction' : debtScore >= 25 ? 'Moderate — schedule refactor sprint' : 'Low — healthy debt level'}</div>
+            <!-- â•â• SWOT ANALYSIS â•â• -->
+            ${(swot.strengths || swot.weaknesses) ? `
+            <div class="ent-swot-panel">
+                <div class="ent-section-title"><i class="fas fa-chess"></i> SWOT ANALYSIS</div>
+                <div class="ent-swot-grid">
+                    <div class="swot-cell swot-strengths">
+                        <div class="swot-header">ðŸ’ª STRENGTHS</div>
+                        <ul>${swotItems(swot.strengths, 'âœ“')}</ul>
+                    </div>
+                    <div class="swot-cell swot-weaknesses">
+                        <div class="swot-header">âš ï¸ WEAKNESSES</div>
+                        <ul>${swotItems(swot.weaknesses, 'âœ—')}</ul>
+                    </div>
+                    <div class="swot-cell swot-opportunities">
+                        <div class="swot-header">ðŸš€ OPPORTUNITIES</div>
+                        <ul>${swotItems(swot.opportunities, 'â†’')}</ul>
+                    </div>
+                    <div class="swot-cell swot-threats">
+                        <div class="swot-header">ðŸ”¥ THREATS</div>
+                        <ul>${swotItems(swot.threats, '!')}</ul>
+                    </div>
                 </div>
-                <div class="ent-bonus-card">
-                    <div class="ent-bonus-label">REFACTOR EFFORT</div>
-                    <div class="ent-bonus-val" style="color:${refactorEff==='High'?'#ef4444':refactorEff==='Medium'?'#F59E0B':'#10B981'}">${escapeHtml(refactorEff)}</div>
-                    <div class="ent-bonus-sub">${refactorEff==='High'?'Major overhaul needed':refactorEff==='Medium'?'1–2 sprint refactor cycle':'Targeted fixes sufficient'}</div>
+            </div>` : ''}
+
+            <!-- â•â• IMPROVEMENT SUGGESTIONS â•â• -->
+            ${suggs.length > 0 ? `
+            <div class="ent-suggestions-panel">
+                <div class="ent-section-title"><i class="fas fa-lightbulb"></i> ENGINEERING RECOMMENDATIONS</div>
+                <div class="ent-sugg-list">
+                    ${suggs.map(s => `
+                    <div class="ent-sugg-item">
+                        <div class="ent-sugg-badge" style="background:${priorityColor[s.priority]||'#555'}">${escapeHtml(s.priority)}</div>
+                        <div class="ent-sugg-icon">${escapeHtml(s.icon || 'â€¢')}</div>
+                        <div class="ent-sugg-body">
+                            <div class="ent-sugg-cat">${escapeHtml(s.category)}</div>
+                            <div class="ent-sugg-text">${escapeHtml(s.text)}</div>
+                        </div>
+                    </div>`).join('')}
                 </div>
-                <div class="ent-bonus-card">
-                    <div class="ent-bonus-label">SYSTEM COMPLEXITY INDEX</div>
-                    <div class="ent-bonus-val" style="color:${complexity>=70?'#ef4444':complexity>=40?'#F59E0B':'#10B981'}">${complexity}/100</div>
-                    <div class="ent-bonus-sub">${complexity>=70?'High complexity — hard to extend':complexity>=40?'Moderate — manageable with discipline':'Low — straightforward codebase'}</div>
-                </div>
-                <div class="ent-bonus-card">
-                    <div class="ent-bonus-label">ANALYZED BY</div>
-                    <div class="ent-bonus-val" style="color:#888;font-size:.9rem">${escapeHtml(modelVer)}</div>
-                    <div class="ent-bonus-sub">Processing: ${reviewData.processingMs || 'N/A'}ms</div>
-                </div>
-            </div>
+            </div>` : ''}
 
         </div>`;
     }
+
+
 
     // ==================== EVOLUTION TRACKING ====================
     function renderEvolution() {
