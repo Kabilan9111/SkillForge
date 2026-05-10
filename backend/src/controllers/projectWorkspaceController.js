@@ -107,34 +107,67 @@ class ProjectWorkspaceController {
     }
 
     /**
-     * Get project details
+     * Get project details — supports both integer DB IDs and UUID strings from localStorage
      */
     static async getProject(req, res) {
         try {
             const { id } = req.params;
-            const project = await ProjectWorkspace.getById(id);
+            await ProjectWorkspaceController.ensureWorkspaceTables();
 
-            if (!project) {
-                return res.status(404).json({ success: false, error: 'Project not found' });
+            // First: try the standard integer-keyed DB lookup
+            let project = null;
+            try {
+                project = await ProjectWorkspace.getById(id);
+            } catch (e) {
+                // getById may throw on UUID strings — continue to UUID fallback
             }
 
-            const ProjectInvite = require('../models/ProjectInvite');
-            const contributors = await ProjectInvite.getContributors(id);
-            // try mapping with user data
-            const db = require('../config/database');
-            const enrichedContributors = [];
-            for (let c of contributors) {
-                if (c.status === 'accepted') {
-                   const u = await db.get('SELECT id, full_name as name, avatar_url as avatarUrl FROM users WHERE id = ?', [c.user_id]);
-                   if (u) enrichedContributors.push(u);
+            if (project) {
+                // Integer project found — enrich with contributors
+                const ProjectInvite = require('../models/ProjectInvite');
+                const contributors = await ProjectInvite.getContributors(id);
+                const enrichedContributors = [];
+                for (let c of contributors) {
+                    if (c.status === 'accepted') {
+                       const u = await db.get('SELECT id, full_name as name, avatar_url as avatarUrl FROM users WHERE id = ?', [c.user_id]);
+                       if (u) enrichedContributors.push(u);
+                    }
                 }
+                project.contributors = enrichedContributors;
+                return res.json({ success: true, project });
             }
-            project.contributors = enrichedContributors;
 
-            res.json({
-                success: true,
-                project
-            });
+            // UUID fallback: project lives in localStorage — check if we have any workspace data for it
+            const fileCount = await db.get(
+                `SELECT COUNT(*) as cnt FROM workspace_files WHERE project_id = ?`, [id]
+            );
+            const commitCount = await db.get(
+                `SELECT COUNT(*) as cnt FROM workspace_commits WHERE project_id = ?`, [id]
+            );
+            const latestCommit = await db.get(
+                `SELECT created_at, message FROM workspace_commits WHERE project_id = ? ORDER BY created_at DESC LIMIT 1`, [id]
+            );
+
+            // Build a synthetic project envelope so the workspace can open
+            const syntheticProject = {
+                id,
+                name: 'Local Project',
+                description: '',
+                tech_stack: '[]',
+                visibility: 'private',
+                status: 'active',
+                total_commits: commitCount?.cnt || 0,
+                total_files: fileCount?.cnt || 0,
+                created_at: null,
+                updated_at: null,
+                last_commit_at: latestCommit?.created_at || null,
+                contributors: [],
+                // flag so frontend knows this is a UUID-local project
+                isLocalProject: true
+            };
+
+            return res.json({ success: true, project: syntheticProject });
+
         } catch (error) {
             console.error('Get project error:', error);
             res.status(500).json({ success: false, error: error.message });
@@ -142,10 +175,48 @@ class ProjectWorkspaceController {
     }
 
     /**
+     * Ensure local UUID persistence tables exist
+     */
+    static async ensureWorkspaceTables() {
+        if (this._tablesCreated) return;
+        const db = require('../config/database');
+        await db.run(`
+            CREATE TABLE IF NOT EXISTS workspace_files (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id TEXT NOT NULL,
+                commit_hash TEXT,
+                file_path TEXT NOT NULL,
+                file_name TEXT NOT NULL,
+                file_type TEXT,
+                file_size INTEGER,
+                file_content TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        await db.run(`
+            CREATE TABLE IF NOT EXISTS workspace_commits (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id TEXT NOT NULL,
+                user_id INTEGER,
+                commit_hash TEXT NOT NULL,
+                message TEXT NOT NULL,
+                files_count INTEGER DEFAULT 0,
+                total_lines INTEGER DEFAULT 0,
+                additions INTEGER DEFAULT 0,
+                deletions INTEGER DEFAULT 0,
+                file_diffs TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        this._tablesCreated = true;
+    }
+
+    /**
      * Upload files to project
      */
     static async uploadFiles(req, res) {
         try {
+            await ProjectWorkspaceController.ensureWorkspaceTables();
             const { id } = req.params;
             const files = req.files;
 
@@ -170,7 +241,7 @@ class ProjectWorkspaceController {
                     : (file.buffer ? file.buffer.toString('utf8') : '');
 
                 await db.run(
-                    `INSERT INTO projects_files
+                    `INSERT INTO workspace_files
                      (project_id, file_path, file_name, file_type, file_size, file_content, created_at)
                      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
                     [id, filePath, fileName, ext.slice(1) || 'txt', file.size, content]
@@ -178,12 +249,6 @@ class ProjectWorkspaceController {
 
                 processedFiles.push({ name: fileName, path: filePath, size: file.size, type: ext.slice(1) || 'txt' });
             }
-
-            // Bump project updated_at
-            await db.run(
-                `UPDATE projects_workspace SET updated_at = datetime('now') WHERE id = ?`,
-                [id]
-            );
 
             res.json({
                 success: true,
@@ -200,35 +265,41 @@ class ProjectWorkspaceController {
      * Create commit — computes real line-by-line additions/deletions via diff
      */
     static async createCommit(req, res) {
+        console.log('[COMMIT ROUTE] POST commit hit — project:', req.params.id, '| body:', req.body);
         try {
+            await ProjectWorkspaceController.ensureWorkspaceTables();
             const { id } = req.params;
             const { message } = req.body;
             const userId = req.user?.id || 1;
 
             if (!message || !message.trim()) {
+                console.log('[COMMIT] rejected: no message');
                 return res.status(400).json({ success: false, error: 'Commit message is required' });
             }
 
             // Get all uncommitted files for this project
             const uncommitted = await db.all(
-                `SELECT id, file_path, file_name, file_type, file_size, file_content FROM projects_files
+                `SELECT id, file_path, file_name, file_type, file_size, file_content FROM workspace_files
                  WHERE project_id = ? AND (commit_hash IS NULL OR commit_hash = '')`,
                 [id]
             );
+            console.log('[COMMIT] uncommitted files:', uncommitted.length);
 
             // If no uncommitted files, commit ALL current (first commit case)
             const filesToCommit = uncommitted.length > 0 ? uncommitted : await db.all(
-                `SELECT id, file_path, file_name, file_type, file_size, file_content FROM projects_files WHERE project_id = ?`,
+                `SELECT id, file_path, file_name, file_type, file_size, file_content FROM workspace_files WHERE project_id = ?`,
                 [id]
             );
+            console.log('[COMMIT] files to commit:', filesToCommit.length);
 
             if (filesToCommit.length === 0) {
-                return res.status(400).json({ success: false, error: 'No files to commit' });
+                console.log('[COMMIT] rejected: no files in workspace_files for project', id);
+                return res.status(400).json({ success: false, error: 'No files to commit. Please upload files first.' });
             }
 
             // Get the most recent previous commit to diff against
             const prevCommit = await db.get(
-                `SELECT commit_hash FROM projects_commits WHERE project_id = ? ORDER BY created_at DESC LIMIT 1`,
+                `SELECT commit_hash FROM workspace_commits WHERE project_id = ? ORDER BY created_at DESC LIMIT 1`,
                 [id]
             );
 
@@ -236,7 +307,7 @@ class ProjectWorkspaceController {
             const prevContentMap = {};
             if (prevCommit) {
                 const prevFiles = await db.all(
-                    `SELECT file_path, file_content FROM projects_files WHERE project_id = ? AND commit_hash = ?`,
+                    `SELECT file_path, file_content FROM workspace_files WHERE project_id = ? AND commit_hash = ?`,
                     [id, prevCommit.commit_hash]
                 );
                 prevFiles.forEach(f => { prevContentMap[f.file_path] = f.file_content || ''; });
@@ -267,30 +338,32 @@ class ProjectWorkspaceController {
                 });
             }
 
-            // Generate 40-char SHA1, display the first 7
+            // Generate 7-char SHA1 hash
             const commitHash = crypto.createHash('sha1')
                 .update(`${id}-${userId}-${Date.now()}-${message}`)
                 .digest('hex')
                 .substring(0, 7);
 
+            console.log('[COMMIT] saving commit hash:', commitHash, 'files:', filesToCommit.length);
+
             await db.run(
-                `INSERT INTO projects_commits
+                `INSERT OR IGNORE INTO workspace_commits
                    (project_id, user_id, commit_hash, message, files_count, total_lines, additions, deletions, file_diffs, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
                 [id, userId, commitHash, message.trim(), filesToCommit.length,
                  totalLines, totalAdditions, totalDeletions, JSON.stringify(fileDiffs)]
             );
 
+            console.log('[COMMIT] commit saved to workspace_commits');
+
             // Tag files with this commit hash
             const fileIds = filesToCommit.map(f => f.id);
             await db.run(
-                `UPDATE projects_files SET commit_hash = ? WHERE id IN (${fileIds.map(() => '?').join(',')})`,
+                `UPDATE workspace_files SET commit_hash = ? WHERE id IN (${fileIds.map(() => '?').join(',')})`,
                 [commitHash, ...fileIds]
             );
 
-            await db.run(
-                `UPDATE projects_workspace SET updated_at = datetime('now') WHERE id = ?`, [id]
-            );
+            console.log('[COMMIT] files tagged with commit hash');
 
             // Trigger AI review asynchronously — does NOT block the commit response
             setImmediate(() => {
@@ -298,6 +371,7 @@ class ProjectWorkspaceController {
                     .catch(e => console.error('[Commit] AI review failed:', e.message));
             });
 
+            console.log('[COMMIT] success response sent');
             res.json({
                 success: true,
                 commit: {
@@ -311,7 +385,7 @@ class ProjectWorkspaceController {
                 }
             });
         } catch (error) {
-            console.error('Create commit error:', error);
+            console.error('[COMMIT] Create commit error:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     }
@@ -321,11 +395,12 @@ class ProjectWorkspaceController {
      */
     static async getCommits(req, res) {
         try {
+            await ProjectWorkspaceController.ensureWorkspaceTables();
             const { id } = req.params;
             const limit = parseInt(req.query.limit) || 50;
 
             const commits = await db.all(
-                `SELECT * FROM projects_commits WHERE project_id = ? ORDER BY created_at DESC LIMIT ?`,
+                `SELECT * FROM workspace_commits WHERE project_id = ? ORDER BY created_at DESC LIMIT ?`,
                 [id, limit]
             );
 
@@ -338,7 +413,7 @@ class ProjectWorkspaceController {
                 if (fileDiffs.length === 0) {
                     const files = await db.all(
                         `SELECT file_name, file_path, file_type, file_size, file_content
-                         FROM projects_files WHERE project_id = ? AND commit_hash = ? ORDER BY file_path LIMIT 20`,
+                         FROM workspace_files WHERE project_id = ? AND commit_hash = ? ORDER BY file_path LIMIT 20`,
                         [id, commit.commit_hash]
                     );
                     fileDiffs = files.map(f => ({
@@ -355,7 +430,7 @@ class ProjectWorkspaceController {
 
                 // Accurate file count from DB
                 const { cnt: realFilesCount } = await db.get(
-                    `SELECT COUNT(*) as cnt FROM projects_files WHERE project_id = ? AND commit_hash = ?`,
+                    `SELECT COUNT(*) as cnt FROM workspace_files WHERE project_id = ? AND commit_hash = ?`,
                     [id, commit.commit_hash]
                 ) || { cnt: commit.files_count || 0 };
 
@@ -386,7 +461,7 @@ class ProjectWorkspaceController {
         try {
             const { hash } = req.params;
             const commit = await db.get(
-                `SELECT * FROM projects_commits WHERE commit_hash = ?`, [hash]
+                `SELECT * FROM workspace_commits WHERE commit_hash = ?`, [hash]
             );
             if (!commit) {
                 return res.status(404).json({ success: false, error: 'Commit not found' });
@@ -419,19 +494,19 @@ class ProjectWorkspaceController {
                 return res.status(400).json({ success: false, error: 'compareWith parameter required' });
             }
 
-            const commitA = await db.get(`SELECT * FROM projects_commits WHERE commit_hash = ?`, [hash]);
-            const commitB = await db.get(`SELECT * FROM projects_commits WHERE commit_hash = ?`, [compareWith]);
+            const commitA = await db.get(`SELECT * FROM workspace_commits WHERE commit_hash = ?`, [hash]);
+            const commitB = await db.get(`SELECT * FROM workspace_commits WHERE commit_hash = ?`, [compareWith]);
             if (!commitA || !commitB) {
                 return res.status(404).json({ success: false, error: 'One or both commits not found' });
             }
 
             // Get files for both commits
             const filesA = await db.all(
-                `SELECT file_path, file_content FROM projects_files WHERE project_id = ? AND commit_hash = ?`,
+                `SELECT file_path, file_content FROM workspace_files WHERE project_id = ? AND commit_hash = ?`,
                 [commitA.project_id, hash]
             );
             const filesB = await db.all(
-                `SELECT file_path, file_content FROM projects_files WHERE project_id = ? AND commit_hash = ?`,
+                `SELECT file_path, file_content FROM workspace_files WHERE project_id = ? AND commit_hash = ?`,
                 [commitA.project_id, compareWith]
             );
 
@@ -455,20 +530,21 @@ class ProjectWorkspaceController {
     }
 
     /**
-     * Get AI review for commit
+     * Get AI review for commit — uses workspace_ai_reviews (UUID-keyed)
      */
     static async getAIReview(req, res) {
         try {
             const { hash } = req.params;
+            await aiReviewEngine.ensureTables();
 
-            const review = await db.get(
-                `SELECT * FROM projects_ai_reviews WHERE commit_hash = ?`, [hash]
+            let review = await db.get(
+                `SELECT * FROM workspace_ai_reviews WHERE commit_hash = ?`, [hash]
             );
 
-            // Not started → auto-trigger analysis, return 404 so frontend shows "pending"
+            // Not started → auto-trigger and return 404 (frontend polls)
             if (!review) {
                 const commitRow = await db.get(
-                    `SELECT project_id FROM projects_commits WHERE commit_hash = ?`, [hash]
+                    `SELECT project_id FROM workspace_commits WHERE commit_hash = ?`, [hash]
                 );
                 if (commitRow) {
                     setImmediate(() =>
@@ -479,15 +555,13 @@ class ProjectWorkspaceController {
                 return res.status(404).json({ success: false, error: 'AI review is being generated. Retry in a few seconds.' });
             }
 
-            // Still running → tell frontend to retry
             if (review.status === 'in_progress') {
-                return res.status(202).json({ success: false, status: 'in_progress', error: 'Analysis in progress. Please retry shortly.' });
+                return res.status(202).json({ success: false, status: 'in_progress' });
             }
 
-            // Failed → re-trigger automatically
             if (review.status === 'failed') {
                 const commitRow = await db.get(
-                    `SELECT project_id FROM projects_commits WHERE commit_hash = ?`, [hash]
+                    `SELECT project_id FROM workspace_commits WHERE commit_hash = ?`, [hash]
                 );
                 if (commitRow) {
                     setImmediate(() =>
@@ -495,10 +569,9 @@ class ProjectWorkspaceController {
                             .catch(e => console.error('[AIReview] retry failed:', e.message))
                     );
                 }
-                return res.status(500).json({ success: false, error: 'Analysis failed — retrying automatically. Please retry in a moment.' });
+                return res.status(500).json({ success: false, error: 'Analysis failed — retrying automatically.' });
             }
 
-            // Complete → parse and return
             if (review.review_data && typeof review.review_data === 'string') {
                 try { review.review_data = JSON.parse(review.review_data); } catch (e) {}
             }
@@ -517,7 +590,7 @@ class ProjectWorkspaceController {
         try {
             const { hash } = req.params;
             const commitRow = await db.get(
-                `SELECT project_id FROM projects_commits WHERE commit_hash = ?`, [hash]
+                `SELECT project_id FROM workspace_commits WHERE commit_hash = ?`, [hash]
             );
             if (!commitRow) {
                 return res.status(404).json({ success: false, error: 'Commit not found' });
@@ -534,14 +607,89 @@ class ProjectWorkspaceController {
     }
 
     /**
+     * Get latest AI analysis for a project (UUID-keyed)
+     */
+    static async getAnalysis(req, res) {
+        try {
+            const { id } = req.params;
+            await aiReviewEngine.ensureTables();
+
+            const review = await aiReviewEngine.getLatestReview(id);
+            if (!review) {
+                return res.json({ success: true, analysis: null, message: 'No analysis yet. Commit files to trigger analysis.' });
+            }
+
+            let data = review.review_data;
+            if (typeof data === 'string') {
+                try { data = JSON.parse(data); } catch (e) { data = {}; }
+            }
+
+            res.json({
+                success: true,
+                analysis: {
+                    commitHash: review.commit_hash,
+                    overallScore: review.overall_score,
+                    status: review.status,
+                    createdAt: review.created_at,
+                    ...data,
+                }
+            });
+        } catch (error) {
+            console.error('Get analysis error:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
+    /**
+     * Get latest evaluation for a project (UUID-keyed)
+     */
+    static async getEvaluation(req, res) {
+        try {
+            const { id } = req.params;
+            await aiReviewEngine.ensureTables();
+
+            const evalRow = await aiReviewEngine.getLatestEvaluation(id);
+            if (!evalRow) {
+                return res.json({ success: true, evaluation: null, message: 'No evaluation yet. Commit files to trigger evaluation.' });
+            }
+
+            let data = evalRow.eval_data;
+            if (typeof data === 'string') {
+                try { data = JSON.parse(data); } catch (e) { data = {}; }
+            }
+
+            res.json({
+                success: true,
+                evaluation: {
+                    commitHash: evalRow.commit_hash,
+                    scores: {
+                        codeQuality: evalRow.code_quality,
+                        complexity: evalRow.complexity,
+                        innovation: evalRow.innovation,
+                        scalability: evalRow.scalability,
+                        maturity: evalRow.maturity,
+                        overall: evalRow.overall,
+                    },
+                    createdAt: evalRow.created_at,
+                    ...data,
+                }
+            });
+        } catch (error) {
+            console.error('Get evaluation error:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
+    /**
      * Get file tree
      */
     static async getFileTree(req, res) {
         try {
             const { id } = req.params;
+            await ProjectWorkspaceController.ensureWorkspaceTables();
 
             const files = await db.all(
-                `SELECT file_path, file_name, file_type, file_size, file_content, created_at FROM projects_files WHERE project_id = ? ORDER BY file_path`,
+                `SELECT file_path, file_name, file_type, file_size, file_content, created_at FROM workspace_files WHERE project_id = ? ORDER BY file_path`,
                 [id]
             );
 
@@ -569,7 +717,7 @@ class ProjectWorkspaceController {
             }
 
             const file = await db.get(
-                `SELECT file_content, file_name, file_type, file_size FROM projects_files
+                `SELECT file_content, file_name, file_type, file_size FROM workspace_files
                  WHERE project_id = ? AND commit_hash = ? AND file_path = ?`,
                 [id, hash, filePath]
             );
@@ -598,18 +746,18 @@ class ProjectWorkspaceController {
     static async compareCommits(req, res) {
         try {
             const { hash1, hash2 } = req.params;
-            const commitA = await db.get(`SELECT * FROM projects_commits WHERE commit_hash = ?`, [hash1]);
-            const commitB = await db.get(`SELECT * FROM projects_commits WHERE commit_hash = ?`, [hash2]);
+            const commitA = await db.get(`SELECT * FROM workspace_commits WHERE commit_hash = ?`, [hash1]);
+            const commitB = await db.get(`SELECT * FROM workspace_commits WHERE commit_hash = ?`, [hash2]);
             if (!commitA || !commitB) {
                 return res.status(404).json({ success: false, error: 'One or both commits not found' });
             }
 
             const filesA = await db.all(
-                `SELECT file_path, file_content FROM projects_files WHERE project_id = ? AND commit_hash = ?`,
+                `SELECT file_path, file_content FROM workspace_files WHERE project_id = ? AND commit_hash = ?`,
                 [commitA.project_id, hash1]
             );
             const filesB = await db.all(
-                `SELECT file_path, file_content FROM projects_files WHERE project_id = ? AND commit_hash = ?`,
+                `SELECT file_path, file_content FROM workspace_files WHERE project_id = ? AND commit_hash = ?`,
                 [commitA.project_id, hash2]
             );
 
@@ -644,7 +792,7 @@ class ProjectWorkspaceController {
 
             const commits = await db.all(
                 `SELECT commit_hash, message, files_count, total_lines, additions, deletions, created_at
-                 FROM projects_commits WHERE project_id = ? ORDER BY created_at ASC LIMIT ?`,
+                 FROM workspace_commits WHERE project_id = ? ORDER BY created_at ASC LIMIT ?`,
                 [id, limit]
             );
 
@@ -661,6 +809,7 @@ class ProjectWorkspaceController {
     static async getProjectStats(req, res) {
         try {
             const { id } = req.params;
+            await ProjectWorkspaceController.ensureWorkspaceTables();
             const stats = await db.get(
                 `SELECT
                    COUNT(*) as total_commits,
@@ -668,11 +817,11 @@ class ProjectWorkspaceController {
                    SUM(deletions) as total_deletions,
                    SUM(total_lines) as total_lines,
                    MAX(created_at) as last_commit_at
-                 FROM projects_commits WHERE project_id = ?`,
+                 FROM workspace_commits WHERE project_id = ?`,
                 [id]
             );
             const fileCount = await db.get(
-                `SELECT COUNT(DISTINCT file_path) as total_files FROM projects_files WHERE project_id = ?`,
+                `SELECT COUNT(DISTINCT file_path) as total_files FROM workspace_files WHERE project_id = ?`,
                 [id]
             );
 
@@ -699,10 +848,11 @@ class ProjectWorkspaceController {
     static async getProjectActivity(req, res) {
         try {
             const { id } = req.params;
+            await ProjectWorkspaceController.ensureWorkspaceTables();
             const rows = await db.all(
                 `SELECT date(created_at) as day, COUNT(*) as count,
                         SUM(additions) as additions, SUM(deletions) as deletions
-                 FROM projects_commits
+                 FROM workspace_commits
                  WHERE project_id = ? AND created_at >= date('now', '-90 days')
                  GROUP BY day ORDER BY day ASC`,
                 [id]

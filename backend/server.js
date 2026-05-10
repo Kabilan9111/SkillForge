@@ -98,16 +98,16 @@ app.get('/api/ai-engine/status', async (req, res) => {
 app.use('/api', routes);
 
 // =====================
-// Error Handling
-// =====================
-app.use(errorHandler);
-
-// =====================
 // API 404 — must be BEFORE SPA fallback so unknown /api/* never returns HTML
 // =====================
 app.use('/api', (req, res) => {
   res.status(404).json({ error: `API route not found: ${req.method} ${req.originalUrl}` });
 });
+
+// =====================
+// Error Handling (after API routes and 404, before SPA)
+// =====================
+app.use(errorHandler);
 
 // =====================
 // Multi-page + SPA Fallback
@@ -219,6 +219,38 @@ const startServer = async () => {
         UNIQUE(project_id, commit_hash)
       )
     `);
+
+    // UUID-keyed workspace tables for localStorage-generated projects
+    await database.run(`
+      CREATE TABLE IF NOT EXISTS workspace_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id TEXT NOT NULL,
+        commit_hash TEXT,
+        file_path TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        file_type TEXT,
+        file_size INTEGER DEFAULT 0,
+        file_content TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `);
+    await database.run(`
+      CREATE TABLE IF NOT EXISTS workspace_commits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id TEXT NOT NULL,
+        user_id INTEGER DEFAULT 0,
+        commit_hash TEXT NOT NULL UNIQUE,
+        message TEXT NOT NULL,
+        files_count INTEGER DEFAULT 0,
+        total_lines INTEGER DEFAULT 0,
+        additions INTEGER DEFAULT 0,
+        deletions INTEGER DEFAULT 0,
+        file_diffs TEXT DEFAULT '[]',
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `);
+    await database.run(`CREATE INDEX IF NOT EXISTS idx_wfiles_project ON workspace_files(project_id)`);
+    await database.run(`CREATE INDEX IF NOT EXISTS idx_wcommits_project ON workspace_commits(project_id)`);
     console.log('✓ Workspace tables ready');
 
     // Coder's DNA Engine setup

@@ -93,21 +93,26 @@
     async function loadProjectCommits() {
         if (!state.currentProject) return;
         try {
-            const r = await fetch(`${API_BASE_URL}/workspace/projects/${state.currentProject.id}/commits`, { headers: getAuthHeaders() });
+            const url = `${API_BASE_URL}/workspace/projects/${state.currentProject.id}/commits`;
+            console.log('[COMMITS] loading from:', url);
+            const r = await fetch(url, { headers: getAuthHeaders() });
             if (!r.ok) throw new Error(`HTTP ${r.status}`);
             const d = await r.json();
+            console.log('[COMMITS] raw response:', d);
             const raw = Array.isArray(d.commits) ? d.commits : [];
             state.backendCommits = raw.map(c => ({
                 id:           c.id,
                 hash:         c.commit_hash || c.hash || '',
                 message:      c.message || '',
                 author:       c.author_name || c.author || 'You',
+                authorAvatar: c.author_avatar || (state.currentProject && state.currentProject.ownerAvatar) || null,
                 timestamp:    c.created_at ? new Date(c.created_at).getTime() : Date.now(),
                 linesAdded:   c.additions   ?? c.linesAdded   ?? 0,
                 linesDeleted: c.deletions   ?? c.linesDeleted ?? 0,
                 filesCount:   c.files_count ?? c.filesCount   ?? 0,
                 files:        Array.isArray(c.files) ? c.files : []
             }));
+            console.log('[COMMITS] loaded', state.backendCommits.length, 'commits');
         } catch (e) {
             console.error('[Projects] loadProjectCommits error:', e);
             state.backendCommits = [];
@@ -225,6 +230,9 @@
         dom.commitMessageInput = document.getElementById('commit-message');
         dom.triggerAiReviewCheckbox = document.getElementById('trigger-ai-review');
         dom.changedFilesSummary = document.getElementById('changed-files-summary');
+        dom.confirmCommitBtn = document.querySelector('#commit-modal .btn-commit');
+        dom.closeCommitModal  = document.querySelector('#commit-modal .modal-close');
+        dom.cancelCommitBtn   = document.querySelector('#commit-modal .btn-ghost');
     }
 
     // ==================== INITIALIZATION ====================
@@ -608,27 +616,35 @@
 
     // ==================== PROJECT DETAIL VIEW ====================
     async function openProject(projectId) {
-        console.log('[Projects] openProject called with ID:', projectId);
         if (!projectId) return;
         if (!dom.projectsGrid || !dom.projectDetailView) return;
 
-        console.log('[Projects] Fetching project from:', `${API_BASE_URL}/workspace/${projectId}`);
+        // Always get the local project first (has title, description, tech, contributors)
+        const localProject = state.projects.find(p => String(p.id) === String(projectId));
+
         try {
             const r = await fetch(`${API_BASE_URL}/workspace/${projectId}`, { headers: getAuthHeaders() });
-            if (!r.ok) {
-                console.error(`[Projects] Fetch failure reason: HTTP ${r.status}`);
-                throw new Error(`HTTP ${r.status}`);
-            }
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
             const d = await r.json();
-            console.log('[Projects] API response:', d);
-            state.currentProject = d.project || d;
+            const backendProject = d.project || d;
+
+            // Merge: local project data wins for display fields, backend wins for commit/file counts
+            state.currentProject = {
+                ...(localProject || {}),
+                ...backendProject,
+                // Preserve local display fields that backend synthetic record doesn't have
+                id: projectId,
+                name:        localProject?.name        || localProject?.title || backendProject.name || 'Project',
+                title:       localProject?.title       || localProject?.name  || backendProject.name || 'Project',
+                description: localProject?.description || backendProject.description || '',
+                techStack:   localProject?.techStack   || localProject?.tech_stack   || [],
+                contributors: localProject?.contributors || backendProject.contributors || [],
+                ownerAvatar: localProject?.ownerAvatar || backendProject.ownerAvatar || null,
+            };
         } catch (e) {
             console.error('[Projects] openProject fetch error:', e);
-            
-            // Fallback to local storage state for newly created projects that don't exist on backend yet
-            const localProject = state.projects.find(p => String(p.id) === String(projectId));
+            // Full local fallback
             if (localProject) {
-                console.log('[Projects] Falling back to local state project data');
                 state.currentProject = localProject;
             } else {
                 showNotification('Unable to load project', 'error');
@@ -948,26 +964,34 @@
 
     // ==================== VERSION CONTROL ====================
     function openCommitModal() {
+        console.log('[COMMIT] openCommitModal called, currentProject:', state.currentProject?.id);
         if (!state.currentProject) {
             showNotification('No project selected', 'warning');
             return;
         }
 
-        const fileCount = (state.backendFiles || []).length;
-        if (fileCount === 0) {
-            showNotification('No files uploaded yet. Upload files before committing.', 'warning');
-            return;
+        const modal = dom.commitModal || document.getElementById('commit-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            console.log('[COMMIT] modal opened');
+        } else {
+            console.error('[COMMIT] commit-modal element NOT FOUND in DOM');
         }
 
-        if (dom.commitModal) dom.commitModal.classList.remove('hidden');
-        if (dom.commitMessageInput) dom.commitMessageInput.value = '';
+        const inp = dom.commitMessageInput || document.getElementById('commit-message');
+        if (inp) inp.value = '';
 
-        if (dom.changedFilesSummary) {
-            dom.changedFilesSummary.innerHTML = `
-                <strong>${fileCount} file${fileCount !== 1 ? 's' : ''} in project snapshot</strong>
-                <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
-                    A commit will snapshot all ${fileCount} files, calculate diffs, and generate a real SHA hash on the server.
-                </p>`;
+        const fileCount = (state.backendFiles || []).length;
+        const summary = dom.changedFilesSummary || document.getElementById('changed-files-summary');
+        if (summary) {
+            summary.innerHTML = fileCount > 0
+                ? `<strong>${fileCount} file${fileCount !== 1 ? 's' : ''} ready to commit</strong>
+                   <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
+                     A commit will snapshot all ${fileCount} files and generate a real SHA hash on the server.
+                   </p>`
+                : `<p style="color:var(--text-muted);font-size:.85rem">
+                     Committing uploaded project files. The server will snapshot everything currently uploaded.
+                   </p>`;
         }
     }
 
@@ -976,56 +1000,78 @@
     }
 
     async function confirmCommit() {
-        const message = dom.commitMessageInput?.value.trim();
+        console.log('[COMMIT] confirmCommit() called');
+
+        // Re-query DOM elements in case they weren't cached (modal was injected)
+        const commitBtn = document.querySelector('#commit-modal .btn-commit');
+        const msgInput  = document.getElementById('commit-message');
+
+        let message = msgInput?.value.trim();
         if (!message) {
-            showNotification('Please enter a commit message', 'error');
-            return;
+            message = 'Updated project files';
         }
+        console.log('[COMMIT] message:', message, '| project:', state.currentProject?.id);
+
         if (!state.currentProject) {
             showNotification('No project selected', 'error');
             return;
         }
 
-        if (dom.confirmCommitBtn) {
-            dom.confirmCommitBtn.disabled = true;
-            dom.confirmCommitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Committing...';
+        if (commitBtn) {
+            commitBtn.disabled = true;
+            commitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Committing...';
         }
 
         try {
-            const r = await fetch(
-                `${API_BASE_URL}/workspace/projects/${state.currentProject.id}/commits`,
-                {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ message })
-                }
-            );
+            const url = `${API_BASE_URL}/workspace/projects/${state.currentProject.id}/commits`;
+            console.log('[COMMIT] sending commit request to:', url);
 
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ message })
+            });
+
+            console.log('[COMMIT] response status:', r.status);
             const d = await r.json().catch(() => ({}));
+            console.log('[COMMIT] response body:', d);
 
             if (!r.ok) {
                 const reason = d.reason || d.error || d.message || `HTTP ${r.status}`;
                 throw new Error(reason);
             }
 
-            closeCommitModal();
-            showNotification('Committed successfully!', 'success');
+            // Close modal
+            const modal = document.getElementById('commit-modal');
+            if (modal) modal.classList.add('hidden');
 
+            showNotification('✅ Commit pushed! Running AI analysis...', 'success');
+
+            console.log('[COMMIT] refreshing commits UI...');
             await loadProjectCommits();
             await loadProjectStats();
+            await loadProjectFiles();
+
+            console.log('[COMMIT] backendCommits after refresh:', state.backendCommits?.length);
 
             const totalCommits = state.currentProject._stats?.totalCommits ?? state.backendCommits.length;
-            if (dom.commitsCount) dom.commitsCount.textContent = totalCommits;
+            const countEl = document.getElementById('commits-count');
+            if (countEl) countEl.textContent = totalCommits;
 
             renderCommitsTimeline();
+            switchProjectTab('commits');
+
+            // AI analysis + evolution refresh — server processes async
+            setTimeout(() => { renderAIReview(); renderEvolution(); }, 2000);
+            setTimeout(() => { renderAIReview(); renderEvolution(); }, 6000);
 
         } catch (error) {
-            console.error('[Projects] Commit failed:', error);
+            console.error('[COMMIT] Commit failed:', error);
             showNotification(`Commit failed: ${error.message}`, 'error');
         } finally {
-            if (dom.confirmCommitBtn) {
-                dom.confirmCommitBtn.disabled = false;
-                dom.confirmCommitBtn.innerHTML = '<i class="fas fa-check"></i> Commit & Push';
+            if (commitBtn) {
+                commitBtn.disabled = false;
+                commitBtn.innerHTML = '<i class="fas fa-upload"></i> Commit &amp; Push';
             }
         }
     }
@@ -1581,7 +1627,10 @@
 
                 <div class="commit-metadata">
                     <div class="commit-author">
-                        <i class="fas fa-user-circle"></i>
+                        ${commit.authorAvatar 
+                            ? `<img src="${commit.authorAvatar}" alt="avatar" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">` 
+                            : `<i class="fas fa-user-circle"></i>`
+                        }
                         <span>${escapeHtml(commit.author || 'You')}</span>
                     </div>
                     <div class="commit-time">
@@ -1631,17 +1680,14 @@
     }
 
     // ==================== AI CODE REVIEW ====================
-    // AI review is server-side only. Results fetched via renderAIReview().
-    // Backend route: GET /workspace/commits/:hash/ai-review
-
     // ==================== AI REVIEW RENDERING ====================
     async function renderAIReview() {
         if (!dom.aiReviewContainer || !state.currentProject) return;
 
+        const projectId = state.currentProject.id;
         const commits = state.backendCommits || [];
-        const latestCommit = commits[0];
 
-        if (!latestCommit) {
+        if (commits.length === 0) {
             dom.aiReviewContainer.innerHTML = `
                 <div class="ai-idle-state">
                     <div class="ai-core-status">
@@ -1661,15 +1707,43 @@
         dom.aiReviewContainer.innerHTML = `
             <div style="text-align:center;padding:3rem">
                 <i class="fas fa-spinner fa-spin fa-2x" style="color:var(--accent-red)"></i>
-                <p style="margin-top:1rem;color:var(--text-muted)">Fetching AI review for commit ${latestCommit.hash}...</p>
+                <p style="margin-top:1rem;color:var(--text-muted)">Running AI analysis...</p>
             </div>`;
 
         try {
+            // Try project-level analysis endpoint first (works with UUID, no hash needed)
+            const ar = await fetch(`${API_BASE_URL}/workspace/projects/${projectId}/analysis`, { headers: getAuthHeaders() });
+            if (ar.ok) {
+                const ad = await ar.json();
+                if (ad.success && ad.analysis && ad.analysis.status === 'complete') {
+                    const review = ad.analysis;
+                    const reviewData = typeof review.review_data === 'string'
+                        ? JSON.parse(review.review_data || '{}')
+                        : (review.review_data || review);
+                    _renderAIReviewResult(review.commitHash || commits[0]?.hash, review, reviewData);
+                    return;
+                }
+                // Analysis in progress — show spinner and retry
+                if (ad.analysis && ad.analysis.status === 'in_progress') {
+                    dom.aiReviewContainer.innerHTML = `
+                        <div style="text-align:center;padding:3rem">
+                            <i class="fas fa-spinner fa-spin fa-2x" style="color:var(--accent-red)"></i>
+                            <p style="margin-top:1rem;color:var(--text-muted)">AI analysis in progress...</p>
+                            <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">Auto-refreshing in 4 seconds</p>
+                        </div>`;
+                    setTimeout(() => renderAIReview(), 4000);
+                    return;
+                }
+            }
+
+            // Fallback: try per-commit hash endpoint
+            const latestCommit = commits[0];
+            if (!latestCommit) return;
+
             const r = await fetch(API_BASE_URL + '/workspace/commits/' + latestCommit.hash + '/ai-review', {
                 headers: getAuthHeaders()
             });
 
-            // In-progress → show loading spinner and auto-retry after 4s
             if (r.status === 202) {
                 dom.aiReviewContainer.innerHTML = `
                     <div style="text-align:center;padding:3rem">

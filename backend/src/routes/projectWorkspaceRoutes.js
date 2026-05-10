@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Multer error handler middleware
 function handleMulterError(err, req, res, next) {
@@ -15,6 +15,9 @@ function handleMulterError(err, req, res, next) {
     }
     next();
 }
+
+const uploadMiddleware = (req, res, next) =>
+    upload.any()(req, res, err => handleMulterError(err, req, res, next));
 
 // ========================================
 // PROJECT ROUTES
@@ -26,43 +29,56 @@ router.post('/projects', ProjectWorkspaceController.createProject);
 // Get user's projects
 router.get('/projects', ProjectWorkspaceController.getUserProjects);
 
-// Get project details (legacy path)
+// Get project details — both /projects/:id and /:id
 router.get('/projects/:id', ProjectWorkspaceController.getProject);
-
-// Get project details (new path)
-router.get('/:id', ProjectWorkspaceController.getProject);
+router.get('/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', ProjectWorkspaceController.getProject);
+router.get('/:id([0-9]+)', ProjectWorkspaceController.getProject);
 
 // ========================================
-// FILE ROUTES
+// FILE ROUTES — both /projects/:id/... and /:id/...
 // ========================================
 
 // Upload files
-router.post('/projects/:id/files',
-    (req, res, next) => upload.any()(req, res, err => handleMulterError(err, req, res, next)),
-    ProjectWorkspaceController.uploadFiles
-);
+router.post('/projects/:id/files', uploadMiddleware, ProjectWorkspaceController.uploadFiles);
+router.post('/:id/files',          uploadMiddleware, ProjectWorkspaceController.uploadFiles);
 
 // Get file tree
 router.get('/projects/:id/files', ProjectWorkspaceController.getFileTree);
+router.get('/:id/files',          ProjectWorkspaceController.getFileTree);
 
 // Get file content
 router.get('/projects/:id/commits/:hash/files', ProjectWorkspaceController.getFileContent);
+router.get('/:id/commits/:hash/files',          ProjectWorkspaceController.getFileContent);
 
 // ========================================
-// COMMIT ROUTES
+// COMMIT ROUTES — both /projects/:id/... and /:id/...
 // ========================================
 
 // Create commit
 router.post('/projects/:id/commits', ProjectWorkspaceController.createCommit);
+router.post('/:id/commits',          ProjectWorkspaceController.createCommit);
 
 // Get commit history
 router.get('/projects/:id/commits', ProjectWorkspaceController.getCommits);
+router.get('/:id/commits',          ProjectWorkspaceController.getCommits);
 
 // Get commit details
 router.get('/commits/:hash', ProjectWorkspaceController.getCommitDetails);
 
 // Get commit diff
 router.get('/commits/:hash/diff', ProjectWorkspaceController.getCommitDiff);
+
+// ========================================
+// ANALYSIS & EVALUATION ROUTES
+// ========================================
+
+// Get latest AI analysis for project
+router.get('/projects/:id/analysis', ProjectWorkspaceController.getAnalysis);
+router.get('/:id/analysis',          ProjectWorkspaceController.getAnalysis);
+
+// Get latest evaluation for project
+router.get('/projects/:id/evaluation', ProjectWorkspaceController.getEvaluation);
+router.get('/:id/evaluation',          ProjectWorkspaceController.getEvaluation);
 
 // ========================================
 // AI REVIEW ROUTES
@@ -83,11 +99,14 @@ router.get('/commits/:hash1/compare/:hash2', ProjectWorkspaceController.compareC
 
 // Get project trends
 router.get('/projects/:id/trends', ProjectWorkspaceController.getProjectTrends);
+router.get('/:id/trends',          ProjectWorkspaceController.getProjectTrends);
 
 // Get aggregated project stats
 router.get('/projects/:id/stats', ProjectWorkspaceController.getProjectStats);
+router.get('/:id/stats',          ProjectWorkspaceController.getProjectStats);
 
 // Get 90-day commit activity
 router.get('/projects/:id/activity', ProjectWorkspaceController.getProjectActivity);
+router.get('/:id/activity',          ProjectWorkspaceController.getProjectActivity);
 
 module.exports = router;
