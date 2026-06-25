@@ -32,9 +32,9 @@ if ($Stop) {
 
 # ── Pre-flight checks ─────────────────────────────────────────────────────────
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║          SkillForge — Starting All Services       ║" -ForegroundColor Cyan
-Write-Host "╚══════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "=====================================================" -ForegroundColor Cyan
+Write-Host "          SkillForge - Starting All Services         " -ForegroundColor Cyan
+Write-Host "=====================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Check Node.js
@@ -109,24 +109,24 @@ for ($i = 0; $i -lt 10; $i++) {
 
 Write-Host ""
 if ($nodeOK) {
-    Write-Host "  [OK] Node.js backend  → http://localhost:3000" -ForegroundColor Green
+    Write-Host "  [OK] Node.js backend  -> http://localhost:3000" -ForegroundColor Green
 } else {
-    Write-Host "  [!!] Node.js backend  → not responding on port 3000" -ForegroundColor Red
+    Write-Host "  [!!] Node.js backend  -> not responding on port 3000" -ForegroundColor Red
 }
 if ($aiOK) {
-    Write-Host "  [OK] Python AI engine → http://localhost:8001" -ForegroundColor Green
+    Write-Host "  [OK] Python AI engine -> http://localhost:8001" -ForegroundColor Green
 } else {
-    Write-Host "  [!!] Python AI engine → not responding on port 8001" -ForegroundColor Red
+    Write-Host "  [!!] Python AI engine -> not responding on port 8001" -ForegroundColor Red
 }
 
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║  App   : http://localhost:3000                    ║" -ForegroundColor Cyan
-Write-Host "║  Login : http://localhost:3000/login              ║" -ForegroundColor Cyan
-Write-Host "║  API   : http://localhost:3000/api/health         ║" -ForegroundColor Cyan
-Write-Host "║  AI    : http://localhost:8001/docs               ║" -ForegroundColor Cyan
-Write-Host "╠══════════════════════════════════════════════════╣" -ForegroundColor DarkGray
-Write-Host "║  Demo  : admin@skillforge.dev / SkillForge@2026  ║" -ForegroundColor DarkGray
-Write-Host "║  Stop  : .\start.ps1 -Stop                       ║" -ForegroundColor DarkGray
-Write-Host "╚══════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "=====================================================" -ForegroundColor Cyan
+Write-Host "|  App   : http://localhost:3000                    |" -ForegroundColor Cyan
+Write-Host "|  Login : http://localhost:3000/login              |" -ForegroundColor Cyan
+Write-Host "|  API   : http://localhost:3000/api/health         |" -ForegroundColor Cyan
+Write-Host "|  AI    : http://localhost:8001/docs               |" -ForegroundColor Cyan
+Write-Host "-----------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "|  Demo  : admin@skillforge.dev / SkillForge@2026   |" -ForegroundColor DarkGray
+Write-Host "|  Stop  : .\start.ps1 -Stop                        |" -ForegroundColor DarkGray
+Write-Host "=====================================================" -ForegroundColor Cyan
 Write-Host ""

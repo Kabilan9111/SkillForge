@@ -36,20 +36,24 @@
 <body class="theme-dark"> 
     <div class="app-layout">
         <!-- GLOBAL NAVIGATION (Sidebar) -->
-        <aside class="sidebar" id="global-sidebar" style="display: none;"> <!-- Hidden on landing page -->
-            <div class="sidebar-header" id="sidebar-logo" style="cursor: pointer;">
-                <span class="logo-icon">SF</span>
-                <span class="logo-text">SkillForge</span>
+                <aside class="sidebar" id="global-sidebar" style="background-color: #050505; border-right: 1px solid rgba(255,255,255,0.05);"> 
+            <div class="sidebar-header" id="sidebar-logo" style="cursor: pointer; padding: 24px 20px;">
+                <span class="logo-icon" style="background-color: #ff4d4f; color: white; border-radius: 4px; padding: 4px 8px; font-weight: 800; font-size: 14px;">SF</span>
+                <span class="logo-text" style="color: white; font-weight: 700; font-size: 18px; margin-left: 8px;">SkillForge</span>
             </div>
-            <nav class="sidebar-nav">
-                <button class="nav-item active" data-target="dashboard-page">
+            <nav class="sidebar-nav" style="padding: 0 16px; flex: 1; overflow-y: auto;">
+                <button class="nav-item" data-target="dashboard-page">
                     <i class="fas fa-home"></i> Home
                 </button>
                 <button class="nav-item" data-target="projects-page">
                     <i class="fas fa-project-diagram"></i> Projects
                 </button>
+                <button class="nav-item active" data-target="arena-home-page" style="display: flex; justify-content: space-between; align-items: center; background-color: rgba(255,77,79,0.1); color: white; border-left: 3px solid #ff4d4f; border-radius: 4px;">
+                    <div><i class="fas fa-code"></i> Arena</div>
+                    <span class="live-badge" style="color: #ff4d4f; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;">LIVE</span>
+                </button>
                 <button class="nav-item" data-target="practice-page">
-                    <i class="fas fa-code"></i> Practice
+                    <i class="fas fa-keyboard"></i> Practice
                 </button>
                 <button class="nav-item" data-target="mock-interview-page">
                     <i class="fas fa-user-friends"></i> Mock Interview
@@ -57,20 +61,40 @@
                 <button class="nav-item" data-target="video-library-page">
                     <i class="fas fa-video"></i> Video Library
                 </button>
-                 <button class="nav-item" data-target="skill-gap-page">
+                <button class="nav-item" data-target="skill-gap-page">
                     <i class="fas fa-chart-pie"></i> Skill Gap
-                </button>
-                <button class="nav-item" data-target="profile-page">
-                    <i class="fas fa-user"></i> Profile
                 </button>
                 <button class="nav-item" onclick="window.location.href='dna-dashboard.html'">
                     <i class="fas fa-dna"></i> Coder's DNA
                 </button>
-            </nav>
-            <div class="sidebar-footer">
-                <button class="nav-item" id="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <button class="nav-item" data-target="ai-insights-page">
+                    <i class="fas fa-brain"></i> AI Insights
                 </button>
+                <button class="nav-item" data-target="profile-page">
+                    <i class="fas fa-user"></i> Profile
+                </button>
+                <button class="nav-item" data-target="settings-page">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </nav>
+            
+            <div class="sidebar-bottom-actions" style="padding: 24px 16px;">
+                <button class="upgrade-pro-btn" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s;">
+                    <span style="font-size: 13px; font-weight: 600;">Upgrade to Pro</span>
+                    <i class="fas fa-gem" style="color: #ff4d4f;"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-user-profile" style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                <img src="https://i.pravatar.cc/150?img=11" alt="User" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                <div class="user-profile-info" style="display: flex; flex-direction: column;">
+                    <span style="color: white; font-size: 14px; font-weight: 600;">Arjun Dev</span>
+                    <span style="color: #9ca3af; font-size: 11px;">Pro Coder</span>
+                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                        <span style="color: #22c55e; font-size: 12px; font-weight: 600;">1872</span>
+                        <i class="fas fa-arrow-trend-up" style="color: #22c55e; font-size: 10px;"></i>
+                    </div>
+                </div>
             </div>
         </aside>
 
@@ -859,196 +883,546 @@
                 </div>
             </section>
 
-            <!-- CODING ARENA - Full Screen Workspace -->
-            <section id="coding-arena" class="coding-arena hidden" style="display: none;">
-                <!-- Top Navigation Bar -->
-                <div class="arena-navbar">
-                    <button class="arena-back-btn" id="arena-back-btn">
-                        <i class="fas fa-arrow-left"></i>
-                        <span>Back to Problems</span>
-                    </button>
-                    <div class="arena-problem-title" id="arena-problem-title">Loading...</div>
-                    <div class="arena-actions">
-                        <button class="arena-btn arena-btn-secondary" id="arena-save-draft">
-                            <i class="fas fa-save"></i> Save Draft
-                        </button>
-                        <button class="arena-btn arena-btn-secondary" id="arena-reset-code">
-                            <i class="fas fa-undo"></i> Reset
-                        </button>
+
+            <!-- ARENA HOME / LANDING EXPERIENCE -->
+            <section id="arena-home-page" class="page-view arena-home-page active">
+                
+                <div class="arena-home-layout">
+                    <!-- MAIN LEFT/CENTER AREA -->
+                    <div class="arena-home-main">
+                        
+                        <!-- Header -->
+                        <div class="arena-home-header">
+                            <div>
+                                <h1 class="arena-home-title">CODING <span class="text-accent">ARENA</span></h1>
+                                <p class="arena-home-subtitle">Compete. Code. Conquer.</p>
+                            </div>
+                            <div class="arena-top-stats">
+                                <div class="top-stat-pill">
+                                    <span class="status-dot green"></span> <strong>128</strong> <span class="stat-lbl">Online Now</span>
+                                </div>
+                                <div class="top-stat-pill">
+                                    <span class="status-dot red"></span> <strong>24</strong> <span class="stat-lbl">Live Battles</span>
+                                </div>
+                                <button class="arena-guide-btn">
+                                    <i class="fas fa-book-open"></i> Arena Guide
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Hero Section -->
+                        <div class="arena-hero-card">
+                            <div class="hero-content">
+                                <h2 class="hero-title">Step into the Arena.<br><span class="text-accent">Prove your code.</span></h2>
+                                <p class="hero-desc">Battle real developers in real-time.<br>Every match makes you stronger.</p>
+                                
+                                <div class="hero-features">
+                                    <div class="hero-feature">
+                                        <div class="hf-icon"><i class="fas fa-bolt"></i></div>
+                                        <span>Real-time Battles</span>
+                                    </div>
+                                    <div class="hero-feature">
+                                        <div class="hf-icon"><i class="fas fa-trophy"></i></div>
+                                        <span>Climb Leaderboards</span>
+                                    </div>
+                                    <div class="hero-feature">
+                                        <div class="hf-icon"><i class="fas fa-brain"></i></div>
+                                        <span>AI Analysis</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hero-artwork-wrap">
+                                <img src="hero_art.png" alt="Hero Battle" class="hero-art-img">
+                                <div class="vs-centerpiece">VS</div>
+                            </div>
+                        </div>
+
+                        <!-- Arena Overview -->
+                        <div class="section-label">ARENA OVERVIEW</div>
+                        <div class="arena-overview-grid">
+                            <div class="overview-card">
+                                <div class="oc-header"><i class="fas fa-star text-muted"></i> Your Rating</div>
+                                <div class="oc-value text-accent">1872</div>
+                                <div class="oc-sub"><i class="fas fa-gem" style="color: #3b82f6;"></i> Diamond II</div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="oc-header"><i class="fas fa-crosshairs text-muted"></i> Win Rate</div>
+                                <div class="win-rate-circle">
+                                    <svg viewBox="0 0 36 36" class="circular-chart">
+                                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path class="circle" stroke-dasharray="78, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <text x="18" y="20.35" class="percentage">78%</text>
+                                    </svg>
+                                </div>
+                                <div class="oc-sub">32 Wins • 9 Losses</div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="oc-header"><i class="fas fa-fire text-muted" style="color: #ff4d4f;"></i> Win Streak</div>
+                                <div class="oc-value text-accent">6</div>
+                                <div class="oc-sub">Best: 12</div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="oc-header"><i class="fas fa-medal text-muted" style="color: #f59e0b;"></i> Global Rank</div>
+                                <div class="oc-value">#293</div>
+                                <div class="oc-sub">Top 2.1%</div>
+                            </div>
+                        </div>
+
+                        <!-- Ready to Battle -->
+                        <div class="ready-battle-card">
+                            <div class="rb-trophy-wrap">
+                                <img src="trophy_art.png" alt="Championship Trophy" class="rb-trophy-img">
+                                <div class="trophy-glow"></div>
+                            </div>
+                            <div class="rb-content">
+                                <h2>Ready to battle?</h2>
+                                <p>Find an opponent matched to your skill level<br>and start your journey to the top.</p>
+                                <div class="rb-chips">
+                                    <span class="rb-chip">Matchmaking</span>
+                                    <span class="rb-chip">Skill Matching</span>
+                                    <span class="rb-chip">Fair Play</span>
+                                    <span class="rb-chip">No Wait Time</span>
+                                </div>
+                            </div>
+                            <div class="rb-action">
+                                <button class="start-battle-btn" onclick="document.getElementById('arena-home-page').classList.remove('active'); document.getElementById('coding-arena').classList.add('active');">
+                                    START BATTLE <i class="fas fa-chevron-right"></i>
+                                </button>
+                                <div class="rb-subaction">Find an opponent now</div>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Tournaments -->
+                        <div class="section-label mt-32">UPCOMING TOURNAMENTS</div>
+                        <div class="tournaments-grid">
+                            <div class="tournament-card">
+                                <div class="tc-icon bg-red"><i class="fas fa-clipboard-list"></i></div>
+                                <div class="tc-info">
+                                    <div class="tc-title">Daily Challenge <span class="live-dot-badge"><span class="dot"></span> Live</span></div>
+                                    <div class="tc-desc">Ends in 10:30:45</div>
+                                </div>
+                                <div class="tc-action"><i class="far fa-calendar-alt"></i></div>
+                            </div>
+                            <div class="tournament-card">
+                                <div class="tc-icon bg-orange"><i class="fas fa-calendar-day"></i></div>
+                                <div class="tc-info">
+                                    <div class="tc-title">Weekend Showdown</div>
+                                    <div class="tc-desc">In 2 Days</div>
+                                    <div class="tc-prize">Prize Pool: <span class="text-yellow">25,000 <i class="fas fa-coins"></i></span></div>
+                                </div>
+                            </div>
+                            <div class="tournament-card">
+                                <div class="tc-icon bg-red"><i class="fas fa-crown"></i></div>
+                                <div class="tc-info">
+                                    <div class="tc-title">SkillForge Master Cup</div>
+                                    <div class="tc-desc">In 5 Days</div>
+                                    <div class="tc-prize">Prize Pool: <span class="text-yellow">1,00,000 <i class="fas fa-coins"></i></span></div>
+                                </div>
+                            </div>
+                            <div class="tournament-card">
+                                <div class="tc-icon bg-purple"><i class="fas fa-shield-alt"></i></div>
+                                <div class="tc-info">
+                                    <div class="tc-title">Code Warriors League</div>
+                                    <div class="tc-desc">In 12 Days</div>
+                                    <div class="tc-prize">Prize Pool: <span class="text-yellow">5,00,000 <i class="fas fa-coins"></i></span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT SIDEBAR (Daily Mission, Leaderboard) -->
+                    <div class="arena-home-right">
+                        
+                        <div class="right-panel-card">
+                            <div class="rpc-header"><i class="fas fa-bullseye text-muted"></i> DAILY MISSION</div>
+                            <div class="mission-title">Win 3 arena battles today</div>
+                            <div class="mission-progress-wrap">
+                                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 66%;"></div></div>
+                                <span class="mission-text">2 / 3</span>
+                            </div>
+                            <div class="mission-reward">
+                                <span class="text-muted">Reward: <span class="text-green">50 XP</span></span>
+                                <span class="xp-badge">XP</span>
+                            </div>
+                        </div>
+
+                        <div class="right-panel-card">
+                            <div class="rpc-header"><i class="fas fa-brain text-muted"></i> AI RECOMMENDATION</div>
+                            <div class="ai-rec-content">
+                                <p class="text-muted text-sm">You perform best on<br><strong class="text-accent">Array & Hashing</strong></p>
+                                <p class="text-muted text-sm mt-8">Focus on <strong>Graphs</strong> to improve your ranking.</p>
+                                <div class="ai-rec-graph">
+                                    <!-- simple css graph lines -->
+                                    <div class="bar h1"></div><div class="bar h2"></div><div class="bar h3"></div><div class="bar h4"></div><div class="bar h5"></div>
+                                    <svg class="trend-line" viewBox="0 0 100 40">
+                                        <path d="M0,30 L25,25 L50,15 L75,20 L100,5" fill="none" stroke="#ff4d4f" stroke-width="2"/>
+                                        <polygon points="95,0 100,5 95,10" fill="#ff4d4f"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="right-panel-card">
+                            <div class="rpc-header">
+                                <span>LIVE LEADERBOARD</span>
+                                <a href="#" class="view-all-link">View All</a>
+                            </div>
+                            <div class="lb-mini-list">
+                                <div class="lb-mini-row">
+                                    <div class="lbm-rank gold">1</div>
+                                    <div class="lbm-player"><img src="https://i.pravatar.cc/150?img=5"> Kavya Singh</div>
+                                    <div class="lbm-score">1890</div>
+                                </div>
+                                <div class="lb-mini-row active-me">
+                                    <div class="lbm-rank silver">2</div>
+                                    <div class="lbm-player"><img src="https://i.pravatar.cc/150?img=11"> Arjun Dev</div>
+                                    <div class="lbm-score">1872</div>
+                                </div>
+                                <div class="lb-mini-row">
+                                    <div class="lbm-rank bronze">3</div>
+                                    <div class="lbm-player"><img src="https://i.pravatar.cc/150?img=12"> Rohan Verma</div>
+                                    <div class="lbm-score">1839</div>
+                                </div>
+                                <div class="lb-mini-row">
+                                    <div class="lbm-rank">4</div>
+                                    <div class="lbm-player"><img src="https://i.pravatar.cc/150?img=8"> Aditya Raj</div>
+                                    <div class="lbm-score">1765</div>
+                                </div>
+                                <div class="lb-mini-row">
+                                    <div class="lbm-rank">5</div>
+                                    <div class="lbm-player"><img src="https://i.pravatar.cc/150?img=9"> Neha Patel</div>
+                                    <div class="lbm-score">1698</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="right-panel-card">
+                            <div class="rpc-header">RECENT WINNER</div>
+                            <div class="recent-winner-flex">
+                                <div class="winner-trophy"><i class="fas fa-trophy gold-text"></i></div>
+                                <div class="winner-info">
+                                    <div class="w-name">Kavya Singh</div>
+                                    <div class="w-desc">Won 5 battles in a row</div>
+                                    <div class="w-time">2 mins ago</div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-
-                <!-- Three-Panel Layout -->
-                <div class="arena-workspace">
-                    <!-- LEFT PANEL - Problem Context -->
-                    <div class="arena-panel arena-left-panel">
-                        <div class="panel-header">
-                            <h3 style="margin: 0 0 0.75rem 0;">Problem</h3>
-                            <div class="problem-meta">
-                                <span class="difficulty-badge" id="problem-difficulty-badge">Medium</span>
-                                <span class="status-badge" id="problem-status-badge">Not Started</span>
-                            </div>
+            </section>
+            <!-- CODING ARENA - Premium Workspace -->
+            <section id="coding-arena" class="page-view coding-arena hidden" style="display:none;">
+                
+                <!-- TOP MATCH HEADER -->
+                <header class="arena-match-header">
+                    <div class="player-card">
+                        <img src="https://i.pravatar.cc/150?img=11" alt="Arjun Dev" class="avatar">
+                        <div class="player-info">
+                            <div class="player-name">Arjun Dev</div>
+                            <div class="player-title">Pro Coder</div>
+                            <div class="player-rating">1872 <i class="fas fa-arrow-trend-up"></i></div>
+                            <div class="player-winrate">Win Rate: 78%</div>
                         </div>
-                        <div class="panel-content">
-                            <div class="problem-section">
-                                <h4>Description</h4>
-                                <div id="problem-description-text" class="problem-text"></div>
-                            </div>
-                            <div class="problem-section">
-                                <h4>Examples</h4>
-                                <div id="problem-examples-list"></div>
-                            </div>
-                            <div class="problem-section">
-                                <h4>Constraints</h4>
-                                <ul id="problem-constraints-list" class="constraints-list"></ul>
-                            </div>
-                            <div class="problem-section">
-                                <h4>Expected Complexity</h4>
-                                <div id="problem-complexity-info"></div>
-                            </div>
-                        </div>
+                        <div class="status-dot green"></div>
                     </div>
-
-                    <!-- CENTER PANEL - Code Editor -->
-                    <div class="arena-panel arena-center-panel">
-                        <div class="editor-header">
-                            <div class="editor-tabs">
-                                <div class="editor-tab active">
-                                    <i class="fas fa-code"></i>
-                                    <span id="editor-filename">solution.py</span>
-                                </div>
-                            </div>
-                            <div class="editor-controls">
-                                <select class="language-selector" id="language-select">
-                                    <option value="python">Python</option>
-                                    <option value="java">Java</option>
-                                    <option value="cpp">C++</option>
-                                    <option value="javascript">JavaScript</option>
-                                </select>
-                            </div>
+                    
+                    <div class="match-center">
+                        <div class="arena-title">CODING ARENA</div>
+                        <div class="arena-subtitle">Real-time Coding Battle</div>
+                        <div class="vs-anim">
+                            <div class="pulse-line left"></div>
+                            <div class="vs-badge">VS</div>
+                            <div class="pulse-line right"></div>
                         </div>
-                        <div class="code-editor-container">
-                            <div id="line-numbers" class="line-numbers"></div>
-                            <div id="code-editor-area" class="code-editor-area" contenteditable="true" spellcheck="false"></div>
-                        </div>
-                        <div class="editor-footer">
-                            <div class="editor-info">
-                                <span id="line-col-info">Ln 1, Col 1</span>
-                                <span>Python</span>
-                            </div>
-                            <div class="editor-actions">
-                                <button class="arena-btn arena-btn-outline" id="run-code-btn">
-                                    <i class="fas fa-play"></i> Run Code
-                                </button>
-                                <button class="arena-btn arena-btn-primary" id="submit-code-btn">
-                                    <i class="fas fa-check"></i> Submit
-                                </button>
-                            </div>
-                        </div>
+                        <div class="time-label">TIME LEFT</div>
+                        <div class="time-value">22:47</div>
                     </div>
-
-                    <!-- RIGHT PANEL - Execution & AI Assistant -->
-                    <div class="arena-panel arena-right-panel">
-                        <!-- Tabbed Interface -->
-                        <div class="right-panel-tabs">
-                            <button class="right-tab active" id="testcases-tab-btn" data-tab="testcases">
-                                <i class="fas fa-vial"></i> Test Cases
-                            </button>
-                            <button class="right-tab" id="output-tab-btn" data-tab="output">
-                                <i class="fas fa-terminal"></i> Output
-                            </button>
-                            <button class="right-tab" id="ai-tab-btn" data-tab="ai">
-                                <i class="fas fa-robot"></i> AI Mentor
-                            </button>
+                    
+                    <div class="player-card opponent">
+                        <div class="status-dot green"></div>
+                        <div class="player-info right-align">
+                            <div class="player-name">Rohan Verma</div>
+                            <div class="player-title">Code Warrior</div>
+                            <div class="player-rating">1839 <i class="fas fa-arrow-trend-up"></i></div>
+                            <div class="player-winrate">Win Rate: 71%</div>
                         </div>
+                        <img src="https://i.pravatar.cc/150?img=12" alt="Rohan Verma" class="avatar">
+                    </div>
+                </header>
 
-                        <!-- Test Cases Tab -->
-                        <div class="right-tab-content active" id="testcases-content">
-                            <div class="testcases-header">
-                                <h4>Test Cases</h4>
-                                <button class="btn-icon" id="add-test-case-btn">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            <div id="test-cases-list" class="testcases-list">
-                                <!-- Test cases injected by JS -->
-                            </div>
+                <!-- CENTER WORKSPACE GRID -->
+                <div class="arena-main-grid">
+                    
+                    <!-- LEFT COLUMN: Problem Statement -->
+                    <div class="arena-col-left premium-glass-card">
+                        <div class="premium-tabs">
+                            <button class="p-tab active">Problem</button>
+                            <button class="p-tab">Submissions</button>
+                            <button class="p-tab">Solutions</button>
+                            <button class="p-tab">Discuss</button>
                         </div>
-
-                        <!-- Output Tab -->
-                        <div class="right-tab-content" id="output-content">
-                            <div class="output-header">
-                                <h4>Execution Result</h4>
+                        <div class="problem-scroll-area">
+                            <h2 class="problem-title">Two Sum</h2>
+                            <div class="problem-tags">
+                                <span class="tag easy">Easy</span>
+                                <span class="tag">Arrays</span>
+                                <span class="tag">Frequently Asked</span>
                             </div>
-                            <div id="exec-status" class="exec-status waiting">
-                                <span class="status-icon">â±ï¸</span>
-                                <span>Run your code to see results</span>
-                            </div>
-                            <div id="output-console" class="output-console"></div>
-                            <div class="execution-stats">
-                                <div class="stat-item">
-                                    <span class="stat-label">Runtime:</span>
-                                    <span id="runtime-stat" class="stat-value">--</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Memory:</span>
-                                    <span id="memory-stat" class="stat-value">--</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- AI Assistant Tab -->
-                        <div class="right-tab-content" id="ai-content">
-                            <div class="ai-assistant-container">
-                                <div class="ai-header">
-                                    <div class="ai-avatar">
-                                        <i class="fas fa-robot"></i>
-                                    </div>
-                                    <div class="ai-info">
-                                        <h4>AI Coding Mentor</h4>
-                                        <p class="ai-subtitle">I'll guide you, not solve for you</p>
-                                    </div>
+                            
+                            <div class="problem-desc">
+                                <p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to target.</p>
+                                <p>You may assume that each input would have exactly one solution, and you may not use the same element twice.</p>
+                                
+                                <h4>Example 1:</h4>
+                                <div class="code-block">
+                                    Input: nums = [2,7,11,15], target = 9<br>
+                                    Output: [0,1]<br>
+                                    Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
                                 </div>
                                 
-                                <div class="ai-mode-selector">
-                                    <button class="ai-mode-btn active" id="ai-mode-hint" data-mode="hint">
-                                        <i class="fas fa-lightbulb"></i> Hint
-                                    </button>
-                                    <button class="ai-mode-btn" id="ai-mode-debug" data-mode="debug">
-                                        <i class="fas fa-bug"></i> Debug
-                                    </button>
-                                    <button class="ai-mode-btn" id="ai-mode-optimize" data-mode="optimize">
-                                        <i class="fas fa-tachometer-alt"></i> Optimize
-                                    </button>
-                                    <button class="ai-mode-btn" id="ai-mode-explain" data-mode="explain">
-                                        <i class="fas fa-book-open"></i> Explain
-                                    </button>
+                                <h4>Example 2:</h4>
+                                <div class="code-block">
+                                    Input: nums = [3,2,4], target = 6<br>
+                                    Output: [1,2]
                                 </div>
+                                
+                                <h4>Constraints:</h4>
+                                <ul>
+                                    <li><code>2 <= nums.length <= 10⁴</code></li>
+                                    <li><code>-10⁹ <= nums[i] <= 10⁹</code></li>
+                                    <li><code>-10⁹ <= target <= 10⁹</code></li>
+                                    <li>Only one valid answer exists.</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="problem-feedback">
+                                <button class="feedback-btn"><i class="fas fa-thumbs-up"></i> 92%</button>
+                                <button class="feedback-btn"><i class="fas fa-thumbs-down"></i> 8%</button>
+                            </div>
+                            
+                            <button class="premium-btn btn-outline exit-battle-btn">
+                                <i class="fas fa-sign-out-alt"></i> Exit Battle
+                            </button>
+                            
+                            <div class="online-stats">
+                                <div class="stat-row"><span class="dot green"></span> Online Users <span class="val">128</span></div>
+                                <div class="stat-row"><span class="dot red"></span> In Battle <span class="val">64</span></div>
+                            </div>
+                        </div>
+                    </div>
 
-                                <div id="ai-chat-messages" class="ai-chat-messages"></div>
-
-                                <div class="ai-quick-actions">
-                                    <button class="ai-quick-btn" id="ai-quick-hint">
-                                        <i class="fas fa-lightbulb"></i> Get a Hint
-                                    </button>
-                                    <button class="ai-quick-btn" id="ai-quick-debug">
-                                        <i class="fas fa-question-circle"></i> Debug Help
-                                    </button>
-                                    <button class="ai-quick-btn" id="ai-quick-optimize">
-                                        <i class="fas fa-search"></i> Optimize
-                                    </button>
+                    <!-- CENTER COLUMN: Editor & Console -->
+                    <div class="arena-col-center">
+                        <div class="premium-glass-card editor-card">
+                            <div class="editor-header">
+                                <div class="lang-selector">
+                                    <i class="fab fa-python"></i> Python3 <i class="fas fa-chevron-down"></i>
                                 </div>
-
-                                <div class="ai-input-area">
-                                    <input type="text" id="ai-input-field" placeholder="Ask me anything about this problem..." />
-                                    <button class="ai-send-btn" id="ai-send-btn">
-                                        <i class="fas fa-paper-plane"></i>
-                                    </button>
+                                <div class="editor-actions">
+                                    <button class="icon-btn"><i class="fas fa-expand"></i></button>
+                                    <button class="icon-btn"><i class="fas fa-cog"></i></button>
+                                </div>
+                            </div>
+                            <div class="editor-body">
+                                <div class="line-numbers">
+                                    1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10
+                                </div>
+                                <div class="code-content">
+                                    <span class="kw">class</span> <span class="cls">Solution</span>:<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">twoSum</span>(<span class="var">self</span>, <span class="var">nums</span>:<span class="type">List</span>[<span class="type">int</span>], <span class="var">target</span>: <span class="type">int</span>) -> <span class="type">List</span>[<span class="type">int</span>]:<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seen = {}<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> i, num <span class="kw">in</span> <span class="fn">enumerate</span>(nums):<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;complement = target - num<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> complement <span class="kw">in</span> seen:<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> [seen[complement], i]<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seen[num] = i<span class="cursor-glow"></span>
+                                </div>
+                            </div>
+                            <div class="editor-footer">
+                                <button class="premium-btn btn-ghost"><i class="fas fa-play"></i> Run Code</button>
+                                <button class="premium-btn btn-primary"><i class="fas fa-arrow-up"></i> Submit Code</button>
+                            </div>
+                        </div>
+                        
+                        <div class="premium-glass-card console-card">
+                            <div class="premium-tabs">
+                                <button class="p-tab active">Testcase</button>
+                                <button class="p-tab">Custom Testcase</button>
+                            </div>
+                            <div class="console-body">
+                                <div class="testcase-sidebar">
+                                    <div class="tc-item active">Testcase 1 <i class="fas fa-check-circle text-success"></i></div>
+                                    <div class="tc-item">Testcase 2 <i class="fas fa-check-circle text-success"></i></div>
+                                    <div class="tc-item">Testcase 3 <i class="fas fa-check-circle text-success"></i></div>
+                                </div>
+                                <div class="testcase-details">
+                                    <div class="tc-row"><span class="tc-lbl">Input</span> <span class="tc-val">nums = [2,7,11,15], target = 9</span></div>
+                                    <div class="tc-row"><span class="tc-lbl">Output</span> <span class="tc-val">[0,1]</span></div>
+                                    <div class="tc-row"><span class="tc-lbl">Expected</span> <span class="tc-val">[0,1]</span></div>
+                                    <div class="tc-row mt-2"><span class="tc-lbl">Status</span> <span class="tc-status text-success">Accepted</span></div>
+                                    <div class="tc-row mt-1"><span class="tc-lbl">Runtime</span> <span class="tc-val">32 ms</span> <span class="tc-lbl ml-4">Memory</span> <span class="tc-val">16.4 MB</span></div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- RIGHT COLUMN: Battle Intelligence -->
+                    <div class="arena-col-right">
+                        <div class="premium-glass-card opp-status-card">
+                            <h3 class="panel-heading">OPPONENT STATUS</h3>
+                            <div class="opp-active-status">
+                                <span>Rohan is coding...</span>
+                                <span class="dot green pulsing"></span>
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar opp-bar" style="width: 60%;"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span>Passed: 6 / 10</span>
+                                <span>60%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="premium-glass-card chat-card flex-grow">
+                            <h3 class="panel-heading">BATTLE CHAT</h3>
+                            <div class="chat-messages">
+                                <div class="chat-msg">
+                                    <img src="https://i.pravatar.cc/150?img=11" class="chat-avatar">
+                                    <div class="msg-content">
+                                        <div class="msg-author">Arjun Dev <span class="msg-time">10:21 AM</span></div>
+                                        <div class="msg-text">All the best! 💪</div>
+                                    </div>
+                                </div>
+                                <div class="chat-msg">
+                                    <img src="https://i.pravatar.cc/150?img=12" class="chat-avatar">
+                                    <div class="msg-content">
+                                        <div class="msg-author">Rohan Verma <span class="msg-time">10:21 AM</span></div>
+                                        <div class="msg-text">Let's code! 🔥</div>
+                                    </div>
+                                </div>
+                                <div class="chat-msg system">
+                                    <div class="chat-avatar sys-icon">SF</div>
+                                    <div class="msg-content">
+                                        <div class="msg-author">System <span class="msg-time">10:21 AM</span></div>
+                                        <div class="msg-text">Battle has started. Code your best!</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-input-area">
+                                <input type="text" placeholder="Type a message..." class="premium-input">
+                                <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="premium-glass-card leaderboard-card">
+                            <div class="lb-header">
+                                <h3 class="panel-heading">LIVE LEADERBOARD</h3>
+                                <span class="lb-count"><i class="fas fa-users"></i> 128</span>
+                            </div>
+                            <div class="lb-table">
+                                <div class="lb-row header">
+                                    <div class="col-rank">Rank</div>
+                                    <div class="col-player">Player</div>
+                                    <div class="col-score">Score</div>
+                                </div>
+                                <div class="lb-row">
+                                    <div class="col-rank"><span class="rank-badge gold">1</span></div>
+                                    <div class="col-player"><img src="https://i.pravatar.cc/150?img=5" class="lb-avatar"> Kavya Singh</div>
+                                    <div class="col-score">1890</div>
+                                </div>
+                                <div class="lb-row active-user">
+                                    <div class="col-rank"><span class="rank-badge silver">2</span></div>
+                                    <div class="col-player"><img src="https://i.pravatar.cc/150?img=11" class="lb-avatar"> Arjun Dev <span class="you-badge">You</span></div>
+                                    <div class="col-score">1872</div>
+                                </div>
+                                <div class="lb-row">
+                                    <div class="col-rank"><span class="rank-badge bronze">3</span></div>
+                                    <div class="col-player"><img src="https://i.pravatar.cc/150?img=12" class="lb-avatar"> Rohan Verma</div>
+                                    <div class="col-score">1839</div>
+                                </div>
+                                <div class="lb-row">
+                                    <div class="col-rank">4</div>
+                                    <div class="col-player"><img src="https://i.pravatar.cc/150?img=8" class="lb-avatar"> Aditya Raj</div>
+                                    <div class="col-score">1765</div>
+                                </div>
+                                <div class="lb-row">
+                                    <div class="col-rank">5</div>
+                                    <div class="col-player"><img src="https://i.pravatar.cc/150?img=9" class="lb-avatar"> Neha Patel</div>
+                                    <div class="col-score">1698</div>
+                                </div>
+                            </div>
+                            <button class="premium-btn btn-outline full-width mt-3">View Full Leaderboard</button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- BOTTOM ANALYTICS ROW -->
+                <div class="arena-bottom-row">
+                    <div class="premium-glass-card stat-box">
+                        <h3 class="panel-heading">YOUR STATS</h3>
+                        <div class="stat-flex">
+                            <div class="rating-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="bg" cx="50" cy="50" r="45"></circle>
+                                    <circle class="progress" cx="50" cy="50" r="45" stroke-dasharray="282" stroke-dashoffset="60"></circle>
+                                </svg>
+                                <div class="ring-text">
+                                    <div class="val">1872</div>
+                                    <div class="lbl">Rating</div>
+                                </div>
+                            </div>
+                            <div class="stat-list">
+                                <div class="st-item"><span class="st-lbl">Win Rate</span><span class="st-val">78%</span></div>
+                                <div class="st-item"><span class="st-lbl">Wins</span><span class="st-val">32</span></div>
+                                <div class="st-item"><span class="st-lbl">Losses</span><span class="st-val">9</span></div>
+                                <div class="st-item"><span class="st-lbl">Win Streak</span><span class="st-val">6</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="premium-glass-card stat-box">
+                        <h3 class="panel-heading">TODAY'S PROGRESS</h3>
+                        <div class="prog-info">
+                            <div class="prog-val">8 <span class="prog-total">/ 10</span></div>
+                            <div class="prog-lbl">Problems Solved</div>
+                        </div>
+                        <div class="progress-bar-wrap mb-2">
+                            <div class="progress-bar" style="width: 80%;"></div>
+                        </div>
+                        <div class="prog-footer">
+                            <span>Daily Goal</span>
+                            <span class="time-left"><i class="far fa-clock"></i> 10:30:45 Left</span>
+                        </div>
+                    </div>
+                    
+                    <div class="premium-glass-card stat-box">
+                        <h3 class="panel-heading">AI INSIGHT</h3>
+                        <div class="ai-insight-flex">
+                            <i class="fas fa-brain ai-icon"></i>
+                            <div class="ai-text">
+                                <p>You're great at Arrays and HashMaps! Try solving more Medium level problems to improve your dynamic programming skills.</p>
+                                <a href="#" class="view-link">View Full Analysis <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="premium-glass-card stat-box">
+                        <h3 class="panel-heading">RECENT ACHIEVEMENT</h3>
+                        <div class="ach-flex">
+                            <div class="ach-badge">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                            <div class="ach-info">
+                                <div class="ach-title">Speed Coder</div>
+                                <div class="ach-desc">Solved a problem in less than 2 minutes</div>
+                            </div>
+                            <div class="ach-time">2h ago</div>
+                        </div>
+                    </div>
+                </div>
+
             </section>
 
             <!-- 9. MOCK INTERVIEW -->
