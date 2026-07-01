@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="coders-dna.css">
     <link rel="stylesheet" href="projects-workspace.css">
     <link rel="stylesheet" href="video-library.css">
+    <link rel="stylesheet" href="war-room-styles.css?v=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <!-- Auth Guard: runs before any content renders -->
   <script>
@@ -48,15 +49,11 @@
                 <button class="nav-item" data-target="projects-page">
                     <i class="fas fa-project-diagram"></i> Projects
                 </button>
-                <button class="nav-item active" data-target="arena-home-page" style="display: flex; justify-content: space-between; align-items: center; background-color: rgba(255,77,79,0.1); color: white; border-left: 3px solid #ff4d4f; border-radius: 4px;">
-                    <div><i class="fas fa-code"></i> Arena</div>
-                    <span class="live-badge" style="color: #ff4d4f; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;">LIVE</span>
-                </button>
                 <button class="nav-item" data-target="practice-page">
                     <i class="fas fa-keyboard"></i> Practice
                 </button>
                 <button class="nav-item" data-target="mock-interview-page">
-                    <i class="fas fa-user-friends"></i> Mock Interview
+                    <i class="fas fa-satellite-dish"></i> War Room
                 </button>
                 <button class="nav-item" data-target="video-library-page">
                     <i class="fas fa-video"></i> Video Library
@@ -66,9 +63,6 @@
                 </button>
                 <button class="nav-item" onclick="window.location.href='dna-dashboard.html'">
                     <i class="fas fa-dna"></i> Coder's DNA
-                </button>
-                <button class="nav-item" data-target="ai-insights-page">
-                    <i class="fas fa-brain"></i> AI Insights
                 </button>
                 <button class="nav-item" data-target="profile-page">
                     <i class="fas fa-user"></i> Profile
@@ -1039,7 +1033,7 @@
                                 </div>
                             </div>
                             <div class="rb-action">
-                                <button class="start-battle-btn" onclick="document.getElementById('arena-home-page').classList.remove('active'); document.getElementById('coding-arena').classList.add('active');">
+                                <button class="start-battle-btn" onclick="document.getElementById('arena-home-page').classList.remove('active'); document.getElementById('arena-home-page').classList.add('hidden'); const ca = document.getElementById('coding-arena'); if(ca){ca.classList.remove('hidden'); ca.classList.add('active'); ca.style.display='flex';} if(window.CodingArena && typeof window.CodingArena.openProblem === 'function'){window.CodingArena.openProblem('two-sum');}">
                                     START BATTLE <i class="fas fa-chevron-right"></i>
                                 </button>
                                 <div class="rb-subaction">Find an opponent now</div>
@@ -1479,235 +1473,425 @@
 
             </section>
 
-            <!-- 9. MOCK INTERVIEW -->
+                        <!-- 9. MOCK INTERVIEW (THE WAR ROOM) -->
             <section id="mock-interview-page" class="page-view hidden">
-                <header class="page-header">
-                    <h2>Mock Interview</h2>
-                </header>
-
-                <!-- START SCREEN -->
-                <div id="interview-start-screen" class="card">
-                    <div class="interview-welcome">
-                        <h3>Welcome to Mock Interview</h3>
-                        <p class="text-muted">Test your skills with a realistic interview experience</p>
-                    </div>
+                <div class="wr-container">
                     
-                    <div class="interview-rules">
-                        <h4>Interview Format</h4>
-                        <ul>
-                            <li><i class="fas fa-keyboard"></i> <strong>Phase 1: Text Round</strong> - 5 questions answered via text (questions read aloud)</li>
-                            <li><i class="fas fa-microphone"></i> <strong>Phase 2: Voice Round</strong> - 5 questions answered via voice (questions asked aloud)</li>
-                            <li><i class="fas fa-clock"></i> 5 minutes per question</li>
-                            <li><i class="fas fa-brain"></i> AI evaluation with detailed feedback</li>
-                            <li><i class="fas fa-volume-up"></i> Voice feedback playback available</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="interview-track-info">
-                        <p><strong>Track:</strong> <span id="interview-track-name">Loading...</span></p>
-                        <p><strong>Level:</strong> <span id="interview-level-name">Loading...</span></p>
-                    </div>
-                    
-                    <div class="interview-actions">
-                        <button id="start-interview-btn" class="btn btn-primary">Start Interview</button>
-                        <button id="resume-interview-btn" class="btn btn-outline" style="display: none;">Resume Previous Session</button>
-                    </div>
-                </div>
-
-                <!-- ACTIVE INTERVIEW SCREEN -->
-                <div id="interview-active-screen" class="card" style="display: none;">
-                    <!-- Header with Phase Indicator -->
-                    <div class="interview-header">
-                        <div class="phase-indicator">
-                            <span id="current-phase-badge" class="phase-badge text-phase">
-                                <i class="fas fa-keyboard"></i> Phase 1: Text Round
-                            </span>
-                            <span id="question-number">Question 1 of 10</span>
-                        </div>
-                        <div class="interview-controls">
-                            <div id="question-timer" class="timer">
-                                <i class="fas fa-clock"></i>
-                                <span id="timer-value">05:00</span>
+                    <!-- 1. HERO SECTION -->
+                    <div class="wr-hero">
+                        <div class="wr-hero-left">
+                            <div class="wr-badge-live">
+                                <span class="wr-live-dot"></span>
+                                <span>Live Executive Race Control</span>
                             </div>
-                            <button id="end-interview-btn" class="btn btn-sm btn-danger">End Interview</button>
+                            <h1 class="wr-hero-title">WAR ROOM</h1>
+                            <p class="wr-hero-subtitle">Train like tomorrow is your dream interview. Executive precision, Formula 1 telemetry, zero bias.</p>
+                        </div>
+                        <div class="wr-hero-stats">
+                            <div class="wr-stat-box">
+                                <div class="wr-stat-num" data-target="12500">0</div>
+                                <div class="wr-stat-label">Interviews Completed</div>
+                            </div>
+                            <div class="wr-stat-box">
+                                <div class="wr-stat-num" data-target="94" data-suffix="%">0%</div>
+                                <div class="wr-stat-label">Success Rate</div>
+                            </div>
+                            <div class="wr-stat-box">
+                                <div class="wr-stat-num" data-target="420">0</div>
+                                <div class="wr-stat-label">Companies</div>
+                            </div>
+                            <div class="wr-stat-box">
+                                <div class="wr-stat-num" data-target="75">0</div>
+                                <div class="wr-stat-label">AI Interviewers</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Progress Bar -->
-                    <div class="interview-progress-bar">
-                        <div id="interview-progress-fill" class="interview-progress-fill" style="width: 10%;"></div>
-                    </div>
-
-                    <!-- Question Panel -->
-                    <div class="question-panel">
-                        <div id="answer-mode-badge" class="answer-mode-badge text-mode">
-                            <i class="fas fa-keyboard"></i>
-                            <span>Text Answer Required</span>
-                        </div>
-                        <h3 id="current-question-text" class="question-text">Loading question...</h3>
-                        <div id="question-context" class="question-context" style="display: none;">
-                            <p class="text-muted"><em id="context-text"></em></p>
-                        </div>
-                        <button id="speak-question-btn" class="btn btn-sm btn-outline">
-                            <i class="fas fa-volume-up"></i> Hear Question
-                        </button>
-                    </div>
-
-                    <!-- TEXT ANSWER AREA -->
-                    <div id="text-answer-area" class="answer-area" style="display: block;">
-                        <label>Your Answer:</label>
-                        <textarea id="text-answer-input" placeholder="Type your answer here..." rows="8"></textarea>
-                        <div class="answer-controls">
-                            <span id="char-count" class="char-count">0 / 2000</span>
-                            <button id="submit-text-answer-btn" class="btn btn-primary">Submit Answer</button>
-                        </div>
-                    </div>
-
-                    <!-- VOICE ANSWER AREA -->
-                    <div id="voice-answer-area" class="answer-area" style="display: none;">
-                        <div id="mic-status" class="mic-status">
-                            <i class="fas fa-microphone-slash"></i>
-                            <span>Ready to record</span>
-                        </div>
+                    <!-- LAYOUT GRID -->
+                    <div class="wr-layout">
                         
-                        <div class="voice-controls">
-                            <button id="start-recording-btn" class="btn-circle btn-primary">
-                                <i class="fas fa-microphone"></i>
-                            </button>
-                            <button id="stop-recording-btn" class="btn-circle btn-danger" style="display: none;">
-                                <i class="fas fa-stop"></i>
-                            </button>
-                            <button id="re-record-btn" class="btn btn-outline" style="display: none;">
-                                <i class="fas fa-redo"></i> Re-record
-                            </button>
-                        </div>
-
-                        <div id="recording-timer" class="recording-timer" style="display: none;">
-                            <i class="fas fa-circle recording-dot"></i>
-                            <span id="recording-duration">00:00</span>
-                        </div>
-
-                        <div id="transcription-preview" class="transcription-preview">
-                            <p class="text-muted">Your speech will appear here as you speak...</p>
-                        </div>
-
-                        <div id="audio-playback-section" class="audio-playback" style="display: none;">
-                            <label>Review Your Recording:</label>
-                            <audio id="recorded-audio" controls></audio>
-                        </div>
-
-                        <div class="answer-controls">
-                            <button id="submit-voice-answer-btn" class="btn btn-primary" style="display: none;">
-                                Submit Voice Answer
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- FEEDBACK AREA -->
-                    <div id="feedback-area" class="feedback-area" style="display: none;">
-                        <div id="feedback-loading" class="feedback-loading">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>Evaluating your answer...</p>
-                        </div>
-                        
-                        <div id="feedback-content" class="feedback-content" style="display: none;">
-                            <h4>AI Evaluation</h4>
+                        <!-- MAIN LEFT/CENTER COLUMN -->
+                        <div class="wr-main-col">
                             
-                            <div class="score-bars">
-                                <div class="score-item">
-                                    <label>Clarity</label>
-                                    <div class="score-bar-container">
-                                        <div id="score-clarity" class="score-bar" style="width: 0%;"></div>
+                            <!-- 2. INTERVIEW CATEGORIES -->
+                            <div class="wr-section-head">
+                                <div class="wr-section-title"><i class="fas fa-layer-group"></i> Interview Categories</div>
+                            </div>
+                            <div class="wr-categories-grid">
+                                <div class="wr-cat-card active" data-cat="Technical Coding">
+                                    <div class="wr-cat-header">
+                                        <div class="wr-cat-icon"><i class="fas fa-code"></i></div>
+                                        <span class="wr-rec-badge">⚡ Top Priority</span>
                                     </div>
-                                    <span id="score-clarity-value" class="score-value">0/10</span>
+                                    <h4 class="wr-cat-title">Technical Coding</h4>
+                                    <div class="wr-cat-meta">
+                                        <span class="wr-cat-pill">45 mins</span>
+                                        <span class="wr-cat-pill">Hard</span>
+                                        <span class="wr-cat-pill">98% Pop.</span>
+                                    </div>
                                 </div>
-                                <div class="score-item">
-                                    <label>Correctness</label>
-                                    <div class="score-bar-container">
-                                        <div id="score-correctness" class="score-bar" style="width: 0%;"></div>
+
+                                <div class="wr-cat-card" data-cat="System Design">
+                                    <div class="wr-cat-header">
+                                        <div class="wr-cat-icon"><i class="fas fa-network-wired"></i></div>
+                                        <span class="wr-rec-badge">🔥 High ROI</span>
                                     </div>
-                                    <span id="score-correctness-value" class="score-value">0/10</span>
+                                    <h4 class="wr-cat-title">System Design</h4>
+                                    <div class="wr-cat-meta">
+                                        <span class="wr-cat-pill">60 mins</span>
+                                        <span class="wr-cat-pill">Staff+</span>
+                                        <span class="wr-cat-pill">95% Pop.</span>
+                                    </div>
                                 </div>
-                                <div class="score-item">
-                                    <label>Depth</label>
-                                    <div class="score-bar-container">
-                                        <div id="score-depth" class="score-bar" style="width: 0%;"></div>
+
+                                <div class="wr-cat-card" data-cat="Behavioral & Leadership">
+                                    <div class="wr-cat-header">
+                                        <div class="wr-cat-icon"><i class="fas fa-user-tie"></i></div>
+                                        <span class="wr-rec-badge">💡 Essential</span>
                                     </div>
-                                    <span id="score-depth-value" class="score-value">0/10</span>
+                                    <h4 class="wr-cat-title">Behavioral & Leadership</h4>
+                                    <div class="wr-cat-meta">
+                                        <span class="wr-cat-pill">30 mins</span>
+                                        <span class="wr-cat-pill">STAR</span>
+                                        <span class="wr-cat-pill">92% Pop.</span>
+                                    </div>
                                 </div>
-                                <div class="score-item">
-                                    <label>Confidence</label>
-                                    <div class="score-bar-container">
-                                        <div id="score-confidence" class="score-bar" style="width: 0%;"></div>
+
+                                <div class="wr-cat-card" data-cat="AI Engineering">
+                                    <div class="wr-cat-header">
+                                        <div class="wr-cat-icon"><i class="fas fa-brain"></i></div>
+                                        <span class="wr-rec-badge">🚀 Trending</span>
                                     </div>
-                                    <span id="score-confidence-value" class="score-value">0/10</span>
+                                    <h4 class="wr-cat-title">AI & LLM Infra</h4>
+                                    <div class="wr-cat-meta">
+                                        <span class="wr-cat-pill">45 mins</span>
+                                        <span class="wr-cat-pill">Extreme</span>
+                                        <span class="wr-cat-pill">89% Pop.</span>
+                                    </div>
                                 </div>
-                                <div class="score-item">
-                                    <label>Communication</label>
-                                    <div class="score-bar-container">
-                                        <div id="score-communication" class="score-bar" style="width: 0%;"></div>
+
+                                <div class="wr-cat-card" data-cat="Cloud & DevOps">
+                                    <div class="wr-cat-header">
+                                        <div class="wr-cat-icon"><i class="fas fa-cloud"></i></div>
                                     </div>
-                                    <span id="score-communication-value" class="score-value">0/10</span>
+                                    <h4 class="wr-cat-title">Cloud & DevOps</h4>
+                                    <div class="wr-cat-meta">
+                                        <span class="wr-cat-pill">45 mins</span>
+                                        <span class="wr-cat-pill">Senior</span>
+                                        <span class="wr-cat-pill">84% Pop.</span>
+                                    </div>
+                                </div>
+
+                                <div class="wr-cat-card" data-cat="Cyber Security">
+                                    <div class="wr-cat-header">
+                                        <div class="wr-cat-icon"><i class="fas fa-shield-alt"></i></div>
+                                    </div>
+                                    <h4 class="wr-cat-title">Cyber Security</h4>
+                                    <div class="wr-cat-meta">
+                                        <span class="wr-cat-pill">45 mins</span>
+                                        <span class="wr-cat-pill">Hard</span>
+                                        <span class="wr-cat-pill">78% Pop.</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="feedback-text">
-                                <h5>Feedback:</h5>
-                                <p id="feedback-text-content"></p>
+                            <!-- 3. COMPANY SELECTION -->
+                            <div class="wr-section-head">
+                                <div class="wr-section-title"><i class="fas fa-building"></i> Target Company Simulation</div>
+                            </div>
+                            <div class="wr-companies-scroll">
+                                <div class="wr-company-card active" data-comp="Google" data-prob="88.2">
+                                    <div class="wr-company-logo">
+                                        <div class="wr-company-icon" style="background: #4285F4;">G</div>
+                                        <div class="wr-company-name">Google</div>
+                                    </div>
+                                    <div class="wr-company-diff">L5 / L6 Staff Level</div>
+                                    <div class="wr-company-style">Deep Graph Algorithms & High-Scale Consensus</div>
+                                </div>
+
+                                <div class="wr-company-card" data-comp="OpenAI" data-prob="84.5">
+                                    <div class="wr-company-logo">
+                                        <div class="wr-company-icon" style="background: #10A37F;">AI</div>
+                                        <div class="wr-company-name">OpenAI</div>
+                                    </div>
+                                    <div class="wr-company-diff">Level 5 Member Tech</div>
+                                    <div class="wr-company-style">GPU Clustering, PyTorch Scaling & Transformer Ops</div>
+                                </div>
+
+                                <div class="wr-company-card" data-comp="Apple" data-prob="89.1">
+                                    <div class="wr-company-logo">
+                                        <div class="wr-company-icon" style="background: #333;"></div>
+                                        <div class="wr-company-name">Apple</div>
+                                    </div>
+                                    <div class="wr-company-diff">ICT4 Senior Systems</div>
+                                    <div class="wr-company-style">Low-Level Kernel, C++ Memory & Hardware Integration</div>
+                                </div>
+
+                                <div class="wr-company-card" data-comp="Stripe" data-prob="86.7">
+                                    <div class="wr-company-logo">
+                                        <div class="wr-company-icon" style="background: #635BFF;">S</div>
+                                        <div class="wr-company-name">Stripe</div>
+                                    </div>
+                                    <div class="wr-company-diff">L3 / L4 Systems Lead</div>
+                                    <div class="wr-company-style">Flawless Pragmatic API Design & Idempotency</div>
+                                </div>
+
+                                <div class="wr-company-card" data-comp="NVIDIA" data-prob="83.9">
+                                    <div class="wr-company-logo">
+                                        <div class="wr-company-icon" style="background: #76B900;">NV</div>
+                                        <div class="wr-company-name">NVIDIA</div>
+                                    </div>
+                                    <div class="wr-company-diff">IC6 Principal Architect</div>
+                                    <div class="wr-company-style">CUDA Concurrency & Distributed Tensor Rings</div>
+                                </div>
                             </div>
 
-                            <div class="feedback-audio-controls">
-                                <button id="play-feedback-audio-btn" class="btn btn-outline">
-                                    <i class="fas fa-volume-up"></i> Play Feedback
-                                </button>
-                                <button id="stop-feedback-audio-btn" class="btn btn-outline" style="display: none;">
-                                    <i class="fas fa-stop"></i> Stop
-                                </button>
+                            <!-- 4. INTERVIEW PERSONAS -->
+                            <div class="wr-section-head">
+                                <div class="wr-section-title"><i class="fas fa-user-astronaut"></i> AI Executive Personas</div>
+                            </div>
+                            <div class="wr-personas-grid">
+                                <div class="wr-persona-card active" data-persona="Pressure Interviewer (Crisp Analytical Voice)">
+                                    <div class="wr-persona-top">
+                                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" class="wr-persona-avatar" alt="Interviewer">
+                                        <div class="wr-persona-info">
+                                            <h4>Elena Vance</h4>
+                                            <span>Pressure Interviewer</span>
+                                        </div>
+                                    </div>
+                                    <div class="wr-persona-tags">
+                                        <span class="wr-persona-tag">🔥 Extreme F1 Pace</span>
+                                        <span class="wr-persona-tag">🎙️ Crisp Analytical Voice</span>
+                                        <span class="wr-persona-tag">⚡ Rapid Interrogation</span>
+                                    </div>
+                                </div>
+
+                                <div class="wr-persona-card" data-persona="Senior Engineering Manager (Pragmatic Trade-offs)">
+                                    <div class="wr-persona-top">
+                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80" class="wr-persona-avatar" alt="Interviewer">
+                                        <div class="wr-persona-info">
+                                            <h4>Marcus Thorne</h4>
+                                            <span>Staff Eng Manager</span>
+                                        </div>
+                                    </div>
+                                    <div class="wr-persona-tags">
+                                        <span class="wr-persona-tag">📐 Trade-off Focus</span>
+                                        <span class="wr-persona-tag">🎙️ Deep Baritone Voice</span>
+                                        <span class="wr-persona-tag">💡 System Scalability</span>
+                                    </div>
+                                </div>
+
+                                <div class="wr-persona-card" data-persona="Friendly Mentor (Guided Pair Programming)">
+                                    <div class="wr-persona-top">
+                                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" class="wr-persona-avatar" alt="Interviewer">
+                                        <div class="wr-persona-info">
+                                            <h4>Sarah Lin</h4>
+                                            <span>Principal Mentor</span>
+                                        </div>
+                                    </div>
+                                    <div class="wr-persona-tags">
+                                        <span class="wr-persona-tag">🤝 Collaborative</span>
+                                        <span class="wr-persona-tag">🎙️ Warm Encouraging</span>
+                                        <span class="wr-persona-tag">🌱 Educational Hints</span>
+                                    </div>
+                                </div>
+
+                                <div class="wr-persona-card" data-persona="Robot Evaluator (Zero Bias Neural Judge)">
+                                    <div class="wr-persona-top">
+                                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80" class="wr-persona-avatar" alt="Interviewer">
+                                        <div class="wr-persona-info">
+                                            <h4>SF-9000 Core</h4>
+                                            <span>Neural Algorithmic Judge</span>
+                                        </div>
+                                    </div>
+                                    <div class="wr-persona-tags">
+                                        <span class="wr-persona-tag">🤖 Zero Bias Absolute</span>
+                                        <span class="wr-persona-tag">🎙️ Synthetic Neural</span>
+                                        <span class="wr-persona-tag">⚡ Mathematical Proofs</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <button id="next-question-btn" class="btn btn-primary mt-2">
-                                Next Question <i class="fas fa-arrow-right"></i>
-                            </button>
+                            <!-- 5. INTERVIEW CONFIGURATION PANEL -->
+                            <div class="wr-section-head">
+                                <div class="wr-section-title"><i class="fas fa-sliders-h"></i> Mission Parameter Configuration</div>
+                            </div>
+                            <div class="wr-config-panel">
+                                <div class="wr-config-grid">
+                                    <div class="wr-config-item">
+                                        <label>Duration & Pace</label>
+                                        <div class="wr-pills-row">
+                                            <button class="wr-pill-btn wr-duration-pill">30m Blitz</button>
+                                            <button class="wr-pill-btn wr-duration-pill active">45m Standard</button>
+                                            <button class="wr-pill-btn wr-duration-pill">60m Deep Dive</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="wr-config-item">
+                                        <label>Target Level</label>
+                                        <div class="wr-pills-row">
+                                            <button class="wr-pill-btn wr-diff-pill">Senior L5</button>
+                                            <button class="wr-pill-btn wr-diff-pill active">Staff / L6</button>
+                                            <button class="wr-pill-btn wr-diff-pill">Principal L7</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="wr-config-item">
+                                        <label>Target Total Compensation</label>
+                                        <div class="wr-range-container">
+                                            <input type="range" class="wr-range-input" id="wr-salary-slider" min="150000" max="650000" step="10000" value="380000">
+                                            <div class="wr-range-val">
+                                                <span>$150k TC</span>
+                                                <strong id="wr-salary-val" style="color:var(--wr-accent);">$380,000 / yr</strong>
+                                                <span>$650k+ TC</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="wr-config-item">
+                                        <label>Telemetry Sensors</label>
+                                        <div style="display:flex; flex-direction:column; gap:10px;">
+                                            <div class="wr-toggle-row">
+                                                <span class="wr-toggle-label">Neural Ultra-HD Voice</span>
+                                                <label class="wr-switch"><input type="checkbox" checked><span class="wr-slider"></span></label>
+                                            </div>
+                                            <div class="wr-toggle-row">
+                                                <span class="wr-toggle-label">Live Excalidraw Whiteboard</span>
+                                                <label class="wr-switch"><input type="checkbox" checked><span class="wr-slider"></span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 6. READY CARD (Huge Cinematic Launchpad) -->
+                            <div class="wr-ready-card">
+                                <div class="wr-ready-grid">
+                                    <div class="wr-ready-info">
+                                        <h3 id="wr-ready-summary">45m Standard • Technical Coding Executive Interview</h3>
+                                        <div class="wr-ready-specs">
+                                            <div class="wr-spec-box">
+                                                <span>Target Company</span>
+                                                <strong id="wr-ready-comp">Google</strong>
+                                            </div>
+                                            <div class="wr-spec-box">
+                                                <span>Difficulty & Bar</span>
+                                                <strong id="wr-ready-diff">Staff / L6</strong>
+                                            </div>
+                                            <div class="wr-spec-box">
+                                                <span>AI Evaluator</span>
+                                                <strong id="wr-ready-persona">Pressure Interviewer</strong>
+                                            </div>
+                                            <div class="wr-spec-box">
+                                                <span>Telemetry Latency</span>
+                                                <strong style="color:#10B981;">12ms Real-Time</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="wr-ready-action">
+                                        <div class="wr-prob-gauge">
+                                            <div class="wr-prob-title">Estimated Hiring Probability</div>
+                                            <div class="wr-prob-num" id="wr-ready-prob">88.2%</div>
+                                        </div>
+                                        <button class="wr-start-btn" id="wr-start-btn">
+                                            <span>START INTERVIEW</span>
+                                            <i class="fas fa-bolt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
+
+                        <!-- 7. RIGHT SIDEBAR (Race Control Telemetry) -->
+                        <div class="wr-sidebar">
+                            
+                            <div class="wr-side-card">
+                                <h4 class="wr-side-title"><i class="fas fa-flag-checkered"></i> Daily War Room Mission</h4>
+                                <div class="wr-mission-box">
+                                    <h5>⚡ Survive The Matrix</h5>
+                                    <p>Complete a 45m Staff System Design session targeting Google consensus architecture with under 2 hints.</p>
+                                </div>
+                            </div>
+
+                            <div class="wr-side-card">
+                                <h4 class="wr-side-title"><i class="fas fa-fire"></i> Executive Streak</h4>
+                                <div class="wr-streak-bar">
+                                    <div>
+                                        <strong style="font-size: 20px;">7 Days Active 🔥</strong>
+                                        <div style="font-size:11px; color:var(--wr-text-mut);">Consistency is L6 leverage</div>
+                                    </div>
+                                    <div style="color:var(--wr-accent); font-weight:800; font-size:24px;">+450 XP</div>
+                                </div>
+                            </div>
+
+                            <div class="wr-side-card">
+                                <h4 class="wr-side-title"><i class="fas fa-chart-radar"></i> Recent Telemetry Breakdown</h4>
+                                <div class="wr-radar-list">
+                                    <div class="wr-radar-item">
+                                        <div class="wr-radar-top"><span>Clarity & Communication</span><span>94%</span></div>
+                                        <div class="wr-radar-progress"><div class="wr-radar-fill" style="width:94%;"></div></div>
+                                    </div>
+                                    <div class="wr-radar-item">
+                                        <div class="wr-radar-top"><span>Distributed Architecture</span><span>91%</span></div>
+                                        <div class="wr-radar-progress"><div class="wr-radar-fill" style="width:91%;"></div></div>
+                                    </div>
+                                    <div class="wr-radar-item">
+                                        <div class="wr-radar-top"><span>Algorithm Optimization</span><span>88%</span></div>
+                                        <div class="wr-radar-progress"><div class="wr-radar-fill" style="width:88%;"></div></div>
+                                    </div>
+                                    <div class="wr-radar-item">
+                                        <div class="wr-radar-top"><span>Pressure Composure</span><span>96%</span></div>
+                                        <div class="wr-radar-progress"><div class="wr-radar-fill" style="width:96%;"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wr-side-card">
+                                <h4 class="wr-side-title"><i class="fas fa-brain"></i> AI Strategic Advisory</h4>
+                                <div class="wr-recs-list">
+                                    <div class="wr-rec-item">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <span>Focus on Raft Consensus split-brain edge cases before taking Google Staff simulations.</span>
+                                    </div>
+                                    <div class="wr-rec-item">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <span>Your communication cadence is excellent under rapid interrogation. Maintain steady vocal pitch.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wr-side-card">
+                                <h4 class="wr-side-title"><i class="fas fa-calendar-check"></i> Upcoming Scheduled Simulations</h4>
+                                <div class="wr-sched-item">
+                                    <div class="wr-sched-info">
+                                        <h6>Google L6 Systems Architecture</h6>
+                                        <span>Today • 4:00 PM EST</span>
+                                    </div>
+                                    <span style="background:rgba(255,77,79,0.15); color:var(--wr-accent); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700;">LIVE IN 2H</span>
+                                </div>
+                                <div class="wr-sched-item">
+                                    <div class="wr-sched-info">
+                                        <h6>OpenAI High-Scale LLM Routing</h6>
+                                        <span>Tomorrow • 11:00 AM EST</span>
+                                    </div>
+                                    <span style="color:var(--wr-text-mut); font-size:11px;">READY</span>
+                                </div>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- COMPLETE SCREEN -->
-                <div id="interview-complete-screen" class="card" style="display: none;">
-                    <div class="interview-complete-header">
-                        <i class="fas fa-check-circle complete-icon"></i>
-                        <h3>Interview Complete!</h3>
-                        <p class="text-muted">Great job! Here's your performance summary:</p>
-                    </div>
-
-                    <div class="final-scores">
-                        <div class="final-score-item">
-                            <div class="score-circle">
-                                <span id="final-average-score" class="score-big">0.0</span>
-                                <span class="score-label">Overall</span>
-                            </div>
-                        </div>
-                        <div class="final-score-item">
-                            <div class="score-circle">
-                                <span id="final-text-score" class="score-big">0.0</span>
-                                <span class="score-label">Text Round</span>
-                            </div>
-                        </div>
-                        <div class="final-score-item">
-                            <div class="score-circle">
-                                <span id="final-voice-score" class="score-big">0.0</span>
-                                <span class="score-label">Voice Round</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="interview-actions">
-                        <button id="view-detailed-report-btn" class="btn btn-outline">
-                            <i class="fas fa-chart-bar"></i> View Detailed Report
-                        </button>
-                        <button id="start-new-interview-btn" class="btn btn-primary">
-                            <i class="fas fa-redo"></i> Start New Interview
-                        </button>
+                <!-- SIMULATION LAUNCH MODAL -->
+                <div class="wr-modal-overlay" id="wr-simulation-modal">
+                    <div class="wr-modal-content">
+                        <div style="font-size:48px; color:var(--wr-accent); margin-bottom:16px;"><i class="fas fa-satellite-dish fa-spin"></i></div>
+                        <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">EXECUTIVE WAR ROOM LAUNCHING</h2>
+                        <p style="color:var(--wr-text-mut); font-size:14px; margin-bottom:24px;" id="wr-countdown-status">INITIALIZING NEURAL EVALUATOR CHANNELS...</p>
+                        <div id="wr-countdown-num" style="font-size:72px; font-weight:900; color:#fff; font-family:'JetBrains Mono',monospace;">3</div>
                     </div>
                 </div>
             </section>
@@ -2191,6 +2375,7 @@
     <script src="mock-interview.js?v=10"></script>
     <script src="projects-workspace.js?v=11"></script>
     <script src="video-library.js?v=10"></script>
+    <script src="war-room.js?v=1"></script>
     <script src="coding-arena-functional.js?v=10"></script>
     <script src="coders-dna-tracker.js"></script>
 

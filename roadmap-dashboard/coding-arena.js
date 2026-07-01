@@ -343,9 +343,14 @@ public:
             arena.style.display = 'none';
         }
         
-        // Show practice page
+        // Return to arena home or practice page
+        const arenaHome = document.getElementById('arena-home-page');
         const practicePage = document.getElementById('practice-page');
-        if (practicePage) {
+        if (arenaHome && (window.location.hash.includes('arena') || !practicePage)) {
+            arenaHome.classList.remove('hidden');
+            arenaHome.classList.add('active');
+            arenaHome.style.display = 'block';
+        } else if (practicePage) {
             practicePage.style.display = 'flex';
         }
         

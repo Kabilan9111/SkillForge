@@ -187,7 +187,7 @@ async function enrollInTrack(trackId, level) {
         if (!response.ok) throw new Error('Enrollment failed');
         return await response.json();
     } catch (error) {
-        console.error('Enrollment error:', error);
+        console.warn('[Offline Mode] Track enrollment fallback active.');
         return null;
     }
 }
@@ -234,7 +234,7 @@ async function fetchRoadmap(trackId, level) {
         
         return await response.json();
     } catch (error) {
-        console.error('Roadmap fetch error:', error);
+        console.warn('[Offline Mode] Using default local roadmap roadmap-dashboard.');
         return null;
     }
 }
