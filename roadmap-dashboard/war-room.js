@@ -315,3 +315,95 @@
     }
 
     setTimeout(setupResultsView, 400);
+
+
+    // WAR ROOM V2 INTERACTIONS
+    function setupWarRoomV2() {
+        const toggleV1 = document.getElementById('wr-toggle-v1');
+        const toggleV2 = document.getElementById('wr-toggle-v2');
+        const configView = document.getElementById('wr-config-view');
+        const v2View = document.getElementById('wr-v2-view');
+        const v2EndBtn = document.getElementById('wr-v2-end-btn');
+        const v2BackBtn = document.getElementById('wr-v2-back-btn');
+        const v2Stage = document.getElementById('wr-v2-stage');
+        const v2Report = document.getElementById('wr-v2-report');
+        const v2Coach = document.getElementById('wr-v2-coach');
+        const v2Restart = document.getElementById('wr-v2-restart-btn');
+        const speakBtn = document.getElementById('wr-v2-speak-btn');
+        const streamBox = document.getElementById('wr-v2-stream');
+        const coachSkip = document.getElementById('wr-v2-coach-skip');
+
+        if (toggleV2 && configView && v2View) {
+            toggleV2.addEventListener('click', () => {
+                configView.classList.add('hidden');
+                v2View.classList.remove('hidden');
+                if (v2Stage) v2Stage.classList.remove('hidden');
+                if (v2Report) v2Report.classList.add('hidden');
+                if (v2Coach) v2Coach.classList.remove('hidden');
+            });
+        }
+
+        if (toggleV1 && configView && v2View) {
+            toggleV1.addEventListener('click', () => {
+                v2View.classList.add('hidden');
+                configView.classList.remove('hidden');
+            });
+        }
+
+        if (v2BackBtn && configView && v2View) {
+            v2BackBtn.addEventListener('click', () => {
+                v2View.classList.add('hidden');
+                configView.classList.remove('hidden');
+            });
+        }
+
+        if (v2EndBtn && v2Stage && v2Report) {
+            v2EndBtn.addEventListener('click', () => {
+                v2Stage.classList.add('hidden');
+                if (v2Coach) v2Coach.classList.add('hidden');
+                v2Report.classList.remove('hidden');
+            });
+        }
+
+        if (v2Restart && v2Stage && v2Report) {
+            v2Restart.addEventListener('click', () => {
+                v2Report.classList.add('hidden');
+                v2Stage.classList.remove('hidden');
+                if (v2Coach) v2Coach.classList.remove('hidden');
+            });
+        }
+
+        // Voice simulation
+        if (speakBtn && streamBox) {
+            speakBtn.addEventListener('click', () => {
+                speakBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Neural Voice Stream...';
+                setTimeout(() => {
+                    const userMsg = document.createElement('div');
+                    userMsg.className = 'wr-v2-msg user';
+                    userMsg.innerHTML = '<span style="font-size:11px; color:#8B8B8B; font-family:\'JetBrains Mono\',monospace;">🎙️ Candidate Voice • Live</span><div class="wr-v2-bubble">To prevent deadlock without lock hierarchy starvation, I would implement structured lock ordering across memory addresses or non-blocking try-lock with exponential backoff.</div>';
+                    streamBox.appendChild(userMsg);
+                    streamBox.scrollTop = streamBox.scrollHeight;
+
+                    speakBtn.innerHTML = '<i class="fas fa-check text-[#00D97E]"></i> Synthesizing AI Follow-up...';
+
+                    setTimeout(() => {
+                        const aiMsg = document.createElement('div');
+                        aiMsg.className = 'wr-v2-msg ai';
+                        aiMsg.innerHTML = '<span style="font-size:11px; color:#8B8B8B; font-family:\'JetBrains Mono\',monospace;">🤖 Elena Vance (AI) • Follow-up</span><div class="wr-v2-bubble">Insightful response. Now, what happens to system latency if hardware interrupts are disabled during lock acquisition under high NUMA contention?</div>';
+                        streamBox.appendChild(aiMsg);
+                        streamBox.scrollTop = streamBox.scrollHeight;
+                        speakBtn.innerHTML = '<i class="fas fa-microphone"></i> Active Voice Stream • Tap to Answer';
+                        document.getElementById('wr-v2-q-text').innerText = '"What happens to system latency if hardware interrupts are disabled during lock acquisition under high NUMA contention?"';
+                    }, 2000);
+                }, 1200);
+            });
+        }
+
+        if (coachSkip && speakBtn) {
+            coachSkip.addEventListener('click', () => {
+                speakBtn.click();
+            });
+        }
+    }
+
+    setTimeout(setupWarRoomV2, 500);
