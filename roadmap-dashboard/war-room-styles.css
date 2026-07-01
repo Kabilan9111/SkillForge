@@ -884,3 +884,610 @@ input:checked + .wr-slider:before {
     text-align: center;
     box-shadow: 0 0 60px rgba(255, 77, 79, 0.3);
 }
+
+
+/* =========================================================
+   LIVE INTERVIEW ENGINE — EXECUTIVE RACE CONTROL
+   ========================================================= */
+
+.wr-live-engine {
+    background: #050505;
+    color: #fff;
+    min-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: wrLiveEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wrLiveEnter {
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* 1. TOP NAVBAR */
+.wr-live-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.wr-live-top-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.wr-back-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wr-back-btn:hover {
+    background: rgba(255, 77, 79, 0.15);
+    border-color: #FF4D4F;
+}
+
+.wr-live-rec {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #EF4444;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.wr-rec-dot {
+    width: 6px;
+    height: 6px;
+    background: #EF4444;
+    border-radius: 50%;
+    animation: wrPulse 1s infinite;
+}
+
+.wr-live-modes {
+    display: flex;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow-x: auto;
+}
+
+.wr-mode-tab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border: none;
+    background: transparent;
+}
+
+.wr-mode-tab:hover, .wr-mode-tab.active {
+    background: #FF4D4F;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 77, 79, 0.4);
+}
+
+.wr-live-top-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.wr-end-btn {
+    background: #EF4444;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wr-end-btn:hover {
+    background: #DC2626;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+/* 2. THREE-COLUMN LIVE WORKSPACE */
+.wr-live-grid {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr) 330px;
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 1400px) {
+    .wr-live-grid {
+        grid-template-columns: 260px minmax(0, 1fr) 300px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .wr-live-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* LEFT COLUMN: VIDEOS & CONTROLS */
+.wr-live-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.wr-video-card {
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.wr-video-frame {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(145deg, #181818, #0a0a0a);
+    border-radius: 12px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wr-ai-aura {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 77, 79, 0.35) 0%, transparent 70%);
+    animation: wrPulse 2s infinite ease-in-out;
+}
+
+.wr-video-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 2px solid #FF4D4F;
+    object-fit: cover;
+    z-index: 1;
+    box-shadow: 0 0 20px rgba(255, 77, 79, 0.4);
+}
+
+.wr-video-tag {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wr-audio-meter {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 10px;
+}
+
+.wr-audio-bar {
+    width: 2px;
+    background: #10B981;
+    animation: wrAudioBeat 0.6s infinite ease-in-out alternate;
+}
+
+@keyframes wrAudioBeat {
+    0% { height: 2px; }
+    100% { height: 10px; }
+}
+
+.wr-user-video {
+    height: 120px;
+    background: #141414;
+}
+
+.wr-hardware-deck {
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.wr-hw-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    padding: 10px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.wr-hw-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.wr-hw-btn.active {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10B981;
+    color: #10B981;
+}
+
+.wr-timer-card {
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px;
+    text-align: center;
+}
+
+/* CENTER COLUMN: INTERACTIVE WORKSPACE */
+.wr-live-center {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.wr-question-panel {
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.wr-question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.wr-question-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 0 0 12px 0;
+    color: #fff;
+}
+
+.wr-followup-box {
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 3px solid #FF4D4F;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin-top: 10px;
+}
+
+.wr-followup-item {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 4px 0;
+}
+
+.wr-workspace-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 8px;
+}
+
+.wr-ws-tab {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wr-ws-tab:hover, .wr-ws-tab.active {
+    background: #181818;
+    color: #fff;
+    border-color: #FF4D4F;
+}
+
+.wr-workspace-area {
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.wr-ws-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: #141414;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wr-code-editor {
+    flex: 1;
+    background: #090909;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #E5E7EB;
+    overflow-y: auto;
+    border: none;
+    resize: none;
+    width: 100%;
+}
+
+.wr-code-editor:focus {
+    outline: none;
+}
+
+/* WHITEBOARD CANVAS */
+.wr-canvas-toolbar {
+    display: flex;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #141414;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
+}
+
+.wr-canvas-tool {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.wr-canvas-tool:hover, .wr-canvas-tool.active {
+    background: #FF4D4F;
+    border-color: #FF4D4F;
+}
+
+.wr-canvas-grid {
+    flex: 1;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-color: #0c0c0c;
+    position: relative;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* RIGHT COLUMN: TELEMETRY ANALYSIS */
+.wr-live-right {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.wr-telemetry-panel {
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.wr-tel-header {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wr-metric-item {
+    margin-bottom: 10px;
+}
+
+.wr-metric-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.wr-metric-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wr-metric-fill {
+    height: 100%;
+    background: #FF4D4F;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+/* 3. BOTTOM TIMELINE & VOICE WAVEFORM */
+.wr-live-bottombar {
+    background: #101010;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr) 200px;
+    gap: 20px;
+    align-items: center;
+}
+
+@media (max-width: 1100px) {
+    .wr-live-bottombar {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wr-voice-dock {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.wr-waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 32px;
+}
+
+.wr-wave-bar {
+    width: 3px;
+    background: #FF4D4F;
+    border-radius: 2px;
+    animation: wrWaveAnim 0.7s infinite ease-in-out alternate;
+}
+
+@keyframes wrWaveAnim {
+    0% { height: 6px; opacity: 0.5; }
+    100% { height: 28px; opacity: 1; }
+}
+
+.wr-timeline-feed {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px 14px;
+    height: 64px;
+    overflow-y: auto;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.wr-msg-ai { color: #FF4D4F; font-weight: 600; }
+.wr-msg-user { color: #10B981; font-weight: 600; }
+.wr-msg-text { color: rgba(255, 255, 255, 0.85); }
+
+.wr-bottom-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* 4. FLOATING AI COACH POD */
+.wr-floating-coach {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 320px;
+    background: rgba(16, 16, 16, 0.95);
+    border: 1px solid #FF4D4F;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 77, 79, 0.25);
+    z-index: 9999;
+    backdrop-filter: blur(15px);
+    transition: all 0.3s;
+}
+
+.wr-coach-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #FF4D4F;
+}
+
+.wr-coach-banner {
+    background: rgba(255, 77, 79, 0.1);
+    border-left: 3px solid #FF4D4F;
+    padding: 8px 10px;
+    border-radius: 0 6px 6px 0;
+    font-size: 11px;
+    color: #ddd;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.wr-coach-pills {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.wr-coach-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.wr-coach-pill:hover {
+    background: #FF4D4F;
+    border-color: #FF4D4F;
+}

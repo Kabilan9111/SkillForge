@@ -115,6 +115,11 @@ const MockInterview = (function() {
             return;
         }
 
+        if (document.getElementById('wr-config-view') || document.querySelector('.wr-hero')) {
+            console.log('[Mock Interview] Executive War Room UI active. Skipping legacy init.');
+            return;
+        }
+
         console.log('[Mock Interview] Setting up event listeners...');
         setupEventListeners();
         state.recognition = initializeSpeechRecognition();

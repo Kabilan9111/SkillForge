@@ -163,3 +163,113 @@
         setTimeout(initWarRoom, 100);
     }
 })();
+
+
+    // LIVE INTERVIEW ENGINE INTERACTIONS
+    window.triggerCoach = function(msg) {
+        const banner = document.getElementById('wr-coach-msg');
+        if (banner) banner.textContent = msg;
+        
+        const timeline = document.getElementById('wr-timeline-feed');
+        if (timeline) {
+            const div = document.createElement('div');
+            div.innerHTML = `<span style="color:#F59E0B; font-weight:700;">🤖 AI Coach Advice:</span> <span class="wr-msg-text">${msg}</span>`;
+            timeline.appendChild(div);
+            timeline.scrollTop = timeline.scrollHeight;
+        }
+    };
+
+    function setupLiveEngine() {
+        const startBtn = document.getElementById('wr-start-btn');
+        const modal = document.getElementById('wr-simulation-modal');
+        const configView = document.getElementById('wr-config-view');
+        const liveEngine = document.getElementById('wr-live-engine');
+        const floatingCoach = document.getElementById('wr-floating-coach');
+
+        if (startBtn && modal && configView && liveEngine) {
+            // Override previous click listener
+            const newStartBtn = startBtn.cloneNode(true);
+            startBtn.parentNode.replaceChild(newStartBtn, startBtn);
+
+            newStartBtn.addEventListener('click', () => {
+                modal.style.display = 'flex';
+                let count = 3;
+                const counterEl = document.getElementById('wr-countdown-num');
+                const statusEl = document.getElementById('wr-countdown-status');
+                
+                const steps = [
+                    "STARTING SECURE SESSION RECORDING...",
+                    "CONNECTING ULTRA-HD ENCRYPTED TELEMETRY...",
+                    "GENERATING CUSTOM SYSTEMS ARCHITECTURE CHALLENGES...",
+                    "PREPARING EXECUTIVE INTERVIEW ENVIRONMENT..."
+                ];
+
+                const interval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        counterEl.textContent = count;
+                        statusEl.textContent = steps[count] || "SYNCHRONIZING AI AUDIO CHANNELS...";
+                    } else if (count === 0) {
+                        counterEl.textContent = "LAUNCH!";
+                        statusEl.textContent = "INTERVIEW STARTED! ENTERING WAR ROOM ENGINE.";
+                    } else {
+                        clearInterval(interval);
+                        modal.style.display = 'none';
+                        configView.classList.add('hidden');
+                        liveEngine.classList.remove('hidden');
+                        if (floatingCoach) floatingCoach.classList.remove('hidden');
+                        
+                        // Update AI Persona in Live Engine
+                        const aiNameEl = document.getElementById('wr-live-ai-name');
+                        if (aiNameEl) aiNameEl.textContent = `${currentPersona} (${currentCompany} Evaluator)`;
+                    }
+                }, 1000);
+            });
+        }
+
+        // Exit Live Engine Button
+        const exitBtn = document.getElementById('wr-btn-exit-live');
+        if (exitBtn) {
+            exitBtn.addEventListener('click', () => {
+                const configView = document.getElementById('wr-config-view');
+                const liveEngine = document.getElementById('wr-live-engine');
+                const floatingCoach = document.getElementById('wr-floating-coach');
+                if (liveEngine) liveEngine.classList.add('hidden');
+                if (floatingCoach) floatingCoach.classList.add('hidden');
+                if (configView) configView.classList.remove('hidden');
+            });
+        }
+
+        // Workspace Tab Switcher (Code vs Canvas vs Notes)
+        document.querySelectorAll('.wr-ws-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.wr-ws-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.getAttribute('data-ws');
+                document.getElementById('wr-view-code').style.display = (target === 'code') ? 'flex' : 'none';
+                document.getElementById('wr-view-canvas').style.display = (target === 'canvas') ? 'flex' : 'none';
+                document.getElementById('wr-view-notes').style.display = (target === 'notes') ? 'flex' : 'none';
+            });
+        });
+
+        // Mode Switcher Tabs
+        document.querySelectorAll('.wr-mode-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.wr-mode-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const mode = tab.getAttribute('data-mode');
+                const qTitle = document.getElementById('wr-live-q-title');
+                if (qTitle) {
+                    if (mode === 'System Design') qTitle.textContent = "Design a High-Throughput Distributed Rate Limiter for 100M Requests/sec across Global Edge Regions";
+                    else if (mode === 'Coding') qTitle.textContent = "Hard Coding: Implement LRU Cache with O(1) Expiration & Sharded Concurrency Locks";
+                    else if (mode === 'Behavioral') qTitle.textContent = "Tell me about a time you had to push back against executive leadership when an architectural decision endangered system reliability.";
+                    else if (mode === 'Architecture') qTitle.textContent = "Architect an Active-Active Multi-Region Database Consensus Tier for Stripe Payments";
+                    else if (mode === 'Code Review') qTitle.textContent = "Review this PR: Identify race conditions in async memory management and propose thread-safe primitives.";
+                    else if (mode === 'Leadership') qTitle.textContent = "How do you allocate engineering headcount between paying down technical debt vs shipping new enterprise features under tight deadlines?";
+                }
+            });
+        });
+    }
+
+    // Call setupLiveEngine on load
+    setTimeout(setupLiveEngine, 300);

@@ -1475,6 +1475,7 @@
 
                         <!-- 9. MOCK INTERVIEW (THE WAR ROOM) -->
             <section id="mock-interview-page" class="page-view hidden">
+                <div id="wr-config-view">
                 <div class="wr-container">
                     
                     <!-- 1. HERO SECTION -->
@@ -1885,6 +1886,8 @@
                     </div>
                 </div>
 
+                </div> <!-- End wr-config-view -->
+
                 <!-- SIMULATION LAUNCH MODAL -->
                 <div class="wr-modal-overlay" id="wr-simulation-modal">
                     <div class="wr-modal-content">
@@ -1892,6 +1895,286 @@
                         <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">EXECUTIVE WAR ROOM LAUNCHING</h2>
                         <p style="color:var(--wr-text-mut); font-size:14px; margin-bottom:24px;" id="wr-countdown-status">INITIALIZING NEURAL EVALUATOR CHANNELS...</p>
                         <div id="wr-countdown-num" style="font-size:72px; font-weight:900; color:#fff; font-family:'JetBrains Mono',monospace;">3</div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     LIVE INTERVIEW ENGINE VIEW (PROMPT 2)
+                     ========================================== -->
+                <div id="wr-live-engine" class="wr-live-engine hidden">
+                    
+                    <!-- 1. TOP BAR -->
+                    <div class="wr-live-topbar">
+                        <div class="wr-live-top-left">
+                            <button class="wr-back-btn" id="wr-btn-exit-live">
+                                <i class="fas fa-arrow-left"></i> End & Return to Race Control
+                            </button>
+                            <div class="wr-live-rec">
+                                <span class="wr-rec-dot"></span>
+                                <span id="wr-rec-timer">REC 00:14:22</span>
+                            </div>
+                            <span style="font-size:11px; color:#10B981; font-weight:700;"><i class="fas fa-shield-alt"></i> 12ms ENCRYPTED TELEMETRY</span>
+                        </div>
+
+                        <div class="wr-live-modes">
+                            <button class="wr-mode-tab active" data-mode="Coding">Coding</button>
+                            <button class="wr-mode-tab" data-mode="System Design">System Design</button>
+                            <button class="wr-mode-tab" data-mode="Behavioral">Behavioral</button>
+                            <button class="wr-mode-tab" data-mode="Architecture">Architecture</button>
+                            <button class="wr-mode-tab" data-mode="Code Review">Code Review</button>
+                            <button class="wr-mode-tab" data-mode="Leadership">Leadership</button>
+                        </div>
+
+                        <div class="wr-live-top-right">
+                            <span style="font-size:12px; color:rgba(255,255,255,0.7);">Question 2 of 4 • <strong style="color:#fff;">Phase 2 Deep Architecture</strong></span>
+                            <button class="wr-end-btn" id="wr-btn-finish">End Interview</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. THREE-COLUMN WORKSPACE -->
+                    <div class="wr-live-grid">
+                        
+                        <!-- LEFT COLUMN: AI VIDEO & USER DECK -->
+                        <div class="wr-live-left">
+                            <div class="wr-video-card">
+                                <div class="wr-video-frame">
+                                    <div class="wr-ai-aura"></div>
+                                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" class="wr-video-avatar" id="wr-live-ai-avatar" alt="AI Evaluator">
+                                    <div class="wr-video-tag">
+                                        <i class="fas fa-microchip" style="color:#FF4D4F;"></i>
+                                        <span id="wr-live-ai-name">Elena Vance (Staff Evaluator)</span>
+                                        <div class="wr-audio-meter">
+                                            <div class="wr-audio-bar" style="animation-delay:0.1s;"></div>
+                                            <div class="wr-audio-bar" style="animation-delay:0.3s;"></div>
+                                            <div class="wr-audio-bar" style="animation-delay:0.2s;"></div>
+                                            <div class="wr-audio-bar" style="animation-delay:0.5s;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wr-video-card">
+                                <div class="wr-video-frame wr-user-video">
+                                    <div style="width:50px; height:50px; border-radius:50%; background:#FF4D4F; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px;">YOU</div>
+                                    <div class="wr-video-tag" style="background:rgba(16,185,129,0.2); border-color:#10B981; color:#10B981;">
+                                        <i class="fas fa-video"></i> HD 1080p60 Active
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wr-hardware-deck">
+                                <button class="wr-hw-btn active" id="hw-mic">
+                                    <i class="fas fa-microphone"></i>
+                                    <span>Mic On</span>
+                                </button>
+                                <button class="wr-hw-btn active" id="hw-cam">
+                                    <i class="fas fa-video"></i>
+                                    <span>Cam On</span>
+                                </button>
+                                <button class="wr-hw-btn" id="hw-share">
+                                    <i class="fas fa-desktop"></i>
+                                    <span>Share Screen</span>
+                                </button>
+                            </div>
+
+                            <div class="wr-timer-card">
+                                <div style="font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; margin-bottom:4px;">Session Remaining</div>
+                                <div style="font-size:28px; font-weight:800; font-family:'JetBrains Mono',monospace; color:#fff;" id="wr-session-clock">30:38</div>
+                                <div style="height:4px; background:rgba(255,255,255,0.1); border-radius:2px; margin-top:8px; overflow:hidden;">
+                                    <div style="width:32%; height:100%; background:#FF4D4F;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CENTER COLUMN: QUESTION & IDE/WHITEBOARD -->
+                        <div class="wr-live-center">
+                            <div class="wr-question-panel">
+                                <div class="wr-question-header">
+                                    <span style="font-size:11px; background:rgba(255,77,79,0.2); color:#FF4D4F; padding:4px 8px; border-radius:6px; font-weight:700;">🔴 CURRENT ACTIVE CHALLENGE</span>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Target: Google L6 Consensus</span>
+                                </div>
+                                <h3 class="wr-question-title" id="wr-live-q-title">Design a High-Throughput Distributed Rate Limiter for 100M Requests/sec across Global Edge Regions</h3>
+                                
+                                <div class="wr-followup-box">
+                                    <div style="font-size:11px; font-weight:700; color:#FF4D4F; margin-bottom:4px;">⚡ INTERROGATION FOLLOW-UPS:</div>
+                                    <div class="wr-followup-item">1. How do you handle Redis cluster failover without dropping tokens during a network split?</div>
+                                    <div class="wr-followup-item">2. Compare Sliding Window Log vs Token Bucket memory overhead at edge nodes.</div>
+                                </div>
+                            </div>
+
+                            <div class="wr-workspace-tabs">
+                                <button class="wr-ws-tab active" data-ws="code"><i class="fas fa-code"></i> Code Editor (TypeScript)</button>
+                                <button class="wr-ws-tab" data-ws="canvas"><i class="fas fa-project-diagram"></i> Architecture Whiteboard</button>
+                                <button class="wr-ws-tab" data-ws="notes"><i class="fas fa-edit"></i> Executive Live Notes</button>
+                            </div>
+
+                            <div class="wr-workspace-area">
+                                <!-- TAB 1: CODE EDITOR -->
+                                <div id="wr-view-code" style="display:flex; flex-direction:column; flex:1;">
+                                    <div class="wr-ws-topbar">
+                                        <span style="font-size:12px; font-family:'JetBrains Mono',monospace; color:#10B981;">● global_edge_limiter.ts</span>
+                                        <div style="display:flex; gap:8px;">
+                                            <span style="font-size:11px; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;">Complexity: O(1)</span>
+                                            <button style="background:#10B981; color:#fff; border:none; padding:4px 12px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;" onclick="alert('Simulation Test Bench Passed: 100,000 req/sec verified!')">▶ Run Test Bench</button>
+                                        </div>
+                                    </div>
+                                    <textarea class="wr-code-editor" id="wr-live-code-area">// Distributed Sliding Window Rate Limiter — Global Edge Implementation
+interface RateLimitRequest {
+    clientId: string;
+    timestamp: number;
+    tokensRequired: number;
+}
+
+export class GlobalEdgeRateLimiter {
+    private redisPool: any;
+    private readonly maxTokensPerWindow = 10000;
+    private readonly windowDurationMs = 1000;
+
+    constructor(clusterEndpoints: string[]) {
+        // Initialize high-concurrency Redis cluster pool with local L1 cache fallback
+    }
+
+    public async allowRequest(req: RateLimitRequest): Promise<boolean> {
+        const windowKey = `rl:${req.clientId}:${Math.floor(req.timestamp / this.windowDurationMs)}`;
+        // TODO: Implement atomic Lua script evaluation to prevent race conditions at edge
+        return true;
+    }
+}</textarea>
+                                </div>
+
+                                <!-- TAB 2: ARCHITECTURE WHITEBOARD -->
+                                <div id="wr-view-canvas" style="display:none; flex-direction:column; flex:1;">
+                                    <div class="wr-canvas-toolbar">
+                                        <button class="wr-canvas-tool active"><i class="fas fa-mouse-pointer"></i> Select</button>
+                                        <button class="wr-canvas-tool"><i class="fas fa-square"></i> Microservice Box</button>
+                                        <button class="wr-canvas-tool"><i class="fas fa-database"></i> Redis Cluster</button>
+                                        <button class="wr-canvas-tool"><i class="fas fa-cloud"></i> Edge Gateway</button>
+                                        <button class="wr-canvas-tool"><i class="fas fa-long-arrow-alt-right"></i> Async Kafka Stream</button>
+                                        <button class="wr-canvas-tool" style="color:#EF4444;" onclick="alert('Canvas cleared for new topology drawing!')">Clear</button>
+                                    </div>
+                                    <div class="wr-canvas-grid">
+                                        <div style="background:#141414; border:2px solid #FF4D4F; padding:20px; border-radius:12px; text-align:center; box-shadow:0 0 30px rgba(255,77,79,0.2);">
+                                            <div style="font-weight:800; color:#FF4D4F; margin-bottom:8px;">[EDGE API GATEWAY (Cloudflare)]</div>
+                                            <div style="font-size:12px; color:#aaa;">Anycast Routing • 100M Req/s</div>
+                                            <div style="margin:12px 0; color:#10B981;"><i class="fas fa-arrow-down"></i> Local CRDT Token Sync <i class="fas fa-arrow-down"></i></div>
+                                            <div style="background:#1e1e1e; border:1px solid #10B981; padding:10px; border-radius:8px; font-size:12px; font-weight:700;">[SHARDED REDIS CLUSTER + LUA ATOMIC LOCKS]</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- TAB 3: EXECUTIVE LIVE NOTES -->
+                                <div id="wr-view-notes" style="display:none; flex-direction:column; flex:1;">
+                                    <div class="wr-ws-topbar">
+                                        <span style="font-size:12px; color:#aaa;">Executive Scratchpad & Assumptions</span>
+                                    </div>
+                                    <textarea class="wr-code-editor" style="font-family:'Inter',sans-serif;">• Assumption 1: 99.999% availability required across 3 geographic zones.
+• Trade-off: Strong consistency vs Low Latency. For edge rate limiting, eventual consistency (CRDT) is preferred over synchronous quorum consensus.
+• Memory footprint: 100M active tokens require ~1.2GB memory per node.</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: TELEMETRY ANALYSIS -->
+                        <div class="wr-live-right">
+                            <div class="wr-telemetry-panel">
+                                <div class="wr-tel-header">
+                                    <span><i class="fas fa-chart-line" style="color:#FF4D4F;"></i> Live Evaluation Telemetry</span>
+                                    <span style="font-size:16px; font-weight:800; font-family:'JetBrains Mono',monospace; color:#10B981;">91.4%</span>
+                                </div>
+
+                                <div class="wr-metric-item">
+                                    <div class="wr-metric-top"><span>Confidence & Composure</span><span>94%</span></div>
+                                    <div class="wr-metric-bar"><div class="wr-metric-fill" style="width:94%;"></div></div>
+                                </div>
+
+                                <div class="wr-metric-item">
+                                    <div class="wr-metric-top"><span>Technical Depth (Staff Bar)</span><span>89%</span></div>
+                                    <div class="wr-metric-bar"><div class="wr-metric-fill" style="width:89%;"></div></div>
+                                </div>
+
+                                <div class="wr-metric-item">
+                                    <div class="wr-metric-top"><span>Communication Cadence</span><span>142 WPM (Ideal)</span></div>
+                                    <div class="wr-metric-bar"><div class="wr-metric-fill" style="width:95%; background:#10B981;"></div></div>
+                                </div>
+
+                                <div class="wr-metric-item">
+                                    <div class="wr-metric-top"><span>Problem Solving & Trade-offs</span><span>92%</span></div>
+                                    <div class="wr-metric-bar"><div class="wr-metric-fill" style="width:92%;"></div></div>
+                                </div>
+
+                                <div class="wr-metric-item">
+                                    <div class="wr-metric-top"><span>Executive Leadership Voice</span><span>88%</span></div>
+                                    <div class="wr-metric-bar"><div class="wr-metric-fill" style="width:88%;"></div></div>
+                                </div>
+                            </div>
+
+                            <div class="wr-telemetry-panel">
+                                <div class="wr-tel-header" style="margin-bottom:8px;">
+                                    <span><i class="fas fa-stopwatch" style="color:#F59E0B;"></i> Deliberation Telemetry</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+                                    <span style="color:#aaa;">Avg Thinking Before Reply:</span>
+                                    <strong style="color:#fff;">01.4s</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:12px;">
+                                    <span style="color:#aaa;">Current Interrogation Topic:</span>
+                                    <strong style="color:#FF4D4F;">Consensus Protocols</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 3. BOTTOM TIMELINE & AUDIO DOCK -->
+                    <div class="wr-live-bottombar">
+                        <div class="wr-voice-dock">
+                            <div style="width:40px; height:40px; border-radius:10px; background:rgba(255,77,79,0.15); border:1px solid #FF4D4F; display:flex; align-items:center; justify-content:center; color:#FF4D4F;">
+                                <i class="fas fa-wave-square"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:12px; font-weight:700;">AI Interrogation Audio</div>
+                                <div class="wr-waveform">
+                                    <div class="wr-wave-bar" style="animation-delay:0.1s;"></div>
+                                    <div class="wr-wave-bar" style="animation-delay:0.4s;"></div>
+                                    <div class="wr-wave-bar" style="animation-delay:0.2s;"></div>
+                                    <div class="wr-wave-bar" style="animation-delay:0.6s;"></div>
+                                    <div class="wr-wave-bar" style="animation-delay:0.3s;"></div>
+                                    <div class="wr-wave-bar" style="animation-delay:0.5s;"></div>
+                                    <div class="wr-wave-bar" style="animation-delay:0.1s;"></div>
+                                    <div class="wr-wave-bar" style="animation-delay:0.4s;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wr-timeline-feed" id="wr-timeline-feed">
+                            <div><span class="wr-msg-ai">14:02 • AI (Elena Vance):</span> <span class="wr-msg-text">"Your token bucket approach works for single node. How do you synchronize state across US-East and EU-Central edge locations under 10ms?"</span></div>
+                            <div><span class="wr-msg-user">14:15 • You:</span> <span class="wr-msg-text">"We utilize local edge token estimation with background CRDT synchronization to avoid cross-region locking overhead..."</span></div>
+                        </div>
+
+                        <div class="wr-bottom-actions">
+                            <button style="background:rgba(245,158,11,0.15); border:1px solid #F59E0B; color:#F59E0B; padding:8px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer;" onclick="alert('⭐ Moment bookmarked to Executive After-Action Report!')"><i class="fas fa-star"></i> Bookmark Moment</button>
+                            <button style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:6px; border-radius:8px; font-size:11px; cursor:pointer;" id="wr-btn-pause"><i class="fas fa-pause"></i> Pause Session</button>
+                        </div>
+                    </div>
+
+                </div> <!-- End wr-live-engine -->
+
+                <!-- FLOATING AI COACH POD -->
+                <div class="wr-floating-coach hidden" id="wr-floating-coach">
+                    <div class="wr-coach-top">
+                        <span>🤖 AI Strategic Coach</span>
+                        <i class="fas fa-times" style="cursor:pointer;" onclick="document.getElementById('wr-floating-coach').classList.add('hidden')"></i>
+                    </div>
+                    <div class="wr-coach-banner" id="wr-coach-msg">
+                        Pro Tip: Explicitly mention CAP Theorem network partition assumptions before detailing Redis Lua script locking!
+                    </div>
+                    <div class="wr-coach-pills">
+                        <button class="wr-coach-pill" onclick="triggerCoach('Hint: Mention consistent hashing rings to balance shard load uniformly.')">💡 Hint</button>
+                        <button class="wr-coach-pill" onclick="triggerCoach('Clarification: Interviewer wants to know about split-brain election timeouts.')">🔍 Clarify</button>
+                        <button class="wr-coach-pill" onclick="triggerCoach('Example: Cite Stripe or Discord snowflake ID rate limiting patterns.')">📋 Example</button>
+                        <button class="wr-coach-pill" onclick="triggerCoach('Session paused for 60 seconds strategic break.')">⏸️ Pause</button>
+                        <button class="wr-coach-pill" onclick="triggerCoach('AI repeating question with emphasized architectural constraints.')">🔄 Repeat</button>
+                        <button class="wr-coach-pill" onclick="triggerCoach('Skipping follow-up challenge to advance to Phase 3 Scalability.')">⏭️ Skip</button>
                     </div>
                 </div>
             </section>

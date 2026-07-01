@@ -960,3 +960,8 @@
 {"ts":"2026-07-01T04:40:13.553Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":3,"userId":null,"ip":"::1"}
 {"ts":"2026-07-01T04:40:13.659Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
 {"ts":"2026-07-01T04:40:13.664Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":9,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T05:13:44.344Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T05:13:44.480Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T05:13:44.481Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":4,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T05:13:44.574Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":15,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T05:13:44.591Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":200,"ms":17,"userId":null,"ip":"::1"}
