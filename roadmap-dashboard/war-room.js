@@ -273,3 +273,45 @@
 
     // Call setupLiveEngine on load
     setTimeout(setupLiveEngine, 300);
+
+
+    // PROMPT 3: POST-INTERVIEW SUITE INTERACTIONS
+    function setupResultsView() {
+        const finishBtn = document.getElementById('wr-btn-finish');
+        const liveEngine = document.getElementById('wr-live-engine');
+        const resultsView = document.getElementById('wr-results-view');
+        const floatingCoach = document.getElementById('wr-floating-coach');
+        const backRaceBtn = document.getElementById('wr-btn-back-race');
+        const configView = document.getElementById('wr-config-view');
+
+        if (finishBtn && liveEngine && resultsView) {
+            finishBtn.addEventListener('click', () => {
+                liveEngine.classList.add('hidden');
+                if (floatingCoach) floatingCoach.classList.add('hidden');
+                resultsView.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            });
+        }
+
+        if (backRaceBtn && resultsView && configView) {
+            backRaceBtn.addEventListener('click', () => {
+                resultsView.classList.add('hidden');
+                configView.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            });
+        }
+
+        // Tab Switching inside Results View
+        document.querySelectorAll('.wr-res-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.wr-res-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.getAttribute('data-res');
+                document.querySelectorAll('.wr-res-panel').forEach(p => p.classList.add('hidden'));
+                const targetPanel = document.getElementById(`wr-panel-${target}`);
+                if (targetPanel) targetPanel.classList.remove('hidden');
+            });
+        });
+    }
+
+    setTimeout(setupResultsView, 400);
