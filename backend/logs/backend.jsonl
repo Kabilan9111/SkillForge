@@ -990,3 +990,13 @@
 {"ts":"2026-07-01T06:04:25.958Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":8,"userId":null,"ip":"::1"}
 {"ts":"2026-07-01T06:04:54.862Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
 {"ts":"2026-07-01T06:04:57.562Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:34:10.052Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:34:10.232Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:34:10.233Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:34:10.295Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:34:10.298Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":7,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:38:06.556Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:38:06.657Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:38:06.658Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":6,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:38:06.679Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T06:38:06.682Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":200,"ms":4,"userId":null,"ip":"::1"}
