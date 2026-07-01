@@ -855,3 +855,108 @@
 {"ts":"2026-06-25T09:11:29.992Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
 {"ts":"2026-06-25T09:11:29.993Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":2,"userId":null,"ip":"::1"}
 {"ts":"2026-06-25T09:11:30.000Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:08.369Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":9,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:08.379Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:08.404Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":109,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:08.432Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":14,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:11.364Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:11.374Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":14,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:11.396Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":6,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:11.398Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":6,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:19.076Z","level":"info","event":"http.request","method":"GET","path":"/marketplace","status":200,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:19.923Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:19.926Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":41,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:19.930Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":17,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:19.954Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":7,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:40.319Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:40.321Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":11,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:40.325Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":7,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:40.344Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":11,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:55.372Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:55.377Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":11,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:55.426Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":4,"userId":null,"ip":"::1"}
+{"ts":"2026-06-28T18:07:55.433Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":17,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:46.556Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":12,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:50.532Z","level":"info","event":"http.request","method":"POST","path":"/login","status":200,"ms":424,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:51.803Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":12,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:51.836Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:51.849Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:51.850Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":20,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:51.867Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":6,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:53.181Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":10,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:53.219Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":14,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:53.223Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":20,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:53.230Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:53.233Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":21,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:53.259Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":15,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:05:56.958Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:19:45.463Z","level":"info","event":"http.request","method":"GET","path":"/8d07b9ad-2040-414e-b8d0-013a1055eef3","status":304,"ms":258,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:19:45.527Z","level":"info","event":"http.request","method":"GET","path":"/projects/8d07b9ad-2040-414e-b8d0-013a1055eef3/files","status":304,"ms":32,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:19:45.529Z","level":"info","event":"http.request","method":"GET","path":"/projects/8d07b9ad-2040-414e-b8d0-013a1055eef3/commits","status":304,"ms":30,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T06:19:45.565Z","level":"info","event":"http.request","method":"GET","path":"/projects/8d07b9ad-2040-414e-b8d0-013a1055eef3/stats","status":304,"ms":20,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:25:30.159Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":34,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:25:33.405Z","level":"info","event":"http.request","method":"GET","path":"/problems","status":304,"ms":126,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:25:33.412Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:25:34.590Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:26:11.837Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":16,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:26:11.840Z","level":"info","event":"http.request","method":"GET","path":"/sessions","status":304,"ms":27,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:26:11.859Z","level":"info","event":"http.request","method":"GET","path":"/profile","status":304,"ms":68,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:26:11.864Z","level":"info","event":"http.request","method":"GET","path":"/hiring-radar","status":304,"ms":60,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:26:11.944Z","level":"info","event":"http.request","method":"GET","path":"/warfare-modes","status":304,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:27:41.236Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:12.788Z","level":"info","event":"http.request","method":"GET","path":"/problems","status":304,"ms":8,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:12.792Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:14.277Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:16.113Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:17.106Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:19.010Z","level":"info","event":"http.request","method":"GET","path":"/sessions","status":304,"ms":7,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:19.019Z","level":"info","event":"http.request","method":"GET","path":"/profile","status":304,"ms":22,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:19.021Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":9,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:19.022Z","level":"info","event":"http.request","method":"GET","path":"/hiring-radar","status":304,"ms":22,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:19.084Z","level":"info","event":"http.request","method":"GET","path":"/warfare-modes","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:20.213Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":6,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:36:23.201Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:10.646Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":200,"ms":18,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:32.669Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":35,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:32.810Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:32.821Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":30,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:32.826Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":16,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:32.847Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":16,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:38.884Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":17,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:47.810Z","level":"info","event":"http.request","method":"GET","path":"/problems","status":304,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:47.820Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:49.098Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:50.495Z","level":"info","event":"http.request","method":"GET","path":"/problems","status":304,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:50.511Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:40:55.382Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:41:00.123Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-06-30T07:41:02.200Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:22.484Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":11,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:22.489Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:22.492Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":72,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:22.520Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:26.335Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:26.409Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:26.472Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:26.473Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:26.492Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":4,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:28.831Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:30.045Z","level":"info","event":"http.request","method":"GET","path":"/problems","status":304,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:30.048Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:32.478Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:32:36.410Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":1,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:15.404Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:15.711Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:15.712Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:15.715Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":200,"ms":5,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:15.720Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:50.095Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":4,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:50.255Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:50.256Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:50.307Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:39:50.312Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":0,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:40:13.399Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:40:13.552Z","level":"warn","event":"http.error","status":404,"code":"INTERNAL_ERROR","message":"Track not found","method":"POST","path":"/api/track/enroll","userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:40:13.553Z","level":"warn","event":"http.request","method":"POST","path":"/api/track/enroll","status":404,"ms":3,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:40:13.659Z","level":"info","event":"http.request","method":"GET","path":"/favicon.ico","status":304,"ms":2,"userId":null,"ip":"::1"}
+{"ts":"2026-07-01T04:40:13.664Z","level":"warn","event":"http.request","method":"GET","path":"/1","status":403,"ms":9,"userId":null,"ip":"::1"}

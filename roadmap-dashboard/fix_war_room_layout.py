@@ -1,4 +1,6 @@
-/* =========================================================
+import os
+
+css_content = """/* =========================================================
    SKILLFORGE WAR ROOM — EXECUTIVE INTERVIEW CENTER
    Layout Architecture & Responsive Grid Refinement
    ========================================================= */
@@ -884,3 +886,8 @@ input:checked + .wr-slider:before {
     text-align: center;
     box-shadow: 0 0 60px rgba(255, 77, 79, 0.3);
 }
+"""
+
+with open("war-room-styles.css", "w", encoding="utf-8") as f:
+    f.write(css_content)
+print("Updated war-room-styles.css with exact responsive CSS Grid & Sticky Sidebar architecture.")
