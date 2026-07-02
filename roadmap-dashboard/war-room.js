@@ -217,6 +217,8 @@
                         modal.style.display = 'none';
                         configView.classList.add('hidden');
                         liveEngine.classList.remove('hidden');
+                        const globalSidebar = document.getElementById('global-sidebar');
+                        if (globalSidebar) globalSidebar.style.display = 'none';
                         if (floatingCoach) floatingCoach.classList.remove('hidden');
                         
                         // Update AI Persona in Live Engine
@@ -235,6 +237,8 @@
                 const liveEngine = document.getElementById('wr-live-engine');
                 const floatingCoach = document.getElementById('wr-floating-coach');
                 if (liveEngine) liveEngine.classList.add('hidden');
+                const globalSidebar = document.getElementById('global-sidebar');
+                if (globalSidebar) globalSidebar.style.display = '';
                 if (floatingCoach) floatingCoach.classList.add('hidden');
                 if (configView) configView.classList.remove('hidden');
             });
